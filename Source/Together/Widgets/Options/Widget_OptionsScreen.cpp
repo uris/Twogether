@@ -130,8 +130,11 @@ void UWidget_OptionsScreen::NativeOnDeactivated()
 {
 	Super::NativeOnDeactivated();
 
-	// on deactivating update/commit updated user settings
-	UUserSettings::Get()->ApplySettings(true);
+	// on deactivating update/commit updated user settings, applying non video options
+	// to avoid unneeded screen flicker and sizing issues
+	// UUserSettings::Get()->ApplySettings(true);
+	UUserSettings::Get()->ApplyNonResolutionSettings();
+	UUserSettings::Get()->SaveSettings();
 }
 
 void UWidget_OptionsScreen::NativeTick(const FGeometry& MyGeometry, const float InDeltaTime)

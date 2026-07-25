@@ -23,6 +23,8 @@ void UOptionsListItemDataObject_Base::NotifyListDataModified(UOptionsListItemDat
 	OnListDataModified.Broadcast(InModifiedData, InReason);
 	if (bShouldApplyChangesImmediately)
 	{
-		UUserSettings::Get()->ApplySettings(true);
+		// UUserSettings::Get()->ApplySettings(true);
+		UUserSettings::Get()->ApplyNonResolutionSettings();
+		UUserSettings::Get()->SaveSettings();
 	}
 }

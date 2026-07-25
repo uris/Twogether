@@ -148,7 +148,7 @@ FText UListItemDataObject_String::CycleCurrentSetting(const EStringSettingDirect
 
 	// set it to current values
 	CurrentSetting = Settings[NextIndex];
-	const bool bDidUpdate = DidSetDisplayNameFromStringValue(CurrentSetting.DisplayName.ToString());
+	const bool bDidUpdate = DidSetDisplayNameFromStringValue(CurrentSetting.Value);
 
 	// save the latest value
 	if (DataDynamicSetter)
