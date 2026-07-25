@@ -31,7 +31,9 @@ public:
 protected:
 	// setup interfaces
 	virtual void NativeOnInitialized() override;
+	virtual void NativeConstruct() override;
 	virtual void NativeDestruct() override;
+	virtual UWidget* NativeGetDesiredFocusTarget() const override;
 
 	// setup on activation
 	virtual void NativeOnActivated() override;

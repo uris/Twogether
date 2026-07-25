@@ -3,6 +3,7 @@
 
 #include "Widgets/Options/ListView/UIOptionsListEntry.h"
 
+#include "CommonInputSubsystem.h"
 #include "CommonTextBlock.h"
 #include "Utility/Debug.h"
 #include "Widgets/Components/UICommonTextBase.h"
@@ -12,8 +13,10 @@ void UUIOptionsListEntry::NativeOnListItemObjectSet(UObject* ListItemObject)
 {
 	IUserObjectListEntry::NativeOnListItemObjectSet(ListItemObject);
 
-	CachedListItemObject = ListItemObject;
+	bIsHovered = false;
+	bIsSelected = false;
 
+	CachedListItemObject = ListItemObject;
 	SetVisibility(ESlateVisibility::Visible); // ( default is collapsed)
 
 	OnOwningListDataObjectSet(CastChecked<UOptionsListItemDataObject_Base>(ListItemObject));
@@ -21,10 +24,25 @@ void UUIOptionsListEntry::NativeOnListItemObjectSet(UObject* ListItemObject)
 
 void UUIOptionsListEntry::NativeOnEntryReleased()
 {
+
+	if (UOptionsListItemDataObject_Base* PreviousItem =
+		Cast<UOptionsListItemDataObject_Base>(CachedListItemObject))
+	{
+		PreviousItem->OnListDataModified.RemoveAll(this);
+	}
+
 	OnEntrySelectionRequested.Clear();
 	CachedListItemObject = nullptr;
 
+	NativeListEntryWidgetHovered(false);
+	NativeListEntryWidgetSelected(false);
+
 	IUserObjectListEntry::NativeOnEntryReleased();
+}
+
+FReply UUIOptionsListEntry::NativeOnFocusReceived(const FGeometry& InGeometry, const FFocusEvent& InFocusEvent)
+{
+	return Super::NativeOnFocusReceived(InGeometry, InFocusEvent);
 }
 
 void UUIOptionsListEntry::OnOwningListDataObjectSet(UOptionsListItemDataObject_Base* InOwningListDataObject)

@@ -51,6 +51,9 @@ public:
 	virtual void NativeListEntryWidgetSelected(bool bInIsSelected);
 
 protected:
+	// handle focus for gamepad input
+	virtual FReply NativeOnFocusReceived(const FGeometry& InGeometry, const FFocusEvent& InFocusEvent) override;
+
 	// push the data to the item object
 	virtual void NativeOnListItemObjectSet(UObject* ListItemObject) override;
 

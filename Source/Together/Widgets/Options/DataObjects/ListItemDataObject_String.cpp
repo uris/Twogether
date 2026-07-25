@@ -76,6 +76,19 @@ bool UListItemDataObject_String::ResetToDefault()
 	return true;
 }
 
+void UListItemDataObject_String::OnRotatorInitiatedValueChange(const FText& InDisplayName)
+{
+	if (const int32 IndexOfText = GetSettingIndexByDisplayName(InDisplayName); IndexOfText != INDEX_NONE)
+	{
+		CurrentSetting = Settings[IndexOfText];
+		if (DataDynamicSetter)
+		{
+			DataDynamicSetter->SetValueFromString(CurrentSetting.Value);
+			NotifyListDataModified(this);
+		}
+	}
+}
+
 void UListItemDataObject_String::AddDynamicSetting(const FName& InSettingDataId,
                                                    const FText& InDisplayName,
                                                    const FString& InValue)
@@ -185,5 +198,14 @@ int32 UListItemDataObject_String::GetSettingIndexByValue(const FString& InString
 		[&InStringValue](const FStringSetting& Setting)
 		{
 			return Setting.Value == InStringValue;
+		});
+}
+
+int32 UListItemDataObject_String::GetSettingIndexByDisplayName(const FText& InDisplayName) const
+{
+	return Settings.IndexOfByPredicate(
+		[&InDisplayName](const FStringSetting& Setting)
+		{
+			return Setting.DisplayName.ToString() == InDisplayName.ToString();
 		});
 }

@@ -3,6 +3,7 @@
 
 #include "Widgets/Options/ListView/Widget_ListEntry_String.h"
 
+#include "CommonInputSubsystem.h"
 #include "Utility/Debug.h"
 #include "Widgets/Components/UICommonButtonBase.h"
 #include "Widgets/Components/UICommonRotator.h"
@@ -27,6 +28,7 @@ void UWidget_ListEntry_String::NativeOnInitialized()
 	if (SettingRotator)
 	{
 		SettingRotator->OnClicked().AddUObject(this, &ThisClass::HandleRotatorClicked);
+		SettingRotator->OnRotatedEvent.AddUObject(this, &ThisClass::HandleRotatedEvent);
 	}
 
 	ApplyStyleUpdates();
@@ -35,18 +37,6 @@ void UWidget_ListEntry_String::NativeOnInitialized()
 void UWidget_ListEntry_String::NativeDestruct()
 {
 	Super::NativeDestruct();
-	if (CycleLeft)
-	{
-		CycleLeft->OnClicked().RemoveAll(this);
-	}
-	if (CycleRight)
-	{
-		CycleRight->OnClicked().RemoveAll(this);
-	}
-	if (SettingRotator)
-	{
-		SettingRotator->OnClicked().RemoveAll(this);
-	}
 }
 
 void UWidget_ListEntry_String::OnOwningListDataObjectSet(UOptionsListItemDataObject_Base* InOwningListDataObject)
@@ -78,6 +68,21 @@ void UWidget_ListEntry_String::OnOwningListDataObjectModified(UOptionsListItemDa
 	}
 }
 
+FReply UWidget_ListEntry_String::NativeOnFocusReceived(const FGeometry& InGeometry, const FFocusEvent& InFocusEvent)
+{
+	// handle focus on Rotator for gamepad support to cycle options with left/right arrows
+	UCommonInputSubsystem* IS = GetInputSubsystem();
+	if (IS && IS->GetCurrentInputType() == ECommonInputType::Gamepad)
+	{
+		if (SettingRotator)
+		{
+			return FReply::Handled().SetUserFocus(SettingRotator->GetCachedWidget().ToSharedRef());
+		}
+	}
+
+	return Super::NativeOnFocusReceived(InGeometry, InFocusEvent);
+}
+
 void UWidget_ListEntry_String::NativeListEntryWidgetHovered(const bool bInIsHovered)
 {
 	if (bIsHovered == bInIsHovered)
@@ -92,16 +97,9 @@ void UWidget_ListEntry_String::NativeListEntryWidgetHovered(const bool bInIsHove
 
 void UWidget_ListEntry_String::NativeListEntryWidgetSelected(const bool bInIsSelected)
 {
-	const bool bWasSelected = bIsSelected;
 	bIsSelected = bInIsSelected;
-	UE_LOG(LogTemp, Warning, TEXT("Was Selected: %d, Selected: %d"), bWasSelected, bIsSelected);
-
-	if (bWasSelected != bIsSelected)
-	{
-		BP_NativeOnSelected(bWasSelected);
-	}
-
 	ApplyStyleUpdates();
+
 	Super::NativeListEntryWidgetSelected(bInIsSelected);
 }
 
@@ -118,6 +116,29 @@ void UWidget_ListEntry_String::HandleCycleRight() const
 void UWidget_ListEntry_String::HandleRotatorClicked() const
 {
 	CycleSelection(EStringSettingDirection::Next);
+}
+
+void UWidget_ListEntry_String::HandleRotatedEvent(int32 Value, bool bUserInitiated) const
+{
+	UE_LOG(LogTemp, Warning, TEXT("Rotated: %d"), bUserInitiated);
+
+	if (!IsValid(CachedOwningListDataObject))
+	{
+		return;
+	}
+
+	UCommonInputSubsystem* IS = GetInputSubsystem();
+	if (!IS || !bUserInitiated)
+	{
+		return;
+	}
+
+	// use the selected text to commit updates from user selection
+	if (IS->GetCurrentInputType() == ECommonInputType::Gamepad)
+	{
+		const FText SelectedOption = SettingRotator->GetSelectedText();
+		CachedOwningListDataObject->OnRotatorInitiatedValueChange(SelectedOption);
+	}
 }
 
 void UWidget_ListEntry_String::CycleSelection(const EStringSettingDirection InDirection) const

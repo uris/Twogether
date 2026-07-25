@@ -44,19 +44,26 @@ void UWidget_OptionsScreen::NativeOnInitialized()
 			);
 	}
 
+}
+
+void UWidget_OptionsScreen::NativeConstruct()
+{
+	Super::NativeConstruct();
+
 	if (TabOptionsWidget)
 	{
-		Debug::Print("Tab Options Widget Initialized");
 		TabOptionsWidget->OnTabSelected.AddUniqueDynamic(this, &ThisClass::HandleTabSelected);
 	}
 
 	if (OptionsListView)
 	{
+		OptionsListView->OnEntryWidgetGenerated().RemoveAll(this);
+		OptionsListView->OnItemIsHoveredChanged().RemoveAll(this);
+		OptionsListView->OnItemSelectionChanged().RemoveAll(this);
 		OptionsListView->OnEntryWidgetGenerated().AddUObject(this, &ThisClass::HandleEntryGenerated);
 		OptionsListView->OnItemIsHoveredChanged().AddUObject(this, &ThisClass::HandleEntryHoveredChange);
 		OptionsListView->OnItemSelectionChanged().AddUObject(this, &ThisClass::HandleEntrySelectionChange);
 	}
-
 }
 
 void UWidget_OptionsScreen::NativeDestruct()
@@ -82,6 +89,19 @@ void UWidget_OptionsScreen::NativeDestruct()
 	}
 
 	Super::NativeDestruct();
+}
+
+UWidget* UWidget_OptionsScreen::NativeGetDesiredFocusTarget() const
+{
+	if (const UObject* SelectedObject = OptionsListView->GetSelectedItem())
+	{
+		if (UUserWidget* SelectedEntryWidget = OptionsListView->GetEntryWidgetFromItem(SelectedObject))
+		{
+			return SelectedEntryWidget;
+		}
+	}
+
+	return Super::NativeGetDesiredFocusTarget();
 }
 
 void UWidget_OptionsScreen::NativeOnActivated()
@@ -280,15 +300,20 @@ void UWidget_OptionsScreen::HandleTabSelected(const FName TagId)
 	// get the selected tab name
 	TabSelectedDisplayName = FoundListItems.IsEmpty() ? FString() : FoundListItems[0]->GetDisplayName().ToString();
 
-	// set the fond list items
+	// clear any existing selections
+	OptionsListView->ClearSelection();
+
+	// set the list items to the found items
 	OptionsListView->SetListItems(FoundListItems);
+
+	// do refresh request
 	OptionsListView->RequestRefresh();
 
-	// default to the first item on the list as selected state
+	// default to the first item on the list as the selected state
 	if (OptionsListView->GetListItems().Num() != 0)
 	{
-		OptionsListView->NavigateToIndex(0);
-		OptionsListView->SetSelectedIndex(0);
+		OptionsListView->SetSelectedItem(FoundListItems[0]);
+		OptionsListView->RequestNavigateToItem(FoundListItems[0]);
 	}
 
 	// reset defaults

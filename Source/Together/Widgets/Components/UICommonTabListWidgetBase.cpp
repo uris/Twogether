@@ -14,10 +14,13 @@ void UUICommonTabListWidgetBase::RequestRegisterTab(const FName& InTabId, const 
 {
 	RegisterTab(InTabId, TabButtonEntryWidgetClass, nullptr);
 
-	UUICommonButtonBase* FoundButton = Cast<UUICommonButtonBase>(GetTabButtonBaseByID(InTabId));
-
-	if (FoundButton)
+	if (UUICommonButtonBase* FoundButton = Cast<UUICommonButtonBase>(GetTabButtonBaseByID(InTabId)))
 	{
+		// tabs are controlled through the previous/next tab actions.
+		// prevent normal D-pad navigation that can focus them.
+		FoundButton->SetIsFocusable(false);
+
+		// set the tab display name
 		FoundButton->SetButtonText(InTabDisplayName);
 	}
 }
@@ -55,10 +58,5 @@ void UUICommonTabListWidgetBase::ValidateCompiledDefaults(class IWidgetCompilerL
 			TEXT(" needs a valid entry widget class to function properly")
 			));
 	}
-}
-
-void UUICommonTabListWidgetBase::HandleTabSelected(FName TabId)
-{
-	Debug::Print(TabId.ToString() + " Selected");
 }
 #endif

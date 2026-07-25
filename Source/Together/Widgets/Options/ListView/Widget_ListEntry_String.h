@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "CommonRotator.h"
 #include "Widgets/Options/DataObjects/ListItemDataObject_String.h"
 #include "Widgets/Options/ListView/UIOptionsListEntry.h"
 #include "Widget_ListEntry_String.generated.h"
@@ -36,6 +37,8 @@ public:
 	};
 
 protected:
+	virtual FReply NativeOnFocusReceived(const FGeometry& InGeometry, const FFocusEvent& InFocusEvent) override;
+
 	virtual void NativeOnInitialized() override;
 
 	virtual void NativeDestruct() override;
@@ -72,6 +75,7 @@ private:
 	void HandleCycleLeft() const;
 	void HandleCycleRight() const;
 	void HandleRotatorClicked() const;
+	void HandleRotatedEvent(int32 Value, bool bUserInitiated) const;
 	void CycleSelection(EStringSettingDirection InDirection) const;
 
 	// apply hover/selected/default styles based on being owner of event

@@ -29,8 +29,6 @@ private:
 	virtual void ValidateCompiledDefaults(class IWidgetCompilerLog& CompileLog) const override;
 #endif
 
-	void HandleTabSelected(FName TabId);
-
 	UPROPERTY(EditAnywhere,
 		BlueprintReadWrite,
 		Category="Tab List Settings",
