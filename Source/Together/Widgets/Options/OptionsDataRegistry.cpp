@@ -4,6 +4,7 @@
 #include "OptionsDataRegistry.h"
 
 #include "OptionsDataInteractionHelper.h"
+#include "UIFunctionLibrary.h"
 #include "DataObjects/ListItemDataObject_String.h"
 #include "DataObjects/UOptionsListItemCollection_Base.h"
 #include "Settings/UserSettings.h"
@@ -60,7 +61,7 @@ void UOptionsDataRegistry::SetupGameplay(UUOptionsListItemCollection_Base* TabCo
 
 	// apply changes immediately
 	GameDifficulty->SetShouldApplyChangesImmediately(true);
-	// add setting to tab collection
+	// add setting to a tab collection
 	TabCollection->AddChildListData(GameDifficulty);
 
 	// TODO: Remove Test Item //
@@ -69,6 +70,8 @@ void UOptionsDataRegistry::SetupGameplay(UUOptionsListItemCollection_Base* TabCo
 
 	TestItem->SetDataId(FName("TestItem"));
 	TestItem->SetDisplayName(FText::FromString("Test Item"));
+	TestItem->SetDescriptionImage(
+		UUIFunctionLibrary::GetUISoftImageTextureByTag(UUIFunctionLibrary::GetGameplayTagFromString("UI.Image.Test")));
 	TabCollection->AddChildListData(TestItem);
 }
 

@@ -24,6 +24,11 @@ public :
 		UPARAM(meta = (Categories = "UI.Widget"))
 		FGameplayTag InWidgetTag);
 
+	UFUNCTION(BlueprintPure, Category="UI Functions Library")
+	static TSoftObjectPtr<UTexture2D> GetUISoftImageTextureByTag(
+		UPARAM(meta = (Categories = "UI.Image"))
+		FGameplayTag InImageTag);
+
 	UFUNCTION(BlueprintPure, Category="UI Functions Library|Icons")
 	static bool FindUIIconDefinition(
 		UPARAM(meta=(Categories="UI.Icon"))
@@ -43,4 +48,7 @@ public :
 	static void PlaySoundFX(const UObject* WorldContextObject,
 	                        const FGameplayTag SoundFXTag,
 	                        float DesiredSoundLevel = 1.0f);
+
+	UFUNCTION(BlueprintPure, Category = "GameplayTags")
+	static FGameplayTag GetGameplayTagFromString(const FString& InTagString);
 };

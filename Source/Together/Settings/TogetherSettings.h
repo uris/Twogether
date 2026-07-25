@@ -30,6 +30,9 @@ public:
 	UPROPERTY(Config, EditAnywhere, Category="UI|SoundFX")
 	TSoftObjectPtr<UUISoundFXs> DefaultSoundFX;
 
+	UPROPERTY(Config, EditAnywhere, Category="UI|Images")
+	TMap<FGameplayTag, TSoftObjectPtr<UTexture2D>> UIImages;
+
 	UPROPERTY(Config, EditAnywhere, Category = "Global Debugging", meta = (DisplayName = "Hide Debug Messages"))
 	bool bGlobalHideDebugMessages = true;
 

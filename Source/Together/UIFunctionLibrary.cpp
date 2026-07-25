@@ -22,6 +22,16 @@ TSoftClassPtr<UWidget_ActivatableBase> UUIFunctionLibrary::GetFrontEndSoftWidget
 	return Settings->UIWidgetMap.FindRef(InWidgetTag);
 }
 
+TSoftObjectPtr<UTexture2D> UUIFunctionLibrary::GetUISoftImageTextureByTag(const FGameplayTag InImageTag)
+{
+	const UTogetherSettings* Settings = GetDefault<UTogetherSettings>();
+	checkf(Settings->UIImages.Contains(InImageTag),
+	       TEXT("Could not find Image Tag %s"),
+	       *InImageTag.ToString());
+
+	return Settings->UIImages.FindRef(InImageTag);
+}
+
 bool UUIFunctionLibrary::FindUIIconDefinition(const FGameplayTag IconTag,
                                               FUIIconDefinition& OutIconDefinition)
 {
@@ -127,4 +137,9 @@ void UUIFunctionLibrary::PlaySoundFX(const UObject* Context,
 		UGameplayStatics::PlaySound2D(World, Sound, DesiredSoundLevel);
 	}
 
+}
+
+FGameplayTag UUIFunctionLibrary::GetGameplayTagFromString(const FString& InTagString)
+{
+	return UGameplayTagsManager::Get().RequestGameplayTag(FName(*InTagString), false);
 }
