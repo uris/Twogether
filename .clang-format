@@ -1,0 +1,47 @@
+# Unreal-oriented C++ formatting shared by Visual Studio, Rider, and clang-format.
+---
+Language: Cpp
+BasedOnStyle: Microsoft
+
+Standard: Latest
+ColumnLimit: 120
+
+# Unreal uses tabs for indentation and spaces for alignment.
+IndentWidth: 4
+TabWidth: 4
+ContinuationIndentWidth: 4
+UseTab: ForIndentation
+AccessModifierOffset: -4
+IndentCaseLabels: true
+NamespaceIndentation: None
+
+BreakBeforeBraces: Allman
+PointerAlignment: Left
+ReferenceAlignment: Pointer
+DerivePointerAlignment: false
+
+# Unreal include order is significant, especially the generated header.
+SortIncludes: Never
+IncludeBlocks: Preserve
+
+AlignAfterOpenBracket: Align
+AlignOperands: Align
+BinPackArguments: false
+BinPackParameters: false
+BreakBeforeBinaryOperators: NonAssignment
+
+AllowShortBlocksOnASingleLine: Empty
+AllowShortCaseLabelsOnASingleLine: false
+AllowShortEnumsOnASingleLine: false
+AllowShortFunctionsOnASingleLine: Empty
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortLoopsOnASingleLine: false
+
+SpaceBeforeParens: ControlStatements
+SpacesInAngles: Never
+SpacesInParentheses: false
+SpacesInSquareBrackets: false
+
+FixNamespaceComments: false
+ReflowComments: false
+...
