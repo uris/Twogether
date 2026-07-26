@@ -7,6 +7,7 @@
 #include "Editor/WidgetCompilerLog.h"
 #include "Widgets/Options/DataObjects/Data_OptionsListEntryMapping.h"
 #include "Widgets/Options/DataObjects/OptionsListItemDataObject_Base.h"
+#include "Widgets/Options/DataObjects/UOptionsListItemCollection_Base.h"
 
 #if WITH_EDITOR
 void UUIOptionsListView::ValidateCompiledDefaults(class IWidgetCompilerLog& CompileLog) const
@@ -23,6 +24,12 @@ void UUIOptionsListView::ValidateCompiledDefaults(class IWidgetCompilerLog& Comp
 	}
 }
 #endif
+
+bool UUIOptionsListView::OnIsSelectableOrNavigableInternal(UObject* FirstSelectedItem)
+{
+	// collection types should not be selectable - return false if item is subclassed as collection
+	return !FirstSelectedItem->IsA<UUOptionsListItemCollection_Base>();
+}
 
 UUserWidget& UUIOptionsListView::OnGenerateEntryWidgetInternal(UObject* Item,
                                                                const TSubclassOf<UUserWidget> DesiredEntryClass,

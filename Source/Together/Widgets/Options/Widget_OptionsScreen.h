@@ -117,6 +117,9 @@ private:
 	void HandleResetConfirmationAction(EConfirmationButtonType Result);
 	FString TabSelectedDisplayName = FString();
 
+	// misc list helpers
+	int32 GetFirstSelectableItemIndexInList() const;
+
 	// do on-screen animations and cache state
 	void StartBackgroundOpacityTransition();
 	float EvaluateBackgroundTransitionAlpha(float Alpha) const;

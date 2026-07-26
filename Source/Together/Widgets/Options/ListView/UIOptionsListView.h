@@ -16,6 +16,8 @@ class TOGETHER_API UUIOptionsListView : public UCommonListView
 	GENERATED_BODY()
 
 protected:
+	virtual bool OnIsSelectableOrNavigableInternal(UObject* FirstSelectedItem) override;
+
 	virtual UUserWidget& OnGenerateEntryWidgetInternal(UObject* Item,
 	                                                   TSubclassOf<UUserWidget> DesiredEntryClass,
 	                                                   const TSharedRef<STableViewBase>& OwnerTable) override;

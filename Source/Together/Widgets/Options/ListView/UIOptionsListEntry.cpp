@@ -8,6 +8,7 @@
 #include "Utility/Debug.h"
 #include "Widgets/Components/UICommonTextBase.h"
 #include "Widgets/Options/DataObjects/OptionsListItemDataObject_Base.h"
+#include "Widgets/Options/DataObjects/UOptionsListItemCollection_Base.h"
 
 void UUIOptionsListEntry::NativeOnListItemObjectSet(UObject* ListItemObject)
 {
@@ -17,7 +18,10 @@ void UUIOptionsListEntry::NativeOnListItemObjectSet(UObject* ListItemObject)
 	bIsSelected = false;
 
 	CachedListItemObject = ListItemObject;
-	SetVisibility(ESlateVisibility::Visible); // ( default is collapsed)
+
+	// test for collection class type to set its visibility to not selectable / interactable
+	const bool IsCollectionType = IsValid(Cast<UUOptionsListItemCollection_Base>(ListItemObject));
+	SetVisibility(IsCollectionType ? ESlateVisibility::HitTestInvisible:ESlateVisibility::Visible);
 
 	OnOwningListDataObjectSet(CastChecked<UOptionsListItemDataObject_Base>(ListItemObject));
 }

@@ -313,10 +313,12 @@ void UWidget_OptionsScreen::HandleTabSelected(const FName TagId)
 	OptionsListView->RequestRefresh();
 
 	// default to the first item on the list as the selected state
-	if (OptionsListView->GetListItems().Num() != 0)
+	const int32 SelectedIndex = GetFirstSelectableItemIndexInList();
+	if (FoundListItems.IsValidIndex(SelectedIndex))
 	{
-		OptionsListView->SetSelectedItem(FoundListItems[0]);
-		OptionsListView->RequestNavigateToItem(FoundListItems[0]);
+		UObject* SelectedItem = FoundListItems[SelectedIndex];
+		OptionsListView->SetSelectedItem(SelectedItem);
+		OptionsListView->RequestNavigateToItem(SelectedItem);
 	}
 
 	// reset defaults
@@ -504,4 +506,26 @@ void UWidget_OptionsScreen::HandleResetConfirmationAction(const EConfirmationBut
 			TEXT("Failed to reset %d option(s) to their defaults."),
 			ResettableData.Num());
 	}
+}
+
+int32 UWidget_OptionsScreen::GetFirstSelectableItemIndexInList() const
+{
+	if (!OptionsListView)
+	{
+		return INDEX_NONE;
+	}
+
+	for (int i = 0; i < OptionsListView->GetNumItems(); ++i)
+	{
+		// get list item
+		UObject* Object = OptionsListView->GetItemAt(i);
+
+		// collection items are not selectable
+		if (const bool Selectable = !IsValid(Cast<UUOptionsListItemCollection_Base>(Object)))
+		{
+			return i;
+		}
+	}
+
+	return INDEX_NONE;
 }

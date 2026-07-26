@@ -6,6 +6,7 @@
 #include "UObject/Object.h"
 #include "OptionsDataRegistry.generated.h"
 
+class UOptionsListItemDataObject_Base;
 class UUOptionsListItemCollection_Base;
 class ULocalPlayer;
 /**
@@ -29,7 +30,9 @@ public:
 	TArray<UUOptionsListItemCollection_Base*> OptionTabCollections;
 
 private:
+	void FindChildListDataRecursive(const UUOptionsListItemCollection_Base* InParentCollection, TArray<UOptionsListItemDataObject_Base*>& OutChildList) const;
 	UUOptionsListItemCollection_Base* InitTabCollection(const FString& DataId, const FString& DisplayName);
-	void SetupGameplay(UUOptionsListItemCollection_Base* TabCollection);
+	static void SetupGameplay(UUOptionsListItemCollection_Base* TabCollection);
+	static void SetupAudio(UUOptionsListItemCollection_Base* TabCollection);
 
 };

@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "UObject/Object.h"
+#include "UObject/SoftObjectPtr.h"
 #include "OptionsListItemDataObject_Base.generated.h"
 
 #define LIST_DATA_ACCESSOR(DataType, PropertyName) \
@@ -61,15 +62,6 @@ public:
 		return false;
 	}
 
-protected:
-	// child classes overrides this to handle initializing each list item
-	virtual void OnDataObjectInitialized();
-
-	// helper function children can use to broadcast value changes
-	virtual void NotifyListDataModified(UOptionsListItemDataObject_Base* InModifiedData,
-	                                    EOptionsListModifiedReason InReason =
-		                                    EOptionsListModifiedReason::DirectlyModified) const;
-
 	virtual TArray<UOptionsListItemDataObject_Base*> GetAllChildListData() const
 	{
 		return TArray<UOptionsListItemDataObject_Base*>();
@@ -79,6 +71,15 @@ protected:
 	{
 		return TArray<UOptionsListItemDataObject_Base*>();
 	}
+
+protected:
+	// child classes overrides this to handle initializing each list item
+	virtual void OnDataObjectInitialized();
+
+	// helper function children can use to broadcast value changes
+	virtual void NotifyListDataModified(UOptionsListItemDataObject_Base* InModifiedData,
+	                                    EOptionsListModifiedReason InReason =
+		                                    EOptionsListModifiedReason::DirectlyModified) const;
 
 private:
 	FName DataId;

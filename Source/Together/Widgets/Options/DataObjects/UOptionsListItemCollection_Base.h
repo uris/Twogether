@@ -17,8 +17,6 @@ class TOGETHER_API UUOptionsListItemCollection_Base : public UOptionsListItemDat
 public:
 	void AddChildListData(UOptionsListItemDataObject_Base* InChildData);
 	virtual TArray<UOptionsListItemDataObject_Base*> GetAllChildListData() const override;
-
-protected:
 	virtual bool HasAnyChildListData() const;
 
 private:
