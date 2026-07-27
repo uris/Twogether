@@ -186,7 +186,6 @@ bool UWidget_ListEntry_String::IsListDataObjectOwner(UUIOptionsListEntry* InObje
 	{
 		const FString EntryDataId = Entry->GetOwningListDataObject()->GetDataId().ToString();
 		const FString ThisDataId = GetOwningListDataObject()->GetDataId().ToString();
-		Debug::Print(FString::Printf(TEXT("EntryDataId: %s, ThisId: %s"), *EntryDataId, *ThisDataId));
 		return EntryDataId.Equals(ThisDataId);
 	}
 	return false;

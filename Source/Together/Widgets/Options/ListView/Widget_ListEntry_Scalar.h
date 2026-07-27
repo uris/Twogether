@@ -17,29 +17,43 @@ class TOGETHER_API UWidget_ListEntry_Scalar : public UUIOptionsListEntry
 	GENERATED_BODY()
 
 public:
+	UPROPERTY(EditAnywhere,
+		BlueprintReadWrite,
+		Category = "Custom Properties|Text Styles")
+	TSubclassOf<UCommonTextStyle> DefaultTextStyle;
+
+	UPROPERTY(EditAnywhere,
+		BlueprintReadWrite,
+		Category = "Custom Properties|Text Styles")
+	TSubclassOf<UCommonTextStyle> HoveredTextStyle;
+
 	UFUNCTION()
 	void HandleOnValueChanged(float InVolume) const;
 
-protected:
-	virtual void NativeOnInitialized() override;
-
-	virtual void NativeDestruct() override;
-
-	virtual void OnOwningListDataObjectSet(UOptionsListItemDataObject_Base* InOwningListDataObject) override;
-
-	virtual void OnOwningListDataObjectModified(UOptionsListItemDataObject_Base* InOwningListDataObject,
-	                                            EOptionsListModifiedReason InReason) override;
-
-	virtual FReply NativeOnFocusReceived(const FGeometry& InGeometry, const FFocusEvent& InFocusEvent) override;
+	UFUNCTION()
+	void HandleOnMouseCaptureBegin();
 
 	virtual void NativeListEntryWidgetHovered(bool bInIsHovered) override;
 
 	virtual void NativeListEntryWidgetSelected(bool bInIsSelected) override;
 
+protected:
+	virtual void NativeOnInitialized() override;
+
+	virtual void NativePreConstruct() override;
+
+	virtual void OnOwningListDataObjectSet(UOptionsListItemDataObject_Base* InOwningListDataObject) override;
+
+	virtual void OnOwningListDataObjectModified(UOptionsListItemDataObject_Base* InOwningListDataObject,
+	                                            EOptionsListModifiedReason InReason) override;
+	virtual FReply NativeOnFocusReceived(const FGeometry& InGeometry, const FFocusEvent& InFocusEvent) override;
+
 	UPROPERTY(BlueprintReadOnly, meta=(BindWidgetOptional, AllowPrivateAccess="True"))
 	TObjectPtr<UUISliderBase> Slider;
 
 private:
+	void ApplyStyleUpdates() const;
+
 	UPROPERTY(transient)
 	UListItemDataObject_Scalar* CachedOwningScalarObject;
 };

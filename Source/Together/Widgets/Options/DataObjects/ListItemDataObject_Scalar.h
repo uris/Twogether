@@ -28,6 +28,11 @@ public:
 	float GetCurrentValue() const;
 	void SetCurrentValue(float InValue);
 
+protected:
+	virtual bool CanResetBackToDefault() const override;
+
+	virtual bool ResetToDefault() override;
+
 private:
 	// helper - convert string to float / float to string
 	static float StringToFloat(const FString& InString);

@@ -10,6 +10,11 @@ void UUISliderBase::NativePreConstruct()
 {
 	Super::NativePreConstruct();
 
+	if (!Slider)
+	{
+		return;
+	}
+
 	FSliderStyle SliderStyle = Slider->GetWidgetStyle();
 	SliderStyle.SetBarThickness(FMath::Max(0.0f, TrackHeight));
 
@@ -35,9 +40,6 @@ void UUISliderBase::NativePreConstruct()
 	SliderStyle.SetDisabledThumbImage(ConfigureThumbBrush(SliderStyle.DisabledThumbImage));
 
 	Slider->SetWidgetStyle(SliderStyle);
-	Slider->SetSliderBarColor(BarColor);
-	Slider->SetSliderHandleColor(HandleColor);
-
 	if (SliderValue)
 	{
 		SliderValue->SetVisibility(bShowValue ? ESlateVisibility::HitTestInvisible : ESlateVisibility::Collapsed);
@@ -45,7 +47,6 @@ void UUISliderBase::NativePreConstruct()
 
 	if (Progress)
 	{
-		Progress->SetColorAndOpacity(BarColor);
 		Progress->SetVisibility(ESlateVisibility::HitTestInvisible);
 	}
 
@@ -55,6 +56,8 @@ void UUISliderBase::NativePreConstruct()
 		SliderValueSizeBox->SetMaxDesiredWidth(ValueBoxSize);
 		SliderValueSizeBox->SetWidthOverride(ValueBoxSize);
 	}
+
+	UpdateSliderStyle(false, false);
 }
 
 void UUISliderBase::NativeConstruct()
@@ -66,6 +69,7 @@ void UUISliderBase::NativeConstruct()
 		Slider->OnValueChanged.AddUniqueDynamic(this, &ThisClass::HandleSliderValueChanged);
 	}
 
+	UpdateSliderStyle(false, false);
 	ApplyProgress();
 }
 
@@ -132,4 +136,44 @@ void UUISliderBase::ApplyProgress() const
 void UUISliderBase::HandleSliderValueChanged(const float) const
 {
 	ApplyProgress();
+}
+
+void UUISliderBase::UpdateSliderStyle(const bool bIsSelected, const bool bIsHovered) const
+{
+	FLinearColor CurrentBarColor = BarColor;
+	FLinearColor CurrentHandleColor = HandleColor;
+	TSubclassOf<UCommonTextStyle> CurrentValueTextStyle = ValueDefaultTextStyle;
+
+	if (bIsSelected)
+	{
+		CurrentBarColor = BarColorSelected;
+		CurrentHandleColor = HandleColorSelected;
+		CurrentValueTextStyle = ValueSelectedTextStyle
+			                        ? ValueSelectedTextStyle
+			                        : ValueDefaultTextStyle;
+	}
+	else if (bIsHovered)
+	{
+		CurrentBarColor = BarColorHovered;
+		CurrentHandleColor = HandleColorHovered;
+		CurrentValueTextStyle = ValueHoveredTextStyle
+			                        ? ValueHoveredTextStyle
+			                        : ValueDefaultTextStyle;
+	}
+
+	if (Slider)
+	{
+		Slider->SetSliderBarColor(CurrentBarColor);
+		Slider->SetSliderHandleColor(CurrentHandleColor);
+	}
+
+	if (Progress)
+	{
+		Progress->SetColorAndOpacity(CurrentBarColor);
+	}
+
+	if (SliderValue && CurrentValueTextStyle)
+	{
+		SliderValue->SetStyle(CurrentValueTextStyle);
+	}
 }

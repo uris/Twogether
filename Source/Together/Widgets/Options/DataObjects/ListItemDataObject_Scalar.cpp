@@ -54,3 +54,34 @@ FString UListItemDataObject_Scalar::FloatToString(const float InValue)
 {
 	return LexToString(InValue);
 }
+
+bool UListItemDataObject_Scalar::CanResetBackToDefault() const
+{
+	if (HasDefaultValue() && DataDynamicGetter)
+	{
+		const float DefaultVal = StringToFloat(GetDefaultValueAsString());
+		const float CurrentVal = GetCurrentValue();
+		return !FMath::IsNearlyEqual(DefaultVal, CurrentVal, 0.01);
+	}
+
+	return false;
+}
+
+bool UListItemDataObject_Scalar::ResetToDefault()
+{
+	if (!CanResetBackToDefault())
+	{
+		return false;
+	}
+
+	if (!DataDynamicSetter)
+	{
+		return false;
+	}
+
+	const FString DefaultVal = GetDefaultValueAsString();
+	DataDynamicSetter->SetValueFromString(DefaultVal);
+	NotifyListDataModified(this, EOptionsListModifiedReason::ResetToDefault);
+
+	return true;
+}

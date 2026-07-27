@@ -3,6 +3,7 @@
 
 #include "Widget_ListEntry_Scalar.h"
 
+#include "Widgets/Components/UICommonTextBase.h"
 #include "Widgets/Components/UISliderBase.h"
 #include "Widgets/Options/DataObjects/ListItemDataObject_Scalar.h"
 
@@ -13,12 +14,16 @@ void UWidget_ListEntry_Scalar::NativeOnInitialized()
 	if (Slider->Slider)
 	{
 		Slider->Slider->OnValueChanged.AddUniqueDynamic(this, &ThisClass::HandleOnValueChanged);
+		Slider->Slider->OnMouseCaptureBegin.
+		        AddUniqueDynamic(this, &UWidget_ListEntry_Scalar::HandleOnMouseCaptureBegin);
 	}
 }
 
-void UWidget_ListEntry_Scalar::NativeDestruct()
+void UWidget_ListEntry_Scalar::NativePreConstruct()
 {
-	Super::NativeDestruct();
+	Super::NativePreConstruct();
+
+	ApplyStyleUpdates();
 }
 
 void UWidget_ListEntry_Scalar::OnOwningListDataObjectSet(UOptionsListItemDataObject_Base* InOwningListDataObject)
@@ -72,13 +77,23 @@ FReply UWidget_ListEntry_Scalar::NativeOnFocusReceived(const FGeometry& InGeomet
 	return Super::NativeOnFocusReceived(InGeometry, InFocusEvent);
 }
 
-void UWidget_ListEntry_Scalar::NativeListEntryWidgetHovered(bool bInIsHovered)
+void UWidget_ListEntry_Scalar::NativeListEntryWidgetHovered(const bool bInIsHovered)
 {
+	if (bIsHovered == bInIsHovered)
+	{
+		return;
+	}
+	bIsHovered = bInIsHovered;
+	ApplyStyleUpdates();
+
 	Super::NativeListEntryWidgetHovered(bInIsHovered);
 }
 
 void UWidget_ListEntry_Scalar::NativeListEntryWidgetSelected(const bool bInIsSelected)
 {
+	bIsSelected = bInIsSelected;
+	ApplyStyleUpdates();
+
 	Super::NativeListEntryWidgetSelected(bInIsSelected);
 }
 
@@ -88,4 +103,36 @@ void UWidget_ListEntry_Scalar::HandleOnValueChanged(const float InVolume) const
 	{
 		CachedOwningScalarObject->SetCurrentValue(InVolume);
 	}
+}
+
+void UWidget_ListEntry_Scalar::HandleOnMouseCaptureBegin()
+{
+	bIsSelected = true;
+	bIsHovered = true;
+	ApplyStyleUpdates();
+	RequestOwningItemSelection(); // request row item gets selected
+}
+
+void UWidget_ListEntry_Scalar::ApplyStyleUpdates() const
+{
+	if ((bIsSelected || bIsHovered) && HoveredTextStyle)
+	{
+		if (SettingDisplayName)
+		{
+			SettingDisplayName->SetStyle(HoveredTextStyle);
+		}
+	}
+	else if (DefaultTextStyle)
+	{
+		if (SettingDisplayName)
+		{
+			SettingDisplayName->SetStyle(DefaultTextStyle);
+		}
+	}
+
+	if (Slider)
+	{
+		Slider->UpdateSliderStyle(bIsSelected, bIsHovered);
+	}
+
 }

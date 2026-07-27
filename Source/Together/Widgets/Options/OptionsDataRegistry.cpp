@@ -102,6 +102,21 @@ void UOptionsDataRegistry::SetupAudio(UUOptionsListItemCollection_Base* TabColle
 		VolumeCollection->AddChildListData(OverallVolume);
 	}
 
+	// test //
+	{
+		UListItemDataObject_Scalar* TestItem = NewObject<UListItemDataObject_Scalar>();
+		TestItem->SetDataId(FName("Test"));
+		TestItem->SetDisplayName(FText::FromString("Test"));
+		TestItem->SetDescription(FText::FromString("Test Another Item"));
+		TestItem->SetValueRange(TRange<float>(0.0f, 1.0f));
+		TestItem->SetOutputRange(TRange<float>(0.0f, 2.0f));
+		TestItem->SetSliderStepSize(0.01f);
+		TestItem->SetDefaultValueFromString(LexToString(1.f));
+		TestItem->SetValueType(ECommonNumericType::Percentage);
+		TestItem->SetFormatting(UListItemDataObject_Scalar::NoDecimal());
+		VolumeCollection->AddChildListData(TestItem);
+	}
+
 }
 
 TArray<UOptionsListItemDataObject_Base*> UOptionsDataRegistry::GetListItemsBySelectedTabId(

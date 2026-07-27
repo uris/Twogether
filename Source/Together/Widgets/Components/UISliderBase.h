@@ -19,29 +19,65 @@ class TOGETHER_API UUISliderBase : public UUserWidget
 	GENERATED_BODY()
 
 public:
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Custom Properties|Style")
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Custom Properties|Track")
 	float TrackHeight = 2.0f;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Custom Properties|Style")
-	float HandleSize = 0.0f;
-
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Custom Properties|Style")
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Custom Properties|Track")
 	FLinearColor TrackColor = FLinearColor({1.0f, 1.0f, 1.0f, 0.25f});
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Custom Properties|Style")
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Custom Properties|Progress Bar")
 	FLinearColor BarColor = FLinearColor({1.0f, 1.0f, 1.0f, 1.0f});
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Custom Properties|Progress Bar")
+	FLinearColor BarColorHovered = FLinearColor({1.0f, 1.0f, 1.0f, 1.0f});
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Custom Properties|Progress Bar")
+	FLinearColor BarColorSelected = FLinearColor({1.0f, 1.0f, 1.0f, 1.0f});
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Custom Properties|Handle")
+	float HandleSize = 0.0f;
 
 	UPROPERTY(BlueprintReadWrite,
 		EditAnywhere,
-		Category = "Custom Properties|Style",
+		Category = "Custom Properties|Handle",
 		meta=(EditCondition="HandleSize > 0"))
 	FLinearColor HandleColor = FLinearColor({1.0f, 1.0f, 1.0f, 1.0f});
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Custom Properties|Style")
+	UPROPERTY(BlueprintReadWrite,
+		EditAnywhere,
+		Category = "Custom Properties|Handle",
+		meta=(EditCondition="HandleSize > 0"))
+	FLinearColor HandleColorHovered = FLinearColor({1.0f, 1.0f, 1.0f, 1.0f});
+
+	UPROPERTY(BlueprintReadWrite,
+		EditAnywhere,
+		Category = "Custom Properties|Handle",
+		meta=(EditCondition="HandleSize > 0"))
+	FLinearColor HandleColorSelected = FLinearColor({1.0f, 1.0f, 1.0f, 1.0f});
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Custom Properties|Text Label")
 	bool bShowValue = true;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Custom Properties|Style", meta=(EditCondition="bShowValue"))
+	UPROPERTY(BlueprintReadWrite,
+		EditAnywhere,
+		Category = "Custom Properties|Text Label",
+		meta=(EditCondition="bShowValue"))
 	float ValueBoxSize = 85.0f;
+
+	UPROPERTY(EditAnywhere,
+		BlueprintReadWrite,
+		Category = "Custom Properties|Text Styles")
+	TSubclassOf<UCommonTextStyle> ValueDefaultTextStyle;
+
+	UPROPERTY(EditAnywhere,
+		BlueprintReadWrite,
+		Category = "Custom Properties|Text Styles")
+	TSubclassOf<UCommonTextStyle> ValueHoveredTextStyle;
+
+	UPROPERTY(EditAnywhere,
+		BlueprintReadWrite,
+		Category = "Custom Properties|Text Styles")
+	TSubclassOf<UCommonTextStyle> ValueSelectedTextStyle;
 
 	UPROPERTY(BlueprintReadOnly, meta=(BindWidget))
 	TObjectPtr<UAnalogSlider> Slider;
@@ -54,6 +90,9 @@ public:
 
 	UPROPERTY(BlueprintReadOnly, meta=(BindWidgetOptional))
 	TObjectPtr<USizeBox> SliderValueSizeBox;
+
+	UFUNCTION(BlueprintCallable)
+	void UpdateSliderStyle(bool bIsSelected, bool bIsHovered) const;
 
 protected:
 	virtual void NativePreConstruct() override;
