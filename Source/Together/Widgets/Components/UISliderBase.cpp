@@ -4,6 +4,7 @@
 #include "UISliderBase.h"
 #include "Components/CanvasPanelSlot.h"
 #include "Components/Image.h"
+#include "Components/SizeBox.h"
 
 void UUISliderBase::NativePreConstruct()
 {
@@ -46,6 +47,13 @@ void UUISliderBase::NativePreConstruct()
 	{
 		Progress->SetColorAndOpacity(BarColor);
 		Progress->SetVisibility(ESlateVisibility::HitTestInvisible);
+	}
+
+	if (SliderValueSizeBox)
+	{
+		SliderValueSizeBox->SetMinDesiredWidth(ValueBoxSize);
+		SliderValueSizeBox->SetMaxDesiredWidth(ValueBoxSize);
+		SliderValueSizeBox->SetWidthOverride(ValueBoxSize);
 	}
 }
 

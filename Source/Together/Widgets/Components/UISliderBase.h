@@ -8,6 +8,7 @@
 #include "Blueprint/UserWidget.h"
 #include "UISliderBase.generated.h"
 
+class USizeBox;
 class UImage;
 /**
  *
@@ -39,6 +40,9 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Custom Properties|Style")
 	bool bShowValue = true;
 
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Custom Properties|Style", meta=(EditCondition="bShowValue"))
+	float ValueBoxSize = 85.0f;
+
 	UPROPERTY(BlueprintReadOnly, meta=(BindWidget))
 	TObjectPtr<UAnalogSlider> Slider;
 
@@ -47,6 +51,9 @@ public:
 
 	UPROPERTY(BlueprintReadOnly, meta=(BindWidgetOptional))
 	TObjectPtr<UImage> Progress;
+
+	UPROPERTY(BlueprintReadOnly, meta=(BindWidgetOptional))
+	TObjectPtr<USizeBox> SliderValueSizeBox;
 
 protected:
 	virtual void NativePreConstruct() override;

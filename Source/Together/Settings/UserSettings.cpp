@@ -5,6 +5,8 @@
 
 #include "Engine/Engine.h"
 
+UUserSettings::UUserSettings() : OverallVolume(1.0f) {}
+
 UUserSettings* UUserSettings::Get()
 {
 	if (GEngine)
@@ -22,4 +24,15 @@ FString UUserSettings::GetGameDifficulty() const
 void UUserSettings::SetGameDifficulty(const FString& InDifficulty)
 {
 	GameDifficulty = InDifficulty;
+}
+
+float UUserSettings::GetOverallVolume() const
+{
+	return OverallVolume;
+}
+
+void UUserSettings::SetOverallVolume(const float InVolume)
+{
+	OverallVolume = InVolume;
+	// add logic for setting overall volume later
 }

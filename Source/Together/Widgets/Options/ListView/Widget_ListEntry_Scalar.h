@@ -6,7 +6,7 @@
 #include "UIOptionsListEntry.h"
 #include "Widget_ListEntry_Scalar.generated.h"
 
-class UUListItemDataObject_Scalar;
+class UListItemDataObject_Scalar;
 class UUISliderBase;
 /**
  *
@@ -15,6 +15,10 @@ UCLASS()
 class TOGETHER_API UWidget_ListEntry_Scalar : public UUIOptionsListEntry
 {
 	GENERATED_BODY()
+
+public:
+	UFUNCTION()
+	void HandleOnValueChanged(float InVolume) const;
 
 protected:
 	virtual void NativeOnInitialized() override;
@@ -37,5 +41,5 @@ protected:
 
 private:
 	UPROPERTY(transient)
-	UUListItemDataObject_Scalar* CachedOwningScalarObject;
+	UListItemDataObject_Scalar* CachedOwningScalarObject;
 };

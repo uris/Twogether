@@ -15,6 +15,9 @@ class TOGETHER_API UUserSettings : public UGameUserSettings
 	GENERATED_BODY()
 
 public:
+	// constructor
+	UUserSettings();
+
 	// public getter
 	static UUserSettings* Get();
 
@@ -25,8 +28,17 @@ public:
 	UFUNCTION()
 	void SetGameDifficulty(const FString& InDifficulty);
 
+	//*** Audio Collection Tab //
+	UFUNCTION()
+	float GetOverallVolume() const;
+
+	UFUNCTION()
+	void SetOverallVolume(const float InVolume);
+
 private:
-	UPROPERTY(Config, EditAnywhere, Category="User Settings")
+	UPROPERTY(Config, EditAnywhere, Category="User Settings|Game")
 	FString GameDifficulty;
 
+	UPROPERTY(Config, EditAnywhere, Category="User Settings|Audio")
+	float OverallVolume;
 };

@@ -10,7 +10,6 @@
 #include "Kismet/GameplayStatics.h"
 #include "UI/UIIconSet.h"
 #include "Subsystems/UI/UISubsystem.h"
-#include "Utility/Debug.h"
 
 TSoftClassPtr<UWidget_ActivatableBase> UUIFunctionLibrary::GetFrontEndSoftWidgetClassByTag(FGameplayTag InWidgetTag)
 {
@@ -142,4 +141,16 @@ void UUIFunctionLibrary::PlaySoundFX(const UObject* Context,
 FGameplayTag UUIFunctionLibrary::GetGameplayTagFromString(const FString& InTagString)
 {
 	return UGameplayTagsManager::Get().RequestGameplayTag(FName(*InTagString), false);
+}
+
+float UUIFunctionLibrary::StringToFloat(const FString& InString)
+{
+	float OutValue = 0.0f;
+	LexFromString(OutValue, *InString);
+	return OutValue;
+}
+
+FString UUIFunctionLibrary::FloatToString(const float InValue)
+{
+	return LexToString(InValue);
 }

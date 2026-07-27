@@ -6,7 +6,7 @@
 #include "OptionsDataInteractionHelper.h"
 #include "UIFunctionLibrary.h"
 #include "DataObjects/ListItemDataObject_String.h"
-#include "DataObjects/UListItemDataObject_Scalar.h"
+#include "DataObjects/ListItemDataObject_Scalar.h"
 #include "DataObjects/UOptionsListItemCollection_Base.h"
 #include "Settings/UserSettings.h"
 
@@ -86,7 +86,7 @@ void UOptionsDataRegistry::SetupAudio(UUOptionsListItemCollection_Base* TabColle
 
 	// overall volume //
 	{
-		UUListItemDataObject_Scalar* OverallVolume = NewObject<UUListItemDataObject_Scalar>();
+		UListItemDataObject_Scalar* OverallVolume = NewObject<UListItemDataObject_Scalar>();
 		OverallVolume->SetDataId(FName("OverallVolume"));
 		OverallVolume->SetDisplayName(FText::FromString("Overall Volume"));
 		OverallVolume->SetDescription(FText::FromString("Overall Volume Description"));
@@ -95,8 +95,10 @@ void UOptionsDataRegistry::SetupAudio(UUOptionsListItemCollection_Base* TabColle
 		OverallVolume->SetSliderStepSize(0.01f);
 		OverallVolume->SetDefaultValueFromString(LexToString(1.f));
 		OverallVolume->SetValueType(ECommonNumericType::Percentage);
-		OverallVolume->SetFormatting(UUListItemDataObject_Scalar::NoDecimal());
-		// need getter and setter for this
+		OverallVolume->SetFormatting(UListItemDataObject_Scalar::NoDecimal());
+		OverallVolume->SetDataDynamicGetter(MAKE_OPTIONS_DATA_CONTROL(GetOverallVolume));
+		OverallVolume->SetDataDynamicSetter(MAKE_OPTIONS_DATA_CONTROL(SetOverallVolume));
+		OverallVolume->SetShouldApplyChangesImmediately(true);
 		VolumeCollection->AddChildListData(OverallVolume);
 	}
 

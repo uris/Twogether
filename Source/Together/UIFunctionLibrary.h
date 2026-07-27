@@ -51,4 +51,10 @@ public :
 
 	UFUNCTION(BlueprintPure, Category = "GameplayTags")
 	static FGameplayTag GetGameplayTagFromString(const FString& InTagString);
+
+	UFUNCTION(BlueprintPure, Category = "Conversion")
+	static float StringToFloat(const FString& InString);
+
+	UFUNCTION(BlueprintPure, Category = "Conversion")
+	static FString FloatToString(float InValue);
 };
