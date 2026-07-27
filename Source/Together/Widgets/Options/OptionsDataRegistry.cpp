@@ -6,6 +6,7 @@
 #include "OptionsDataInteractionHelper.h"
 #include "UIFunctionLibrary.h"
 #include "DataObjects/ListItemDataObject_String.h"
+#include "DataObjects/UListItemDataObject_Scalar.h"
 #include "DataObjects/UOptionsListItemCollection_Base.h"
 #include "Settings/UserSettings.h"
 
@@ -83,15 +84,22 @@ void UOptionsDataRegistry::SetupAudio(UUOptionsListItemCollection_Base* TabColle
 	VolumeCollection->SetDisplayName(FText::FromString("Volume"));
 	TabCollection->AddChildListData(VolumeCollection);
 
-	// TODO: Remove Test Item //
-	UListItemDataObject_String* TestItem = NewObject<UListItemDataObject_String>();
-	NewObject<UListItemDataObject_String>();
+	// overall volume //
+	{
+		UUListItemDataObject_Scalar* OverallVolume = NewObject<UUListItemDataObject_Scalar>();
+		OverallVolume->SetDataId(FName("OverallVolume"));
+		OverallVolume->SetDisplayName(FText::FromString("Overall Volume"));
+		OverallVolume->SetDescription(FText::FromString("Overall Volume Description"));
+		OverallVolume->SetValueRange(TRange<float>(0.0f, 1.0f));
+		OverallVolume->SetOutputRange(TRange<float>(0.0f, 2.0f));
+		OverallVolume->SetSliderStepSize(0.01f);
+		OverallVolume->SetDefaultValueFromString(LexToString(1.f));
+		OverallVolume->SetValueType(ECommonNumericType::Percentage);
+		OverallVolume->SetFormatting(UUListItemDataObject_Scalar::NoDecimal());
+		// need getter and setter for this
+		VolumeCollection->AddChildListData(OverallVolume);
+	}
 
-	TestItem->SetDataId(FName("TestItem"));
-	TestItem->SetDisplayName(FText::FromString("Test Item"));
-	TestItem->SetDescriptionImage(
-		UUIFunctionLibrary::GetUISoftImageTextureByTag(UUIFunctionLibrary::GetGameplayTagFromString("UI.Image.Test")));
-	VolumeCollection->AddChildListData(TestItem);
 }
 
 TArray<UOptionsListItemDataObject_Base*> UOptionsDataRegistry::GetListItemsBySelectedTabId(
@@ -110,7 +118,7 @@ TArray<UOptionsListItemDataObject_Base*> UOptionsDataRegistry::GetListItemsBySel
 	// deref the found collection
 	const UUOptionsListItemCollection_Base* FoundTabCollection = *FoundTabCollectionPtr;
 
-	UE_LOG(LogTemp, Warning, TEXT("Found Tab Collection: %d"),FoundTabCollection->HasAnyChildListData())
+	UE_LOG(LogTemp, Warning, TEXT("Found Tab Collection: %d"), FoundTabCollection->HasAnyChildListData())
 
 	// create local array to hold all children
 	TArray<UOptionsListItemDataObject_Base*> AllChildListItems;
@@ -130,11 +138,11 @@ FString UOptionsDataRegistry::GetTabDisplayNameById(const FName& InSelectedTabId
 }
 
 void UOptionsDataRegistry::FindChildListDataRecursive(const UUOptionsListItemCollection_Base* InParentCollection,
-	TArray<UOptionsListItemDataObject_Base*>& OutChildList) const
+                                                      TArray<UOptionsListItemDataObject_Base*>& OutChildList) const
 {
 	if (!InParentCollection || !InParentCollection->HasAnyChildListData())
 	{
-		UE_LOG(LogTemp,Warning, TEXT("Parent In Has No Children... Returning"));
+		UE_LOG(LogTemp, Warning, TEXT("Parent In Has No Children... Returning"));
 		return;
 	}
 
@@ -143,7 +151,7 @@ void UOptionsDataRegistry::FindChildListDataRecursive(const UUOptionsListItemCol
 		// go next if no child items
 		if (!IsValid(ChildListData))
 		{
-			UE_LOG(LogTemp,Warning, TEXT("Child List Data Not Valid: Continuing"));
+			UE_LOG(LogTemp, Warning, TEXT("Child List Data Not Valid: Continuing"));
 			continue;
 		}
 
@@ -154,7 +162,7 @@ void UOptionsDataRegistry::FindChildListDataRecursive(const UUOptionsListItemCol
 		const UUOptionsListItemCollection_Base* ChildCollection = Cast<UUOptionsListItemCollection_Base>(ChildListData);
 		if (ChildCollection && ChildCollection->HasAnyChildListData())
 		{
-			UE_LOG(LogTemp,Warning, TEXT("Found Sub Collection: Recursing"));
+			UE_LOG(LogTemp, Warning, TEXT("Found Sub Collection: Recursing"));
 			FindChildListDataRecursive(ChildCollection, OutChildList);
 		}
 	}
