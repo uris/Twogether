@@ -8,6 +8,23 @@
 #include "UserSettingTypes.generated.h"
 
 USTRUCT(BlueprintType)
+struct FBoolSetting
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FText TrueDisplayName = FText::FromString(TEXT("On"));
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FText FalseDisplayName = FText::FromString(TEXT("Off"));
+
+	FBoolSetting() = default;
+
+	FBoolSetting(const FText& InTrueDisplayName, const FText& InFalseDisplayName)
+		: TrueDisplayName(InTrueDisplayName), FalseDisplayName(InFalseDisplayName) {}
+};
+
+USTRUCT(BlueprintType)
 struct FStringSetting
 {
 	GENERATED_BODY()
@@ -122,6 +139,11 @@ struct FUserSettingDefinition : public FTableRowBase
 			TitleProperty = "DisplayName"))
 	bool bShouldApplyChangesImmediately = false;
 
+	/*
+	 * Default should be the string equivalent of the value type
+	 * Eg: if setting is a bool value, the default should be "true" or "false"
+	 * regardless of the display name used for each value
+	 */
 	UPROPERTY(
 		EditAnywhere,
 		meta = (EditCondition = "bIsSettingGroup == false",
@@ -134,7 +156,14 @@ struct FUserSettingDefinition : public FTableRowBase
 		meta = (EditCondition = "bIsSettingGroup == false && Type == EUserSettingValueType::String",
 			EditConditionHides,
 			TitleProperty = "DisplayName"))
-	TArray<FStringSetting> AvailableValues;
+	TArray<FStringSetting> AvailableStringValues;
+
+	UPROPERTY(
+		EditAnywhere,
+		meta = (EditCondition = "bIsSettingGroup == false && Type == EUserSettingValueType::Bool",
+			EditConditionHides,
+			TitleProperty = "DisplayName"))
+	FBoolSetting AvailableBoolValues;
 
 	UPROPERTY(
 		EditAnywhere,

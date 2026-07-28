@@ -130,7 +130,7 @@ void UWidget_OptionsScreen::NativeOnDeactivated()
 {
 	Super::NativeOnDeactivated();
 
-	// on deactivating update/commit updated user settings, applying non video options
+	// on deactivating update/commit updated user settings, applying non-video options
 	// to avoid unneeded screen flicker and sizing issues
 	// UUserSettings::Get()->ApplySettings(true);
 	UUserSettings::Get()->ApplyNonResolutionSettings();
@@ -275,7 +275,7 @@ void UWidget_OptionsScreen::SetSelectedItemDetails(UObject* InItem) const
 		SelectedItemDataObject = OptionsListView->GetSelectedItem<UOptionsListItemDataObject_Base>();
 	}
 
-	// if object exists set display of detials, otherwise clear
+	// if object exists set display of details, otherwise clear
 	if (SelectedItemDataObject)
 	{
 		const FString WidgetClassName = SelectedItemDataObject->GetClass()->GetDisplayNameText().ToString();
@@ -430,10 +430,7 @@ void UWidget_OptionsScreen::OnResetAction()
 		UE_LOG(LogTemp, Warning, TEXT("No resettable data found"));
 		return;
 	}
-	else
-	{
-		PushConfirmReset();
-	}
+	PushConfirmReset();
 }
 
 void UWidget_OptionsScreen::OnBackAction()
@@ -521,7 +518,7 @@ int32 UWidget_OptionsScreen::GetFirstSelectableItemIndexInList() const
 		UObject* Object = OptionsListView->GetItemAt(i);
 
 		// collection items are not selectable
-		if (const bool Selectable = !IsValid(Cast<UUOptionsListItemCollection_Base>(Object)))
+		if (!IsValid(Cast<UUOptionsListItemCollection_Base>(Object)))
 		{
 			return i;
 		}

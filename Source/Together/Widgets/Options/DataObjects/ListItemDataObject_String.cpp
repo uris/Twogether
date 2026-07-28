@@ -109,6 +109,7 @@ void UListItemDataObject_String::OnRotatorInitiatedValueChange(const FText& InDi
 	}
 }
 
+// overloading add dynamic for different data types and in parameters
 void UListItemDataObject_String::AddDynamicSetting(const FName& InSettingDataId,
                                                    const FText& InDisplayName,
                                                    const FString& InValue)

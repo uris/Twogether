@@ -3,6 +3,8 @@
 
 #include "Widget_ListEntry_Scalar.h"
 
+#include "CommonInputSubsystem.h"
+#include "CommonInputTypeEnum.h"
 #include "Widgets/Components/UICommonTextBase.h"
 #include "Widgets/Components/UISliderBase.h"
 #include "Widgets/Options/DataObjects/ListItemDataObject_Scalar.h"
@@ -74,6 +76,16 @@ void UWidget_ListEntry_Scalar::OnOwningListDataObjectModified(UOptionsListItemDa
 
 FReply UWidget_ListEntry_Scalar::NativeOnFocusReceived(const FGeometry& InGeometry, const FFocusEvent& InFocusEvent)
 {
+	// handle focus on slider
+	UCommonInputSubsystem* IS = GetInputSubsystem();
+	if (IS && IS->GetCurrentInputType() == ECommonInputType::Gamepad)
+	{
+		if (Slider->Slider)
+		{
+			return FReply::Handled().SetUserFocus(Slider->Slider->GetCachedWidget().ToSharedRef());
+		}
+	}
+
 	return Super::NativeOnFocusReceived(InGeometry, InFocusEvent);
 }
 

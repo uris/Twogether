@@ -42,6 +42,10 @@ public:
 		return CurrentSetting.DisplayName;
 	};
 
+	virtual bool CanResetBackToDefault() const override;
+
+	virtual bool ResetToDefault() override;
+
 protected:
 	// cache the currently displayed text and corresponding value
 	FStringSetting CurrentSetting;
@@ -49,10 +53,6 @@ protected:
 
 	// override to initialize the settings array with the values needed
 	virtual void OnDataObjectInitialized() override;
-
-	virtual bool CanResetBackToDefault() const override;
-
-	virtual bool ResetToDefault() override;
 
 private:
 	// helper: find entry in a settings array by value

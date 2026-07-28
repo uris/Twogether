@@ -4,6 +4,7 @@
 #include "OptionsDataRegistry.h"
 
 #include "OptionsDataInteractionHelper.h"
+#include "DataObjects/ListItemDataObject_Boolean.h"
 #include "DataObjects/ListItemDataObject_String.h"
 #include "DataObjects/ListItemDataObject_Scalar.h"
 #include "DataObjects/UOptionsListItemCollection_Base.h"
@@ -13,14 +14,14 @@
 
 namespace
 {
-	struct FRuntimeSettingTab
-	{
-		EUserSettingTab Tab;
-		FName Id;
-		FText DisplayName;
-		int32 SortOrder;
-		int32 EnumIndex;
-	};
+struct FRuntimeSettingTab
+{
+	EUserSettingTab Tab;
+	FName Id;
+	FText DisplayName;
+	int32 SortOrder;
+	int32 EnumIndex;
+};
 }
 
 void UOptionsDataRegistry::InitRegistry(ULocalPlayer* InOwningLocalPlayer)
@@ -97,7 +98,7 @@ void UOptionsDataRegistry::InitRegistry(ULocalPlayer* InOwningLocalPlayer)
 	{
 		const FString EnumName = TabEnum->GetNameStringByIndex(EnumIndex);
 		if (TabEnum->HasMetaData(TEXT("Hidden"), EnumIndex) ||
-			EnumName.EndsWith(TEXT("_MAX"), ESearchCase::IgnoreCase))
+		    EnumName.EndsWith(TEXT("_MAX"), ESearchCase::IgnoreCase))
 		{
 			continue;
 		}
@@ -152,7 +153,7 @@ void UOptionsDataRegistry::InitRegistry(ULocalPlayer* InOwningLocalPlayer)
 			[](const FUserSettingDefinition& Left, const FUserSettingDefinition& Right)
 			{
 				if (Left.ParentSettingId == Right.ParentSettingId &&
-					Left.SortOrder != Right.SortOrder)
+				    Left.SortOrder != Right.SortOrder)
 				{
 					return Left.SortOrder < Right.SortOrder;
 				}
@@ -291,11 +292,22 @@ UOptionsListItemDataObject_Base* UOptionsDataRegistry::CreateSettingDataObject(
 			UListItemDataObject_String* StringData =
 				NewObject<UListItemDataObject_String>(this);
 			StringData->SetDataId(Definition.SettingId);
-			for (const FStringSetting& AvailableValue : Definition.AvailableValues)
+			for (const FStringSetting& AvailableValue : Definition.AvailableStringValues)
 			{
 				StringData->AddDynamicSetting(AvailableValue);
 			}
 			ValueData = StringData;
+			break;
+		}
+
+		// string values
+		case EUserSettingValueType::Bool:
+		{
+			UListItemDataObject_Boolean* BoolData =
+				NewObject<UListItemDataObject_Boolean>(this);
+			BoolData->SetDataId(Definition.SettingId);
+			BoolData->AddDynamicSetting(Definition.AvailableBoolValues);
+			ValueData = BoolData;
 			break;
 		}
 

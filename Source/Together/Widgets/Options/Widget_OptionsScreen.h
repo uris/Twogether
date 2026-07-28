@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Engine/DataTable.h"
+#include "Settings/UserSettingTypes.h"
 #include "SharedTypes/SharedTypes.h"
 #include "Widgets/Base/Widget_ActivatableBase.h"
 #include "Widget_OptionsScreen.generated.h"
