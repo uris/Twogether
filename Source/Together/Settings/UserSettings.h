@@ -15,30 +15,21 @@ class TOGETHER_API UUserSettings : public UGameUserSettings
 	GENERATED_BODY()
 
 public:
-	// constructor
-	UUserSettings();
+	virtual void LoadSettings(bool bForceReload = false) override;
+
+	// *** generic string-based access for data-driven settings *** //
+
+	FString GetSetting(FName InSettingId, const FString& InFallback = FString()) const;
+
+	void SetSetting(FName InSettingId, const FString& InValue);
+
 
 	// public getter
 	static UUserSettings* Get();
 
-	//*** Gameplay Collection Tab //
-	UFUNCTION()
-	FString GetGameDifficulty() const;
-
-	UFUNCTION()
-	void SetGameDifficulty(const FString& InDifficulty);
-
-	//*** Audio Collection Tab //
-	UFUNCTION()
-	float GetOverallVolume() const;
-
-	UFUNCTION()
-	void SetOverallVolume(const float InVolume);
-
 private:
-	UPROPERTY(Config, EditAnywhere, Category="User Settings|Game")
-	FString GameDifficulty;
+	void InitializeDynamicSettings();
 
-	UPROPERTY(Config, EditAnywhere, Category="User Settings|Audio")
-	float OverallVolume;
+	UPROPERTY(Config)
+	TMap<FName, FString> DynamicSettings;
 };

@@ -28,15 +28,17 @@ public:
 	float GetCurrentValue() const;
 	void SetCurrentValue(float InValue);
 
-protected:
 	virtual bool CanResetBackToDefault() const override;
-
 	virtual bool ResetToDefault() override;
+
+protected:
+	virtual void OnDataObjectInitialized() override;
 
 private:
 	// helper - convert string to float / float to string
-	static float StringToFloat(const FString& InString);
+	static bool TryStringToFloat(const FString& InString, float& OutValue);
 	static FString FloatToString(float InValue);
+	float GetFallbackOutputValue() const;
 
 	TRange<float> ValueRange = TRange<float>(0.0f, 1.0f);
 	ECommonNumericType ValueType = ECommonNumericType::Number;

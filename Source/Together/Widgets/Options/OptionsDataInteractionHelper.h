@@ -1,22 +1,22 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PropertyPathHelpers.h"
 
-class UGameUserSettings;
+class UUserSettings;
 
 class TOGETHER_API FOptionsDataInteractionHelper
 {
 public:
-	explicit FOptionsDataInteractionHelper(const FString& InSetterOrGetterFuncPath);
+	FOptionsDataInteractionHelper(FName InSettingId, const FString& InDefaultValue);
 
 	FString GetValueAsString() const;
 
 	void SetValueFromString(const FString& InStringValue) const;
 
 private:
-	FCachedPropertyPath CachedDynamicFunction;
+	TWeakObjectPtr<UUserSettings> CachedWeakUserSettings;
 
-	TWeakObjectPtr<UGameUserSettings> CachedWeakUserSettings;
+	FName SettingId;
 
+	FString DefaultValue;
 };

@@ -24,8 +24,7 @@ public class Together : ModuleRules
 			"OnlineSubsystemSteam",
 			"GameplayTags",
 			"CommonUI",
-			"CommonInput",
-			"PropertyPath"
+			"CommonInput"
 		});
 
 		PrivateDependencyModuleNames.AddRange(new string[] { "AITestSuite" });

@@ -3,31 +3,9 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Settings/UserSettingTypes.h"
 #include "Widgets/Options/DataObjects/ListItemDataObject_Value.h"
 #include "ListItemDataObject_String.generated.h"
-
-USTRUCT(BlueprintType)
-struct FStringSetting
-{
-	GENERATED_BODY()
-
-	// text used to for displaying the setting value
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	FName SettingDataId = NAME_None;
-
-	// text used to for displaying the setting value
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	FText DisplayName = FText::GetEmpty();
-
-	// value saved to the game settings file
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	FString Value = TEXT("");
-
-	FStringSetting() = default;
-
-	FStringSetting(const FName& InSettingDataId, const FText& InDisplayName, const FString& InValue)
-		: SettingDataId(InSettingDataId), DisplayName(InDisplayName), Value(InValue) {}
-};
 
 UENUM(BlueprintType)
 enum class EStringSettingDirection : uint8

@@ -24,6 +24,11 @@ public:
 		DefaultStringValue = InDefaultStringValue;
 	}
 
+	FString GetDefaultValueAsString() const
+	{
+		return DefaultStringValue.IsSet() ? DefaultStringValue.GetValue() : "";
+	}
+
 	virtual bool HasDefaultValue() const override
 	{
 		return DefaultStringValue.IsSet();
@@ -32,11 +37,6 @@ public:
 protected:
 	TSharedPtr<FOptionsDataInteractionHelper> DataDynamicGetter;
 	TSharedPtr<FOptionsDataInteractionHelper> DataDynamicSetter;
-
-	FString GetDefaultValueAsString() const
-	{
-		return DefaultStringValue.IsSet() ? DefaultStringValue.GetValue() : "";
-	}
 
 private:
 	TOptional<FString> DefaultStringValue;

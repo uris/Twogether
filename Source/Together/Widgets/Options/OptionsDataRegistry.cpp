@@ -4,119 +4,356 @@
 #include "OptionsDataRegistry.h"
 
 #include "OptionsDataInteractionHelper.h"
-#include "UIFunctionLibrary.h"
 #include "DataObjects/ListItemDataObject_String.h"
 #include "DataObjects/ListItemDataObject_Scalar.h"
 #include "DataObjects/UOptionsListItemCollection_Base.h"
-#include "Settings/UserSettings.h"
+#include "Engine/DataTable.h"
+#include "Settings/TogetherSettings.h"
+#include "Settings/UserSettingTypes.h"
 
-/*
-TSharedPtr<FOptionsDataInteractionHelper> ConstructionHelper = MakeShared<FOptionsDataInteractionHelper>(
-GET_FUNCTION_NAME_STRING_CHECKED(UUserSettings, GetGameDifficulty));
-*/
-#define MAKE_OPTIONS_DATA_CONTROL(SetterOrGetterFuncName) \
-	MakeShared<FOptionsDataInteractionHelper>(GET_FUNCTION_NAME_STRING_CHECKED(UUserSettings, SetterOrGetterFuncName))
-
+namespace
+{
+	struct FRuntimeSettingTab
+	{
+		EUserSettingTab Tab;
+		FName Id;
+		FText DisplayName;
+		int32 SortOrder;
+		int32 EnumIndex;
+	};
+}
 
 void UOptionsDataRegistry::InitRegistry(ULocalPlayer* InOwningLocalPlayer)
 {
-	SetupGameplay(InitTabCollection("gameplay_tab_collection", "Gameplay"));
-	SetupAudio(InitTabCollection("audio_tab_collection", "Audio"));
-	InitTabCollection("video_tab_collection", "Video");
-	InitTabCollection("Input_tab_collection", "Input");
+	OptionTabCollections.Reset();
+
+	const UTogetherSettings* ProjectSettings = GetDefault<UTogetherSettings>();
+	const UDataTable* SettingsTable = ProjectSettings
+		                                  ? ProjectSettings->GameSettings.LoadSynchronous()
+		                                  : nullptr;
+
+	// protect for existing settings table
+	if (!SettingsTable)
+	{
+		UE_LOG(LogTemp, Error, TEXT("Unable to initialize options: no Game Settings data table is configured."));
+		return;
+	}
+
+	// protect for correct structure of the settings table
+	if (SettingsTable->GetRowStruct() != FUserSettingDefinition::StaticStruct())
+	{
+		UE_LOG(
+			LogTemp,
+			Error,
+			TEXT("Unable to initialize options: '%s' does not use FUserSettingDefinition."),
+			*SettingsTable->GetName());
+		return;
+	}
+
+	// create array to hold all the setting definitions extracted from the settings table
+	TArray<const FUserSettingDefinition*> Definitions;
+
+	// Load all rows of settings into Definitions array
+	SettingsTable->GetAllRows(TEXT("UOptionsDataRegistry::InitRegistry"), Definitions);
+
+	// create the tabs from the tabs enum
+	const UEnum* TabEnum = StaticEnum<EUserSettingTab>();
+	if (!TabEnum)
+	{
+		UE_LOG(LogTemp, Error, TEXT("Unable to initialize options: EUserSettingTab reflection data is unavailable."));
+		return;
+	}
+
+	TMap<EUserSettingTab, const FUserSettingTabDefinition*> AuthoredTabs;
+	if (ProjectSettings && !ProjectSettings->GameSettingTabs.IsNull())
+	{
+		if (const UDataTable* TabsTable = ProjectSettings->GameSettingTabs.LoadSynchronous())
+		{
+			if (TabsTable->GetRowStruct() == FUserSettingTabDefinition::StaticStruct())
+			{
+				TArray<const FUserSettingTabDefinition*> TabRows;
+				TabsTable->GetAllRows(TEXT("UOptionsDataRegistry::InitRegistry"), TabRows);
+				for (const FUserSettingTabDefinition* TabRow : TabRows)
+				{
+					if (TabRow)
+					{
+						AuthoredTabs.Add(TabRow->Tab, TabRow);
+					}
+				}
+			}
+			else
+			{
+				UE_LOG(
+					LogTemp,
+					Warning,
+					TEXT("Game Setting Tabs table '%s' does not use FUserSettingTabDefinition; using enum order."),
+					*TabsTable->GetName());
+			}
+		}
+	}
+
+	TArray<FRuntimeSettingTab> RuntimeTabs;
+	for (int32 EnumIndex = 0; EnumIndex < TabEnum->NumEnums(); ++EnumIndex)
+	{
+		const FString EnumName = TabEnum->GetNameStringByIndex(EnumIndex);
+		if (TabEnum->HasMetaData(TEXT("Hidden"), EnumIndex) ||
+			EnumName.EndsWith(TEXT("_MAX"), ESearchCase::IgnoreCase))
+		{
+			continue;
+		}
+
+		// get the int value of the current tab and ensure it is in range
+		const int64 EnumValue = TabEnum->GetValueByIndex(EnumIndex);
+		if (EnumValue == INDEX_NONE || EnumValue > MAX_uint8)
+		{
+			continue;
+		}
+
+		const EUserSettingTab CurrentTab = static_cast<EUserSettingTab>(EnumValue);
+		const FName TabId(EnumName);
+		const FUserSettingTabDefinition* const* AuthoredTab = AuthoredTabs.Find(CurrentTab);
+
+		FRuntimeSettingTab& RuntimeTab = RuntimeTabs.AddDefaulted_GetRef();
+		RuntimeTab.Tab = CurrentTab;
+		RuntimeTab.Id = TabId;
+		RuntimeTab.DisplayName =
+			AuthoredTab && !(*AuthoredTab)->DisplayName.IsEmpty()
+				? (*AuthoredTab)->DisplayName
+				: TabEnum->GetDisplayNameTextByIndex(EnumIndex);
+		RuntimeTab.SortOrder = AuthoredTab ? (*AuthoredTab)->SortOrder : EnumIndex;
+		RuntimeTab.EnumIndex = EnumIndex;
+	}
+
+	RuntimeTabs.Sort(
+		[](const FRuntimeSettingTab& Left, const FRuntimeSettingTab& Right)
+		{
+			return Left.SortOrder == Right.SortOrder
+				       ? Left.EnumIndex < Right.EnumIndex
+				       : Left.SortOrder < Right.SortOrder;
+		});
+
+	for (const FRuntimeSettingTab& RuntimeTab : RuntimeTabs)
+	{
+		const EUserSettingTab CurrentTab = RuntimeTab.Tab;
+		const FName TabId = RuntimeTab.Id;
+		UUOptionsListItemCollection_Base* TabCollection =
+			InitTabCollection(TabId, RuntimeTab.DisplayName);
+
+		TArray<const FUserSettingDefinition*> TabDefinitions;
+		for (const FUserSettingDefinition* Definition : Definitions)
+		{
+			if (Definition && Definition->SettingTab == CurrentTab)
+			{
+				TabDefinitions.Add(Definition);
+			}
+		}
+
+		TabDefinitions.Sort(
+			[](const FUserSettingDefinition& Left, const FUserSettingDefinition& Right)
+			{
+				if (Left.ParentSettingId == Right.ParentSettingId &&
+					Left.SortOrder != Right.SortOrder)
+				{
+					return Left.SortOrder < Right.SortOrder;
+				}
+				return Left.SettingId.LexicalLess(Right.SettingId);
+			});
+
+		// create key/value map with each setting and it's base data object
+		TMap<FName, UOptionsListItemDataObject_Base*> ItemsById;
+
+		// iterate all settings definitions to create the uber list of settings for the tab
+		for (const FUserSettingDefinition* Definition : TabDefinitions)
+		{
+			// ignore all settings that don't have a settings id
+			if (Definition->SettingId.IsNone())
+			{
+				UE_LOG(LogTemp,
+				       Warning,
+				       TEXT("Skipping a setting in tab '%s' because its SettingId is empty."),
+				       *TabId.ToString());
+				continue;
+			}
+
+			// create a null base data object for the item
+			UOptionsListItemDataObject_Base* Item = nullptr;
+
+			// for items that are "collections" only (ie a setting group)
+			// create a collection object for the item
+			if (Definition->bIsSettingGroup)
+			{
+				Item = NewObject<UUOptionsListItemCollection_Base>(this);
+				Item->SetDataId(Definition->SettingId);
+				Item->SetDisplayName(Definition->DisplayName);
+				Item->SetDescription(Definition->Description);
+				Item->SetDisabledText(Definition->DisabledText);
+				Item->SetDescriptionImage(Definition->DescriptionImage);
+			}
+
+			// if the items are root settings, with actual values
+			// create a full data object for the item
+			else
+			{
+				Item = CreateSettingDataObject(*Definition);
+			}
+
+			// ensure an item was created
+			if (!Item)
+			{
+				continue;
+			}
+
+			// if the created items appears to be a duplicate, silently warn and pass over
+			if (ItemsById.Contains(Definition->SettingId))
+			{
+				UE_LOG(
+					LogTemp,
+					Warning,
+					TEXT("Skipping duplicate setting id '%s' in tab '%s'."),
+					*Definition->SettingId.ToString(),
+					*TabId.ToString());
+				continue;
+			}
+
+			// add the item to the map of items
+			ItemsById.Add(Definition->SettingId, Item);
+		}
+
+		// iterate through all settings
+		for (const FUserSettingDefinition* Definition : TabDefinitions)
+		{
+			// ensure an item data object exists for the matching setting id
+			UOptionsListItemDataObject_Base* const* ItemPtr = ItemsById.Find(Definition->SettingId);
+			if (!ItemPtr)
+			{
+				continue;
+			}
+
+			// by default set the parent to the overall tab collection
+			UUOptionsListItemCollection_Base* ParentCollection = TabCollection;
+
+			// for settings that have a parent ID (belong to a group)
+			if (!Definition->ParentSettingId.IsNone())
+			{
+
+				// create a temp parent pointer to the item's parent
+				UOptionsListItemDataObject_Base* const* ParentPtr = ItemsById.Find(Definition->ParentSettingId);
+
+				// rest the parent collection to the found items's parent or null if the parent was not found
+				ParentCollection = ParentPtr ? Cast<UUOptionsListItemCollection_Base>(*ParentPtr) : nullptr;
+
+				// if no parent was found for the item in the item collection, then we have a missing data issue.
+				if (!ParentCollection)
+				{
+					UE_LOG(
+						LogTemp,
+						Warning,
+						TEXT("Setting '%s' references missing or non-collection parent '%s'; attaching it to tab '%s'."
+						),
+						*Definition->SettingId.ToString(),
+						*Definition->ParentSettingId.ToString(),
+						*TabId.ToString());
+					// repoint to the top level tab collection
+					ParentCollection = TabCollection;
+				}
+			}
+
+			// add the item as child
+			ParentCollection->AddChildListData(*ItemPtr);
+		}
+	}
 }
 
+// base settings tab collection creator
 UUOptionsListItemCollection_Base* UOptionsDataRegistry::InitTabCollection(
-	const FString& DataId,
-	const FString& DisplayName)
+	const FName DataId,
+	const FText& DisplayName)
 {
-	UUOptionsListItemCollection_Base* TabCollection = NewObject<UUOptionsListItemCollection_Base>();
-	TabCollection->SetDataId(FName(DataId));
-	TabCollection->SetDisplayName(FText::FromString(DisplayName));
+	UUOptionsListItemCollection_Base* TabCollection = NewObject<UUOptionsListItemCollection_Base>(this);
+	TabCollection->SetDataId(DataId);
+	TabCollection->SetDisplayName(DisplayName);
 	OptionTabCollections.Add(TabCollection);
 	return TabCollection;
 }
 
-void UOptionsDataRegistry::SetupGameplay(UUOptionsListItemCollection_Base* TabCollection)
+// base data object item creatr
+UOptionsListItemDataObject_Base* UOptionsDataRegistry::CreateSettingDataObject(
+	const FUserSettingDefinition& Definition)
 {
-	// game difficulty
-	UListItemDataObject_String* GameDifficulty = NewObject<UListItemDataObject_String>();
-	NewObject<UListItemDataObject_String>();
 
-	// set game difficulty meta and display
-	const FName DataId = FName("GameDifficulty");
-	GameDifficulty->SetDataId(DataId);
-	GameDifficulty->SetDisplayName(FText::FromString("Game Difficulty"));
-
-	// set value options
-	GameDifficulty->AddDynamicSetting(DataId, FText::FromString("Easy"), TEXT("easy"));
-	GameDifficulty->AddDynamicSetting(DataId, FText::FromString("Normal"), TEXT("normal"));
-	GameDifficulty->AddDynamicSetting(DataId, FText::FromString("Hard"), TEXT("hard"));
-
-	// set default
-	GameDifficulty->SetDefaultValueFromString(TEXT("Normal"));
-
-	// assign getters/setters for saving to user settings
-	GameDifficulty->SetDataDynamicGetter(MAKE_OPTIONS_DATA_CONTROL(GetGameDifficulty));
-	GameDifficulty->SetDataDynamicSetter(MAKE_OPTIONS_DATA_CONTROL(SetGameDifficulty));
-
-	// apply changes immediately
-	GameDifficulty->SetShouldApplyChangesImmediately(true);
-	// add setting to a tab collection
-	TabCollection->AddChildListData(GameDifficulty);
-
-	// TODO: Remove Test Item //
-	UListItemDataObject_String* TestItem = NewObject<UListItemDataObject_String>();
-	NewObject<UListItemDataObject_String>();
-
-	TestItem->SetDataId(FName("TestItem"));
-	TestItem->SetDisplayName(FText::FromString("Test Item"));
-	TestItem->SetDescriptionImage(
-		UUIFunctionLibrary::GetUISoftImageTextureByTag(UUIFunctionLibrary::GetGameplayTagFromString("UI.Image.Test")));
-	TabCollection->AddChildListData(TestItem);
-}
-
-void UOptionsDataRegistry::SetupAudio(UUOptionsListItemCollection_Base* TabCollection)
-{
-	// set up volume category as a child collection object
-	UUOptionsListItemCollection_Base* VolumeCollection = NewObject<UUOptionsListItemCollection_Base>();
-	VolumeCollection->SetDataId(FName("VolumeCategoryCollection"));
-	VolumeCollection->SetDisplayName(FText::FromString("Volume"));
-	TabCollection->AddChildListData(VolumeCollection);
-
-	// overall volume //
+	// create each setting unique item data object properties based on value type
+	UListItemDataObject_Value* ValueData = nullptr;
+	switch (Definition.Type)
 	{
-		UListItemDataObject_Scalar* OverallVolume = NewObject<UListItemDataObject_Scalar>();
-		OverallVolume->SetDataId(FName("OverallVolume"));
-		OverallVolume->SetDisplayName(FText::FromString("Overall Volume"));
-		OverallVolume->SetDescription(FText::FromString("Overall Volume Description"));
-		OverallVolume->SetValueRange(TRange<float>(0.0f, 1.0f));
-		OverallVolume->SetOutputRange(TRange<float>(0.0f, 2.0f));
-		OverallVolume->SetSliderStepSize(0.01f);
-		OverallVolume->SetDefaultValueFromString(LexToString(1.f));
-		OverallVolume->SetValueType(ECommonNumericType::Percentage);
-		OverallVolume->SetFormatting(UListItemDataObject_Scalar::NoDecimal());
-		OverallVolume->SetDataDynamicGetter(MAKE_OPTIONS_DATA_CONTROL(GetOverallVolume));
-		OverallVolume->SetDataDynamicSetter(MAKE_OPTIONS_DATA_CONTROL(SetOverallVolume));
-		OverallVolume->SetShouldApplyChangesImmediately(true);
-		VolumeCollection->AddChildListData(OverallVolume);
+		// string values
+		case EUserSettingValueType::String:
+		{
+			UListItemDataObject_String* StringData =
+				NewObject<UListItemDataObject_String>(this);
+			StringData->SetDataId(Definition.SettingId);
+			for (const FStringSetting& AvailableValue : Definition.AvailableValues)
+			{
+				StringData->AddDynamicSetting(AvailableValue);
+			}
+			ValueData = StringData;
+			break;
+		}
+
+		// scalar values
+		case EUserSettingValueType::Scalar:
+		{
+			UListItemDataObject_Scalar* ScalarData =
+				NewObject<UListItemDataObject_Scalar>(this);
+			const float MinValue = FMath::Min(Definition.MinValue, Definition.MaxValue);
+			const float MaxValue = FMath::Max(Definition.MinValue, Definition.MaxValue);
+			ScalarData->SetValueRange(TRange<float>(MinValue, MaxValue));
+			ScalarData->SetOutputRange(TRange<float>(MinValue, MaxValue));
+			ScalarData->SetSliderStepSize(FMath::Max(Definition.StepSize, UE_SMALL_NUMBER));
+			ScalarData->SetValueType(Definition.NumericType);
+
+			FCommonNumberFormattingOptions Formatting;
+			Formatting.MinimumFractionalDigits =
+				FMath::Max(0, Definition.MinimumFractionalDigits);
+			Formatting.MaximumFractionalDigits =
+				FMath::Max(
+					Formatting.MinimumFractionalDigits,
+					Definition.MaximumFractionalDigits);
+			ScalarData->SetFormatting(Formatting);
+			ValueData = ScalarData;
+			break;
+		}
+
+		// log others for now, later we will create cases for them too
+		default:
+			UE_LOG(
+				LogTemp,
+				Warning,
+				TEXT("Skipping setting '%s': value type '%s' does not have a list data object yet."),
+				*Definition.SettingId.ToString(),
+				*StaticEnum<EUserSettingValueType>()->GetNameStringByValue(
+					static_cast<int64>(Definition.Type)));
+			return nullptr;
 	}
 
-	// test //
-	{
-		UListItemDataObject_Scalar* TestItem = NewObject<UListItemDataObject_Scalar>();
-		TestItem->SetDataId(FName("Test"));
-		TestItem->SetDisplayName(FText::FromString("Test"));
-		TestItem->SetDescription(FText::FromString("Test Another Item"));
-		TestItem->SetValueRange(TRange<float>(0.0f, 1.0f));
-		TestItem->SetOutputRange(TRange<float>(0.0f, 2.0f));
-		TestItem->SetSliderStepSize(0.01f);
-		TestItem->SetDefaultValueFromString(LexToString(1.f));
-		TestItem->SetValueType(ECommonNumericType::Percentage);
-		TestItem->SetFormatting(UListItemDataObject_Scalar::NoDecimal());
-		VolumeCollection->AddChildListData(TestItem);
-	}
+	// set the common data object properties
+	ValueData->SetDataId(Definition.SettingId);
+	ValueData->SetDisplayName(Definition.DisplayName);
+	ValueData->SetDescription(Definition.Description);
+	ValueData->SetDisabledText(Definition.DisabledText);
+	ValueData->SetDescriptionImage(Definition.DescriptionImage);
+	ValueData->SetDefaultValueFromString(Definition.DefaultValue);
+	ValueData->SetShouldApplyChangesImmediately(Definition.bShouldApplyChangesImmediately);
 
+	// create default getters / setter for inserting and retirieving from user settings
+	const TSharedPtr<FOptionsDataInteractionHelper> Interaction =
+		MakeShared<FOptionsDataInteractionHelper>(
+			Definition.SettingId,
+			Definition.DefaultValue);
+	ValueData->SetDataDynamicGetter(Interaction);
+	ValueData->SetDataDynamicSetter(Interaction);
+
+	// return the items value data
+	return ValueData;
 }
 
 TArray<UOptionsListItemDataObject_Base*> UOptionsDataRegistry::GetListItemsBySelectedTabId(
@@ -151,11 +388,20 @@ TArray<UOptionsListItemDataObject_Base*> UOptionsDataRegistry::GetListItemsBySel
 
 FString UOptionsDataRegistry::GetTabDisplayNameById(const FName& InSelectedTabId) const
 {
-	return GetListItemsBySelectedTabId(InSelectedTabId)[0]->GetDisplayName().ToString();
+	const UUOptionsListItemCollection_Base* const* FoundTabCollection =
+		OptionTabCollections.FindByPredicate(
+			[InSelectedTabId](const UUOptionsListItemCollection_Base* Collection)
+			{
+				return Collection && Collection->GetDataId() == InSelectedTabId;
+			});
+
+	return FoundTabCollection
+		       ? (*FoundTabCollection)->GetDisplayName().ToString()
+		       : FString();
 }
 
 void UOptionsDataRegistry::FindChildListDataRecursive(const UUOptionsListItemCollection_Base* InParentCollection,
-                                                      TArray<UOptionsListItemDataObject_Base*>& OutChildList) const
+                                                      TArray<UOptionsListItemDataObject_Base*>& OutChildList)
 {
 	if (!InParentCollection || !InParentCollection->HasAnyChildListData())
 	{

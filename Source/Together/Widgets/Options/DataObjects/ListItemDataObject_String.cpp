@@ -10,42 +10,53 @@ void UListItemDataObject_String::OnDataObjectInitialized()
 {
 	Super::OnDataObjectInitialized();
 
-	// if no settings are available, set current to invalid
 	if (Settings.IsEmpty())
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Empty Settings - Unable To Initialize"));
+		UE_LOG(
+			LogTemp,
+			Warning,
+			TEXT("Unable to initialize string setting '%s': no available values were configured."),
+			*GetDataId().ToString());
 		CurrentSetting.DisplayName = FText::FromString("Invalid Option");
-		CurrentSetting.Value = FString("Invalid Value");
+		CurrentSetting.Value = TEXT("Invalid Value");
+		return;
 	}
 
-	// otherwise default to the first entry in the array
-	if (!Settings.IsEmpty())
+	FString ValueToUse = Settings[0].Value;
+	if (HasDefaultValue() && GetSettingIndexByValue(GetDefaultValueAsString()) != INDEX_NONE)
 	{
-		CurrentSetting.Value = Settings[0].Value;
+		ValueToUse = GetDefaultValueAsString();
 	}
 
-	// check if there's a default value
-	if (HasDefaultValue())
-	{
-		CurrentSetting.Value = GetDefaultValueAsString();
-	}
-
-	// check saved settings for a previously stored value
 	if (DataDynamicGetter)
 	{
-		FString FoundSettingValue = DataDynamicGetter->GetValueAsString();
-		if (!FoundSettingValue.IsEmpty())
-		{
-			CurrentSetting.Value = FoundSettingValue;
-		}
+		ValueToUse = DataDynamicGetter->GetValueAsString();
 	}
 
-	// update display text and report issues updating
-	const bool DidUpdateSetting = DidSetDisplayNameFromStringValue(CurrentSetting.Value);
-	if (!DidUpdateSetting)
+	if (DidSetDisplayNameFromStringValue(ValueToUse))
 	{
-		CurrentSetting.DisplayName = FText::FromString("Invalid Option");
-		CurrentSetting.Value = FString("Invalid Value");
+		return;
+	}
+
+	const FString FallbackValue =
+		HasDefaultValue() && GetSettingIndexByValue(GetDefaultValueAsString()) != INDEX_NONE
+			? GetDefaultValueAsString()
+			: Settings[0].Value;
+
+	UE_LOG(
+		LogTemp,
+		Warning,
+		TEXT("String setting '%s' contains unavailable value '%s'; using '%s' instead."),
+		*GetDataId().ToString(),
+		*ValueToUse,
+		*FallbackValue);
+
+	DidSetDisplayNameFromStringValue(FallbackValue);
+
+	// Repair a stale saved value so subsequent loads use a valid table option.
+	if (DataDynamicSetter)
+	{
+		DataDynamicSetter->SetValueFromString(FallbackValue);
 	}
 }
 
@@ -68,8 +79,17 @@ bool UListItemDataObject_String::ResetToDefault()
 		return false;
 	}
 
-	CurrentSetting.Value = GetDefaultValueAsString();
-	DidSetDisplayNameFromStringValue(CurrentSetting.Value);
+	if (!DidSetDisplayNameFromStringValue(GetDefaultValueAsString()))
+	{
+		UE_LOG(
+			LogTemp,
+			Warning,
+			TEXT("Unable to reset string setting '%s': default value '%s' is not available."),
+			*GetDataId().ToString(),
+			*GetDefaultValueAsString());
+		return false;
+	}
+
 	DataDynamicSetter->SetValueFromString(CurrentSetting.Value);
 	NotifyListDataModified(this, EOptionsListModifiedReason::ResetToDefault);
 
@@ -98,29 +118,17 @@ void UListItemDataObject_String::AddDynamicSetting(const FName& InSettingDataId,
 
 void UListItemDataObject_String::AddDynamicSetting(const FStringSetting& InSetting)
 {
-	bool bIsValid = true;
-
-	// get an index of then entry matching the same value
 	const int32 FoundIndex = GetSettingIndexByValue(InSetting.Value);
-
-	// check if the value exists for the same setting id
-	if (FoundIndex != INDEX_NONE && Settings[FoundIndex].SettingDataId == InSetting.SettingDataId)
-	{
-		bIsValid = false;
-	}
-
-	// return is an invalid setting
-	if (!bIsValid)
+	if (FoundIndex != INDEX_NONE)
 	{
 		UE_LOG(LogTemp,
 		       Warning,
-		       TEXT("Attempted to add duplicate setting for %s: %s"),
-		       *InSetting.SettingDataId.ToString(),
-		       *InSetting.Value);
+		       TEXT("Attempted to add duplicate value '%s' to string setting '%s'."),
+		       *InSetting.Value,
+		       *GetDataId().ToString());
 		return;
 	}
 
-	// add setting
 	Settings.Add(InSetting);
 }
 
@@ -182,14 +190,11 @@ bool UListItemDataObject_String::DidSetDisplayNameFromStringValue(const FString&
 
 	if (FoundIndex == INDEX_NONE)
 	{
-		UE_LOG(LogTemp, Log, TEXT("Selection is Invalid - Unable To Set Option Display Name"));
 		return false;
 	}
-	else
-	{
-		CurrentSetting = Settings[FoundIndex];
-		return !Settings[FoundIndex].DisplayName.IsEmpty();
-	}
+
+	CurrentSetting = Settings[FoundIndex];
+	return !CurrentSetting.DisplayName.IsEmpty();
 }
 
 int32 UListItemDataObject_String::GetSettingIndexByValue(const FString& InStringValue) const

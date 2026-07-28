@@ -2,22 +2,29 @@
 
 #include "Settings/UserSettings.h"
 
-FOptionsDataInteractionHelper::FOptionsDataInteractionHelper(const FString& InSetterOrGetterFuncPath) :
-	CachedDynamicFunction(InSetterOrGetterFuncPath)
+FOptionsDataInteractionHelper::FOptionsDataInteractionHelper(
+	const FName InSettingId,
+	const FString& InDefaultValue) :
+	CachedWeakUserSettings(UUserSettings::Get()),
+	SettingId(InSettingId),
+	DefaultValue(InDefaultValue)
 {
-	CachedWeakUserSettings = UUserSettings::Get();
 }
 
 FString FOptionsDataInteractionHelper::GetValueAsString() const
 {
-	FString ReturnValue;
-	PropertyPathHelpers::GetPropertyValueAsString(CachedWeakUserSettings.Get(), CachedDynamicFunction, ReturnValue);
+	if (const UUserSettings* UserSettings = CachedWeakUserSettings.Get())
+	{
+		return UserSettings->GetSetting(SettingId, DefaultValue);
+	}
 
-	return ReturnValue;
+	return DefaultValue;
 }
 
 void FOptionsDataInteractionHelper::SetValueFromString(const FString& InStringValue) const
 {
-	UE_LOG(LogTemp, Warning, TEXT("SetValueFromString %s"), *InStringValue);
-	PropertyPathHelpers::SetPropertyValueFromString(CachedWeakUserSettings.Get(), CachedDynamicFunction, InStringValue);
+	if (UUserSettings* UserSettings = CachedWeakUserSettings.Get())
+	{
+		UserSettings->SetSetting(SettingId, InStringValue);
+	}
 }

@@ -48,6 +48,16 @@ public:
 		meta = (DisplayName = "Data Tables"))
 	TMap<FName, TSoftObjectPtr<UDataTable>> GameData;
 
+	UPROPERTY(Config,
+		EditAnywhere,
+		Category = "Game Settings|Settings")
+	TSoftObjectPtr<UDataTable> GameSettings;
+
+	UPROPERTY(Config,
+		EditAnywhere,
+		Category = "Game Settings|Tabs")
+	TSoftObjectPtr<UDataTable> GameSettingTabs;
+
 	UPROPERTY(Config, EditAnywhere, Category = "Maps|On Server Create")
 	TSoftObjectPtr<UWorld> OnServerCreateMap;
 
