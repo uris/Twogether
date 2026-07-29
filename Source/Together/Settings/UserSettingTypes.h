@@ -12,6 +12,7 @@ UENUM(BlueprintType)
 enum class ENativeUnrealSettings : uint8
 {
 	WindowMode = 0 UMETA(DisplayName = "Window Mode"),
+	ScreenResolution = 1 UMETA(DisplayName = "Screen Resolution"),
 };
 
 UENUM(BlueprintType)

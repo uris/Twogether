@@ -42,8 +42,8 @@ private:
 	void InitializeDynamicSettings();
 
 	// private getters/setter for native settings
-	FString GetNativeSettingValue(FName InSettingId) const;
-	bool SetNativeSettingValue(const FName InSettingId, const FString& InValue);
+	static FString GetNativeSettingValue(FName InSettingId);
+	static bool SetNativeSettingValue(const FName InSettingId, const FString& InValue);
 
 	// lookup reference of settings used in update broadcasts
 	TMap<FName, FUserSettingDefinition> DefinitionsById;

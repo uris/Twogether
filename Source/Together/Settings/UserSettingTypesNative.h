@@ -9,6 +9,7 @@ namespace NativeSettingIds
 {
 inline const FName Invalid(TEXT("Invalid"));
 inline const FName WindowMode(TEXT("WindowMode"));
+inline const FName ScreenResolution(TEXT("ScreenResolution"));
 }
 
 inline FName GetNativeSettingId(const ENativeUnrealSettings NativeSetting)
@@ -17,6 +18,8 @@ inline FName GetNativeSettingId(const ENativeUnrealSettings NativeSetting)
 	{
 		case ENativeUnrealSettings::WindowMode:
 			return NativeSettingIds::WindowMode;
+		case ENativeUnrealSettings::ScreenResolution:
+			return NativeSettingIds::ScreenResolution;
 		default:
 			return NativeSettingIds::Invalid;
 	}

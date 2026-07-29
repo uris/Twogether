@@ -8,6 +8,7 @@
 #include "DataObjects/ListItemDataObject_IntEnum.h"
 #include "DataObjects/ListItemDataObject_String.h"
 #include "DataObjects/ListItemDataObject_Scalar.h"
+#include "Settings/NativeSettingsHelper.h"
 #include "DataObjects/UOptionsListItemCollection_Base.h"
 #include "Engine/DataTable.h"
 #include "Settings/TogetherSettings.h"
@@ -298,7 +299,10 @@ UOptionsListItemDataObject_Base* UOptionsDataRegistry::CreateSettingDataObject(
 			UListItemDataObject_String* StringData =
 				NewObject<UListItemDataObject_String>(this);
 			StringData->SetDataId(GetSettingIdString(Definition));
-			for (const FStringSetting& AvailableValue : Definition.AvailableStringValues)
+			// get native settings from native helpers
+			for (const FStringSetting& AvailableValue : Definition.bIsNativeSetting
+				                                            ? GetNativeStringSettings(Definition)
+				                                            : Definition.AvailableStringValues)
 			{
 				StringData->AddDynamicSetting(AvailableValue);
 			}
@@ -479,4 +483,16 @@ FName UOptionsDataRegistry::GetSettingIdString(const FUserSettingDefinition& Def
 	}
 
 	return FName();
+}
+
+TArray<FStringSetting> UOptionsDataRegistry::GetNativeStringSettings(const FUserSettingDefinition& Definition)
+{
+	switch (Definition.NativeSetting)
+	{
+		case ENativeUnrealSettings::ScreenResolution:
+			return UNativeSettingsHelper::GetSupportedResolutionsSettings(
+				GetNativeSettingId(Definition.NativeSetting));
+		default:
+			return {};
+	}
 }

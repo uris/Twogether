@@ -45,4 +45,6 @@ private:
 	// creates a data object for each setting item
 	UOptionsListItemDataObject_Base* CreateSettingDataObject(const FUserSettingDefinition& Definition);
 
+	// helper to create a settings array for native settings
+	static TArray<FStringSetting> GetNativeStringSettings(const FUserSettingDefinition& Definition);
 };

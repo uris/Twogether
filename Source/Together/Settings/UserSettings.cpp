@@ -9,6 +9,8 @@
 #include "Settings/TogetherSettings.h"
 #include "Settings/UserSettingTypes.h"
 
+#include "NativeSettingsHelper.h"
+
 void UUserSettings::LoadSettings(const bool bForceReload)
 {
 	Super::LoadSettings(bForceReload);
@@ -160,11 +162,17 @@ UUserSettings* UUserSettings::Get()
 	return nullptr;
 }
 
-FString UUserSettings::GetNativeSettingValue(const FName InSettingId) const
+FString UUserSettings::GetNativeSettingValue(const FName InSettingId)
 {
+
 	if (InSettingId == NativeSettingIds::WindowMode)
 	{
-		return LexToString(static_cast<int32>(GetFullscreenMode()));
+		return UNativeSettingsHelper::GetCurrentWindowMode();
+	}
+
+	if (InSettingId == NativeSettingIds::ScreenResolution)
+	{
+		return UNativeSettingsHelper::GetCurrentResolutionString();
 	}
 
 	return FString();
@@ -172,28 +180,14 @@ FString UUserSettings::GetNativeSettingValue(const FName InSettingId) const
 
 bool UUserSettings::SetNativeSettingValue(const FName InSettingId, const FString& InValue)
 {
-	// *** NATIVE WindowMode *** //
 	if (InSettingId == NativeSettingIds::WindowMode)
 	{
-		int32 ParsedValue = INDEX_NONE;
-		if (!LexTryParseString(ParsedValue, *InValue))
-		{
-			return false;
-		}
+		return UNativeSettingsHelper::SetWindowMode(InValue);
+	}
 
-		const EWindowMode::Type NewMode = static_cast<EWindowMode::Type>(ParsedValue);
-		if (NewMode != EWindowMode::Fullscreen &&
-		    NewMode != EWindowMode::WindowedFullscreen &&
-		    NewMode != EWindowMode::Windowed)
-		{
-			return false;
-		}
-
-		if (GetFullscreenMode() != NewMode)
-		{
-			SetFullscreenMode(NewMode);
-			return true;
-		}
+	if (InSettingId == NativeSettingIds::ScreenResolution)
+	{
+		return UNativeSettingsHelper::SetScreenResolution(InValue);
 	}
 
 	// *** Fallback *** //
