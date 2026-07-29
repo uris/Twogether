@@ -46,6 +46,11 @@ struct FSettingEditCondition
 			EditConditionHides,
 			TitleProperty = "DisplayName"))
 	FString CommaSeparatedComparisonValues;
+
+	UPROPERTY(EditAnywhere,
+		BlueprintReadWrite,
+		meta=(ToolTip="Rich text message displayed on the details pane when editing condition is not met"))
+	FString EditingDisabledMessage = TEXT("");
 };
 
 // definition can include multiple conditions

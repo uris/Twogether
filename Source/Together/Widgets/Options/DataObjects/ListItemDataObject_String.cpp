@@ -133,6 +133,11 @@ void UListItemDataObject_String::AddDynamicSetting(const FStringSetting& InSetti
 	Settings.Add(InSetting);
 }
 
+void UListItemDataObject_String::AddDynamicSetting(const FName& InSettingDataId, const FStringSettingValue& InSetting)
+{
+	Settings.Add(FStringSetting(InSettingDataId, InSetting.DisplayName, InSetting.StringValue));
+}
+
 FText UListItemDataObject_String::CycleCurrentSetting(const EStringSettingDirection InDirection)
 {
 	// get current index and make sure its done

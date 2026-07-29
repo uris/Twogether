@@ -77,7 +77,7 @@ public:
 
 	void AddResolvedEditCondition(const FResolvedEditCondition& InEditCondition);
 
-	bool AreEditConditionsMet() const;
+	bool AreEditConditionsMet();
 
 	bool IsEditable() const
 	{
@@ -127,6 +127,13 @@ private:
 	void HandleEditConditionTargetModified(UOptionsListItemDataObject_Base* InModifiedData,
 	                                       EOptionsListModifiedReason InReason);
 	void RefreshEditability();
+
+	void ClearDisabledText()
+	{
+		DisabledText = FText();
+	}
+
+	void InsertDisabledText(const FText& InDisabledText);
 
 	// core info data
 	FName DataId;

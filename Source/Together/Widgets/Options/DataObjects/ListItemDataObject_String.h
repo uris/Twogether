@@ -29,6 +29,7 @@ public:
 	// overloaded add to settings array
 	void AddDynamicSetting(const FName& InSettingDataId, const FText& InDisplayName, const FString& InValue);
 	void AddDynamicSetting(const FStringSetting& InSetting);
+	void AddDynamicSetting(const FName& InSettingDataId, const FStringSettingValue& InSetting);
 
 	// enable setting next/previous settings as current
 	FText CycleCurrentSetting(EStringSettingDirection InDirection = EStringSettingDirection::Next);

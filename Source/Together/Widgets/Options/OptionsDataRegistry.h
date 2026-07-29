@@ -38,6 +38,7 @@ private:
 	static void FindChildListDataRecursive(const UUOptionsListItemCollection_Base* InParentCollection,
 	                                       TArray<UOptionsListItemDataObject_Base*>& OutChildList);
 
+	// used for getting settings data id from native types or from user defined id
 	static FName GetSettingIdString(const FUserSettingDefinition& Definition);
 
 	// creates a base tab collection for each settings tab
@@ -45,6 +46,10 @@ private:
 
 	// creates a data object for each setting item
 	UOptionsListItemDataObject_Base* CreateSettingDataObject(const FUserSettingDefinition& Definition);
+
+	// get string values from user provided setting values
+	static TArray<FStringSetting> GetStringSettings(const FName& SettingId,
+	                                                const FUserSettingDefinition& Definition);
 
 	// helper to create a settings array for native settings
 	static TArray<FStringSetting> GetNativeStringSettings(const FUserSettingDefinition& Definition);

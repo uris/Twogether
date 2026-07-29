@@ -44,28 +44,35 @@ void UOptionsListItemDataObject_Base::AddResolvedEditCondition(const FResolvedEd
 	RefreshEditability();
 }
 
-bool UOptionsListItemDataObject_Base::AreEditConditionsMet() const
+bool UOptionsListItemDataObject_Base::AreEditConditionsMet()
 {
-	// must have at least 1 condition
+	// clean disabled text
+	ClearDisabledText();
+
+	// no conditions means it evaluates to match ok
 	if (EditConditionDefinition.Conditions.IsEmpty())
 	{
 		return true;
 	}
 
-	// must have at least 1 condition
+	// must have at least 1 condition, if error don't disable
 	if (ResolvedEditConditions.IsEmpty())
 	{
-		return false;
+		InsertDisabledText(
+			FText::FromString(TEXT("Unable to find edit conditions that should exist. Check setting definitions.")));
+		return true;
 	}
 
 	// AND / OR definition
 	const bool bMatchAll =
 		EditConditionDefinition.MatchType == EEditConditionGroupOperator::MatchAll;
 
-	// enforce AND across all definitions
+	// enforce AND across all definitions - on error resolve true
 	if (bMatchAll &&
 	    ResolvedEditConditions.Num() != EditConditionDefinition.Conditions.Num())
 	{
+		InsertDisabledText(
+			FText::FromString(TEXT("Mismatched edit conditions. Check setting definitions.")));
 		return false;
 	}
 
@@ -77,6 +84,8 @@ bool UOptionsListItemDataObject_Base::AreEditConditionsMet() const
 		{
 			if (bMatchAll)
 			{
+				InsertDisabledText(
+					FText::FromString(TEXT("Target setting not found. Check setting definitions.")));
 				return false;
 			}
 			continue;
@@ -136,6 +145,7 @@ bool UOptionsListItemDataObject_Base::AreEditConditionsMet() const
 
 		if (bMatchAll && !bConditionMet)
 		{
+			InsertDisabledText(FText::FromString(Condition.EditingDisabledMessage));
 			return false;
 		}
 
@@ -157,7 +167,7 @@ void UOptionsListItemDataObject_Base::HandleEditConditionTargetModified(
 
 void UOptionsListItemDataObject_Base::RefreshEditability()
 {
-	// process edit conditions to check editaiblity
+	// process edit conditions to check edibility
 	const bool bNewIsEditable = AreEditConditionsMet();
 
 	// if same nothing to do
@@ -166,8 +176,13 @@ void UOptionsListItemDataObject_Base::RefreshEditability()
 		return;
 	}
 
-	// otherwise update state and broadcast so that list can refresh state
+	// otherwise update state
 	bIsEditable = bNewIsEditable;
+
+	// update the disabled text based on state
+	SetDisabledText(bIsEditable ? FText::FromString(TEXT("")) : GetDisabledText());
+
+	// broadcast the new state
 	OnEditabilityChanged.Broadcast(bIsEditable);
 }
 
@@ -197,4 +212,13 @@ void UOptionsListItemDataObject_Base::NotifyListDataModified(UOptionsListItemDat
 			UserSettings->SaveSettings();
 		}
 	}
+}
+
+void UOptionsListItemDataObject_Base::InsertDisabledText(const FText& InDisabledText)
+{
+
+	const FText Separator = DisabledText.IsEmpty() ? FText() : FText::FromString(TEXT("\n\n"));
+	const FText TextToAdd = FText::Format(FText::FromString(TEXT("{0}{1}")), Separator, InDisabledText);
+	DisabledText = FText::Format(FText::FromString(TEXT("{0}{1}")), DisabledText, TextToAdd);
+
 }

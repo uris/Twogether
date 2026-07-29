@@ -188,15 +188,15 @@ void UOptionsDataRegistry::InitRegistry(ULocalPlayer* InOwningLocalPlayer)
 			UOptionsListItemDataObject_Base* Item = nullptr;
 
 			// for items that are "collections" only (ie a setting group)
-			// create a collection object for the item
+			// create a collection object for the item without a details pane
 			if (Definition->bIsSettingGroup)
 			{
 				Item = NewObject<UUOptionsListItemCollection_Base>(this);
 				Item->SetDataId(EffectiveSettingId);
 				Item->SetDisplayName(Definition->DisplayName);
-				Item->SetDescription(Definition->Description);
-				Item->SetDisabledText(Definition->DisabledText);
-				Item->SetDescriptionImage(Definition->DescriptionImage);
+				Item->SetDescription(FText());
+				Item->SetDisabledText(FText());
+				Item->SetDescriptionImage(nullptr);
 			}
 
 			// if the items are root settings, with actual values
@@ -306,11 +306,11 @@ UOptionsListItemDataObject_Base* UOptionsDataRegistry::CreateSettingDataObject(
 		{
 			UListItemDataObject_String* StringData =
 				NewObject<UListItemDataObject_String>(this);
-			StringData->SetDataId(GetSettingIdString(Definition));
-			// get native settings from native helpers
+			const FName DataId = GetSettingIdString(Definition);
+			StringData->SetDataId(DataId);
 			for (const FStringSetting& AvailableValue : Definition.bIsNativeSetting
 				                                            ? GetNativeStringSettings(Definition)
-				                                            : Definition.AvailableStringValues)
+				                                            : GetStringSettings(DataId, Definition))
 			{
 				StringData->AddDynamicSetting(AvailableValue);
 			}
@@ -330,7 +330,7 @@ UOptionsListItemDataObject_Base* UOptionsDataRegistry::CreateSettingDataObject(
 		}
 
 		// enum values are shown as string
-		case EUserSettingValueType::Integer:
+		case EUserSettingValueType::Enum:
 		{
 			UListItemDataObject_IntEnum* EnumData =
 				NewObject<UListItemDataObject_IntEnum>(this);
@@ -348,20 +348,21 @@ UOptionsListItemDataObject_Base* UOptionsDataRegistry::CreateSettingDataObject(
 		{
 			UListItemDataObject_Scalar* ScalarData =
 				NewObject<UListItemDataObject_Scalar>(this);
-			const float MinValue = FMath::Min(Definition.MinValue, Definition.MaxValue);
-			const float MaxValue = FMath::Max(Definition.MinValue, Definition.MaxValue);
+			const FScalarSettingValues ScalarValues = Definition.AvailableScalarValues;
+			const float MinValue = FMath::Min(ScalarValues.MinValue, ScalarValues.MaxValue);
+			const float MaxValue = FMath::Max(ScalarValues.MinValue, ScalarValues.MaxValue);
 			ScalarData->SetValueRange(TRange<float>(MinValue, MaxValue));
 			ScalarData->SetOutputRange(TRange<float>(MinValue, MaxValue));
-			ScalarData->SetSliderStepSize(FMath::Max(Definition.StepSize, UE_SMALL_NUMBER));
-			ScalarData->SetValueType(Definition.NumericType);
+			ScalarData->SetSliderStepSize(FMath::Max(ScalarValues.StepSize, UE_SMALL_NUMBER));
+			ScalarData->SetValueType(ScalarValues.NumericType);
 
 			FCommonNumberFormattingOptions Formatting;
 			Formatting.MinimumFractionalDigits =
-				FMath::Max(0, Definition.MinimumFractionalDigits);
+				FMath::Max(0, ScalarValues.MinimumFractionalDigits);
 			Formatting.MaximumFractionalDigits =
 				FMath::Max(
 					Formatting.MinimumFractionalDigits,
-					Definition.MaximumFractionalDigits);
+					ScalarValues.MaximumFractionalDigits);
 			ScalarData->SetFormatting(Formatting);
 			ValueData = ScalarData;
 			break;
@@ -384,7 +385,7 @@ UOptionsListItemDataObject_Base* UOptionsDataRegistry::CreateSettingDataObject(
 	ValueData->SetUserDefinedDataId(Definition.SettingId);
 	ValueData->SetDisplayName(Definition.DisplayName);
 	ValueData->SetDescription(Definition.Description);
-	ValueData->SetDisabledText(Definition.DisabledText);
+	ValueData->SetDisabledText(FText::FromString(TEXT(""))); // populated if the edit condition is not met
 	ValueData->SetDescriptionImage(Definition.DescriptionImage);
 	ValueData->SetDefaultValueFromString(Definition.DefaultValue);
 	ValueData->SetShouldApplyChangesImmediately(Definition.bShouldApplyChangesImmediately);
@@ -500,6 +501,19 @@ TArray<FStringSetting> UOptionsDataRegistry::GetNativeStringSettings(const FUser
 		default:
 			return {};
 	}
+}
+
+TArray<FStringSetting> UOptionsDataRegistry::GetStringSettings(const FName& SettingId,
+                                                               const FUserSettingDefinition& Definition)
+{
+	TArray<FStringSetting> StringSettings;
+
+	for (FStringSettingValue Setting : Definition.AvailableStringValues)
+	{
+		StringSettings.Add(FStringSetting(SettingId, Setting.DisplayName, Setting.StringValue));
+	}
+
+	return StringSettings;
 }
 
 void UOptionsDataRegistry::ProcessEditConditions(const TMap<FName, UOptionsListItemDataObject_Base*>& AllItemsById)

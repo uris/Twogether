@@ -19,11 +19,10 @@ enum class ENativeUnrealSettings : uint8
 UENUM(BlueprintType)
 enum class EUserSettingValueType : uint8
 {
-	Bool = 0 UMETA(DisplayName = "Bool"),
-	Integer = 1 UMETA(DisplayName = "Integer"),
-	Scalar = 2 UMETA(DisplayName = "Scalar"),
-	Float = 3 UMETA(DisplayName = "Float"),
-	String = 4 UMETA(DisplayName = "String"),
+	String = 0 UMETA(DisplayName = "String (single word value)"),
+	Bool = 1 UMETA(DisplayName = "Bool (on/off, true/false, etc.)"),
+	Scalar = 2 UMETA(DisplayName = "Scalar (floats, ints, with a range)"),
+	Enum = 3 UMETA(DisplayName = "Enum (structured string lists values)"),
 };
 
 UENUM(BlueprintType)
@@ -50,6 +49,49 @@ enum class EIntEnumType : uint8
 	None = 0 UMETA(DisplayName = "None"),
 	WindowMode = 1 UMETA(DisplayName = "WindowMode"),
 	Resolution = 2 UMETA(DisplayName = "Resolution"),
+};
+
+USTRUCT(BlueprintType)
+struct FScalarSettingValues
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float MinValue = 0.0f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float MaxValue = 1.0f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float StepSize = 0.01f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	ECommonNumericType NumericType = ECommonNumericType::Number;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int32 MinimumFractionalDigits = 0;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int32 MaximumFractionalDigits = 2;
+
+	FScalarSettingValues() = default;
+};
+
+USTRUCT(BlueprintType)
+struct FStringSettingValue
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FText DisplayName = FText::GetEmpty();
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FString StringValue;
+
+	FStringSettingValue() = default;
+
+	FStringSettingValue(const FText& InDisplayName, const FString& InStringValue)
+		: DisplayName(InDisplayName), StringValue(InStringValue) {}
 };
 
 USTRUCT(BlueprintType)
@@ -132,14 +174,20 @@ struct FUserSettingDefinition : public FTableRowBase
 {
 	GENERATED_BODY()
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(ToolTip="Must be a unique setting identifier"))
+	UPROPERTY(EditAnywhere,
+		Category="Definition",
+		BlueprintReadWrite,
+		meta=(ToolTip="Must be a unique setting identifier"))
 	FName SettingId;
 
-	UPROPERTY(EditAnywhere, meta=(ToolTip="Setting groups create visual heirarchy and are functionaly inert"))
+	UPROPERTY(EditAnywhere,
+		Category="Definition",
+		meta=(ToolTip="Setting groups create visual heirarchy and are functionaly inert"))
 	bool bIsSettingGroup = false;
 
 	UPROPERTY(
 		EditAnywhere,
+		Category="Definition",
 		meta = (EditCondition = "bIsSettingGroup == false",
 			EditConditionHides,
 			TitleProperty = "DisplayName", ToolTip=
@@ -148,26 +196,42 @@ struct FUserSettingDefinition : public FTableRowBase
 
 	UPROPERTY(
 		EditAnywhere,
+		Category="Definition",
 		meta = (EditCondition = "bIsNativeSetting == true",
 			EditConditionHides,
 			TitleProperty = "DisplayName", ToolTip="Select from supported native settings"))
 	ENativeUnrealSettings NativeSetting;
 
-	UPROPERTY(EditAnywhere, meta=(ToolTip="The high level tab the setting belongs under"))
+	UPROPERTY(
+		EditAnywhere,
+		Category="Definition",
+		meta = (EditCondition = "bIsSettingGroup == false",
+			EditConditionHides,
+			TitleProperty = "DisplayName", ToolTip=
+			"Drives how the setting is displayed and interacted with (slider, rotator, etc.)"))
+	EUserSettingValueType Type = EUserSettingValueType::String;
+
+	UPROPERTY(EditAnywhere, Category="Setting Group", meta=(ToolTip="The high level tab the setting belongs under"))
 	EUserSettingTab SettingTab;
 
 	UPROPERTY(EditAnywhere,
+		Category="Setting Group",
 		meta=(ToolTip="Nest this setting under another setting visually (group or individual item)"))
 	FName ParentSettingId;
 
-	UPROPERTY(EditAnywhere, meta=(ToolTip="The order in which the setting should appear in the UI"))
+	UPROPERTY(EditAnywhere,
+		Category="Display",
+		meta=(ToolTip="The order in which the setting should appear in the UI"))
 	int32 SortOrder = 100;
 
-	UPROPERTY(EditAnywhere, meta=(ToolTip="The name for the setting displayed as a title in the UI"))
+	UPROPERTY(EditAnywhere,
+		Category="Display",
+		meta=(ToolTip="The name for the setting displayed as a title in the UI"))
 	FText DisplayName;
 
 	UPROPERTY(
 		EditAnywhere,
+		Category="Display",
 		meta = (EditCondition = "bIsSettingGroup == false",
 			EditConditionHides,
 			TitleProperty = "DisplayName", ToolTip="Populates the details pane. Leave empty to not omit it"))
@@ -175,20 +239,7 @@ struct FUserSettingDefinition : public FTableRowBase
 
 	UPROPERTY(
 		EditAnywhere,
-		meta = (EditCondition = "bIsSettingGroup == false",
-			EditConditionHides,
-			TitleProperty = "DisplayName", ToolTip="Populates the details pane. Leave empty to not omit it"))
-	FText DisabledText;
-
-	UPROPERTY(
-		EditAnywhere,
-		meta = (EditCondition = "bIsSettingGroup == false",
-			EditConditionHides,
-			TitleProperty = "DisplayName", ToolTip="Populates the details pane. Leave empty to not omit it"))
-	FText TechText;
-
-	UPROPERTY(
-		EditAnywhere,
+		Category="Display",
 		meta = (EditCondition = "bIsSettingGroup == false",
 			EditConditionHides,
 			TitleProperty = "DisplayName", ToolTip="Populates the details pane. Leave empty to not omit it"))
@@ -196,14 +247,7 @@ struct FUserSettingDefinition : public FTableRowBase
 
 	UPROPERTY(
 		EditAnywhere,
-		meta = (EditCondition = "bIsSettingGroup == false",
-			EditConditionHides,
-			TitleProperty = "DisplayName", ToolTip=
-			"Drives how the setting is displayed and interacted with (slider, rotator, etc.)"))
-	EUserSettingValueType Type = EUserSettingValueType::Float;
-
-	UPROPERTY(
-		EditAnywhere,
+		Category="Behavior",
 		meta = (EditCondition = "bIsSettingGroup == false",
 			EditConditionHides,
 			TitleProperty = "DisplayName", ToolTip="Determines if updated settings should save immediately"))
@@ -211,6 +255,7 @@ struct FUserSettingDefinition : public FTableRowBase
 
 	UPROPERTY(EditAnywhere,
 		BlueprintReadWrite,
+		Category="Behavior",
 		meta = (ToolTip=
 			"Determines if settings should apply, enabling deferring applying settings that affect screen resolution, etc."
 		))
@@ -218,11 +263,12 @@ struct FUserSettingDefinition : public FTableRowBase
 
 	/*
 	 * Default should be the string equivalent of the value type
-	 * Eg: if setting is a bool value, the default should be "true" or "false"
+	 * e.g.: if setting is a bool value, the default should be "true" or "false"
 	 * regardless of the display name used for each value
 	 */
 	UPROPERTY(
 		EditAnywhere,
+		Category = "Values",
 		meta = (EditCondition = "bIsSettingGroup == false",
 			EditConditionHides,
 			TitleProperty = "DisplayName"))
@@ -230,13 +276,15 @@ struct FUserSettingDefinition : public FTableRowBase
 
 	UPROPERTY(
 		EditAnywhere,
+		Category = "Values",
 		meta = (EditCondition = "bIsSettingGroup == false && Type == EUserSettingValueType::String",
 			EditConditionHides,
 			TitleProperty = "DisplayName"))
-	TArray<FStringSetting> AvailableStringValues;
+	TArray<FStringSettingValue> AvailableStringValues;
 
 	UPROPERTY(
 		EditAnywhere,
+		Category = "Values",
 		meta = (EditCondition = "bIsSettingGroup == false && Type == EUserSettingValueType::Bool",
 			EditConditionHides,
 			TitleProperty = "DisplayName"))
@@ -244,52 +292,20 @@ struct FUserSettingDefinition : public FTableRowBase
 
 	UPROPERTY(
 		EditAnywhere,
-		meta = (EditCondition = "bIsSettingGroup == false && Type == EUserSettingValueType::Integer",
+		Category = "Values",
+		meta = (EditCondition = "bIsSettingGroup == false && Type == EUserSettingValueType::Enum",
 			EditConditionHides,
 			TitleProperty = "DisplayName"))
 	EIntEnumType AvailableEnumValues;
 
 	UPROPERTY(
 		EditAnywhere,
+		Category = "Values",
 		meta = (EditCondition = "bIsSettingGroup == false && Type == EUserSettingValueType::Scalar",
 			EditConditionHides,
 			TitleProperty = "DisplayName"))
-	float MinValue = 0.0f;
+	FScalarSettingValues AvailableScalarValues;
 
-	UPROPERTY(
-		EditAnywhere,
-		meta = (EditCondition = "bIsSettingGroup == false && Type == EUserSettingValueType::Scalar",
-			EditConditionHides,
-			TitleProperty = "DisplayName"))
-	float MaxValue = 1.0f;
-
-	UPROPERTY(
-		EditAnywhere,
-		meta = (EditCondition = "bIsSettingGroup == false && Type == EUserSettingValueType::Scalar",
-			EditConditionHides,
-			TitleProperty = "DisplayName"))
-	float StepSize = 0.01f;
-
-	UPROPERTY(
-		EditAnywhere,
-		meta = (EditCondition = "bIsSettingGroup == false && Type == EUserSettingValueType::Scalar",
-			EditConditionHides))
-	ECommonNumericType NumericType = ECommonNumericType::Number;
-
-	UPROPERTY(
-		EditAnywhere,
-		meta = (EditCondition = "bIsSettingGroup == false && Type == EUserSettingValueType::Scalar",
-			EditConditionHides,
-			ClampMin = "0"))
-	int32 MinimumFractionalDigits = 0;
-
-	UPROPERTY(
-		EditAnywhere,
-		meta = (EditCondition = "bIsSettingGroup == false && Type == EUserSettingValueType::Scalar",
-			EditConditionHides,
-			ClampMin = "0"))
-	int32 MaximumFractionalDigits = 2;
-
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, Category="Editing Rules")
 	FSettingEditConditionDefinition EditConditions;
 };
