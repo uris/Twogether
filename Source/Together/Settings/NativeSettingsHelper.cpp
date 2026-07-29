@@ -44,7 +44,7 @@ TArray<FStringSetting> UNativeSettingsHelper::GetSupportedResolutionsSettings(co
 	return SupportedResolutionSettings;
 }
 
-FString UNativeSettingsHelper::MaxSupportedResolution()
+FString UNativeSettingsHelper::MaxSupportedResolutionString()
 {
 	// *** Resolution values must be stored in the following format:
 	// (X=123, Y=345)

@@ -25,7 +25,7 @@ public:
 
 	// get the max res setting
 	UFUNCTION(BlueprintCallable, Category="Game Settings|Video")
-	static FString MaxSupportedResolution();
+	static FString MaxSupportedResolutionString();
 
 	// retrieve the current resolution setting in the format it is stored in settings: (X=123, Y=456)
 	UFUNCTION(BlueprintCallable, Category="Game Settings|Video")
