@@ -47,6 +47,8 @@ public:
 
 	void SetShouldApplyChangesImmediately(bool InShouldApplyChangesImmediately);
 
+	void SetShouldApplyVideoSettings(bool InShouldApplyVideoSettings);
+
 	virtual bool HasDefaultValue() const
 	{
 		return false;
@@ -87,9 +89,11 @@ private:
 	FText Description;
 	FText DisabledText;
 	TSoftObjectPtr<UTexture2D> DescriptionImage;
+	bool bShouldApplyChangesImmediately = false;
+	bool bApplyVideoSettings = false;
 
 	UPROPERTY(Transient)
 	UOptionsListItemDataObject_Base* ParentData;
 
-	bool bShouldApplyChangesImmediately = false;
+
 };

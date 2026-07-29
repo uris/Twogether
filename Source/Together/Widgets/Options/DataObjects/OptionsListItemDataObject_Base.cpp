@@ -15,6 +15,11 @@ void UOptionsListItemDataObject_Base::SetShouldApplyChangesImmediately(const boo
 	bShouldApplyChangesImmediately = InShouldApplyChangesImmediately;
 }
 
+void UOptionsListItemDataObject_Base::SetShouldApplyVideoSettings(bool InShouldApplyVideoSettings)
+{
+	bApplyVideoSettings = InShouldApplyVideoSettings;
+}
+
 void UOptionsListItemDataObject_Base::OnDataObjectInitialized() {}
 
 void UOptionsListItemDataObject_Base::NotifyListDataModified(UOptionsListItemDataObject_Base* InModifiedData,
@@ -23,8 +28,17 @@ void UOptionsListItemDataObject_Base::NotifyListDataModified(UOptionsListItemDat
 	OnListDataModified.Broadcast(InModifiedData, InReason);
 	if (bShouldApplyChangesImmediately)
 	{
-		// UUserSettings::Get()->ApplySettings(true);
-		UUserSettings::Get()->ApplyNonResolutionSettings();
-		UUserSettings::Get()->SaveSettings();
+		if (UUserSettings* UserSettings = UUserSettings::Get())
+		{
+			if (bApplyVideoSettings)
+			{
+				UserSettings->ApplyResolutionSettings(false);
+			}
+			else
+			{
+				UserSettings->ApplyNonResolutionSettings();
+			}
+			UserSettings->SaveSettings();
+		}
 	}
 }

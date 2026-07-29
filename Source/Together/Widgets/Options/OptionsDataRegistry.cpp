@@ -5,12 +5,14 @@
 
 #include "OptionsDataInteractionHelper.h"
 #include "DataObjects/ListItemDataObject_Boolean.h"
+#include "DataObjects/ListItemDataObject_IntEnum.h"
 #include "DataObjects/ListItemDataObject_String.h"
 #include "DataObjects/ListItemDataObject_Scalar.h"
 #include "DataObjects/UOptionsListItemCollection_Base.h"
 #include "Engine/DataTable.h"
 #include "Settings/TogetherSettings.h"
 #include "Settings/UserSettingTypes.h"
+#include "Settings/UserSettingTypesNative.h"
 
 namespace
 {
@@ -157,7 +159,7 @@ void UOptionsDataRegistry::InitRegistry(ULocalPlayer* InOwningLocalPlayer)
 				{
 					return Left.SortOrder < Right.SortOrder;
 				}
-				return Left.SettingId.LexicalLess(Right.SettingId);
+				return GetSettingIdString(Left).LexicalLess(GetSettingIdString(Right));
 			});
 
 		// create key/value map with each setting and it's base data object
@@ -166,12 +168,14 @@ void UOptionsDataRegistry::InitRegistry(ULocalPlayer* InOwningLocalPlayer)
 		// iterate all settings definitions to create the uber list of settings for the tab
 		for (const FUserSettingDefinition* Definition : TabDefinitions)
 		{
+			const FName EffectiveSettingId = GetSettingIdString(*Definition);
+
 			// ignore all settings that don't have a settings id
-			if (Definition->SettingId.IsNone())
+			if (EffectiveSettingId.IsNone() || EffectiveSettingId == NativeSettingIds::Invalid)
 			{
 				UE_LOG(LogTemp,
 				       Warning,
-				       TEXT("Skipping a setting in tab '%s' because its SettingId is empty."),
+				       TEXT("Skipping a setting in tab '%s' because its effective SettingId is invalid."),
 				       *TabId.ToString());
 				continue;
 			}
@@ -184,7 +188,7 @@ void UOptionsDataRegistry::InitRegistry(ULocalPlayer* InOwningLocalPlayer)
 			if (Definition->bIsSettingGroup)
 			{
 				Item = NewObject<UUOptionsListItemCollection_Base>(this);
-				Item->SetDataId(Definition->SettingId);
+				Item->SetDataId(EffectiveSettingId);
 				Item->SetDisplayName(Definition->DisplayName);
 				Item->SetDescription(Definition->Description);
 				Item->SetDisabledText(Definition->DisabledText);
@@ -205,26 +209,28 @@ void UOptionsDataRegistry::InitRegistry(ULocalPlayer* InOwningLocalPlayer)
 			}
 
 			// if the created items appears to be a duplicate, silently warn and pass over
-			if (ItemsById.Contains(Definition->SettingId))
+			if (ItemsById.Contains(EffectiveSettingId))
 			{
 				UE_LOG(
 					LogTemp,
 					Warning,
 					TEXT("Skipping duplicate setting id '%s' in tab '%s'."),
-					*Definition->SettingId.ToString(),
+					*EffectiveSettingId.ToString(),
 					*TabId.ToString());
 				continue;
 			}
 
 			// add the item to the map of items
-			ItemsById.Add(Definition->SettingId, Item);
+			ItemsById.Add(EffectiveSettingId, Item);
 		}
 
 		// iterate through all settings
 		for (const FUserSettingDefinition* Definition : TabDefinitions)
 		{
+			const FName EffectiveSettingId = GetSettingIdString(*Definition);
+
 			// ensure an item data object exists for the matching setting id
-			UOptionsListItemDataObject_Base* const* ItemPtr = ItemsById.Find(Definition->SettingId);
+			UOptionsListItemDataObject_Base* const* ItemPtr = ItemsById.Find(EffectiveSettingId);
 			if (!ItemPtr)
 			{
 				continue;
@@ -291,7 +297,7 @@ UOptionsListItemDataObject_Base* UOptionsDataRegistry::CreateSettingDataObject(
 		{
 			UListItemDataObject_String* StringData =
 				NewObject<UListItemDataObject_String>(this);
-			StringData->SetDataId(Definition.SettingId);
+			StringData->SetDataId(GetSettingIdString(Definition));
 			for (const FStringSetting& AvailableValue : Definition.AvailableStringValues)
 			{
 				StringData->AddDynamicSetting(AvailableValue);
@@ -305,9 +311,23 @@ UOptionsListItemDataObject_Base* UOptionsDataRegistry::CreateSettingDataObject(
 		{
 			UListItemDataObject_Boolean* BoolData =
 				NewObject<UListItemDataObject_Boolean>(this);
-			BoolData->SetDataId(Definition.SettingId);
+			BoolData->SetDataId(GetSettingIdString(Definition));
 			BoolData->AddDynamicSetting(Definition.AvailableBoolValues);
 			ValueData = BoolData;
+			break;
+		}
+
+		// enum values are shown as string
+		case EUserSettingValueType::Integer:
+		{
+			UListItemDataObject_IntEnum* EnumData =
+				NewObject<UListItemDataObject_IntEnum>(this);
+			EnumData->SetDataId(GetSettingIdString(Definition));
+			if (!EnumData->AddDynamicSetting(Definition.AvailableEnumValues))
+			{
+				return nullptr;
+			}
+			ValueData = EnumData;
 			break;
 		}
 
@@ -348,19 +368,21 @@ UOptionsListItemDataObject_Base* UOptionsDataRegistry::CreateSettingDataObject(
 	}
 
 	// set the common data object properties
-	ValueData->SetDataId(Definition.SettingId);
+	ValueData->SetDataId(GetSettingIdString(Definition));
 	ValueData->SetDisplayName(Definition.DisplayName);
 	ValueData->SetDescription(Definition.Description);
 	ValueData->SetDisabledText(Definition.DisabledText);
 	ValueData->SetDescriptionImage(Definition.DescriptionImage);
 	ValueData->SetDefaultValueFromString(Definition.DefaultValue);
 	ValueData->SetShouldApplyChangesImmediately(Definition.bShouldApplyChangesImmediately);
+	ValueData->SetShouldApplyVideoSettings(Definition.bApplyVideoSettings);
 
-	// create default getters / setter for inserting and retirieving from user settings
+	// create default getters / setter for inserting and retrieving from user settings
 	const TSharedPtr<FOptionsDataInteractionHelper> Interaction =
 		MakeShared<FOptionsDataInteractionHelper>(
-			Definition.SettingId,
-			Definition.DefaultValue);
+			GetSettingIdString(Definition),
+			Definition.DefaultValue,
+			Definition.bIsNativeSetting);
 	ValueData->SetDataDynamicGetter(Interaction);
 	ValueData->SetDataDynamicSetter(Interaction);
 
@@ -442,4 +464,19 @@ void UOptionsDataRegistry::FindChildListDataRecursive(const UUOptionsListItemCol
 		}
 	}
 
+}
+
+FName UOptionsDataRegistry::GetSettingIdString(const FUserSettingDefinition& Definition)
+{
+	if (!Definition.bIsNativeSetting)
+	{
+		return Definition.SettingId;
+	}
+
+	if (StaticEnum<ENativeUnrealSettings>())
+	{
+		return GetNativeSettingId(Definition.NativeSetting);
+	}
+
+	return FName();
 }

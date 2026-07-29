@@ -31,8 +31,8 @@ public:
 	virtual void LoadSettings(bool bForceReload = false) override;
 
 	// *** generic string-based access for data-driven settings *** //
-	FString GetSetting(FName InSettingId, const FString& InFallback = FString()) const;
-	void SetSetting(FName InSettingId, const FString& InValue);
+	FString GetSetting(const FName InSettingId, const FString& InFallback, const bool bIsNativeSetting = false) const;
+	void SetSetting(FName InSettingId, const FString& InValue, bool bIsNativeSetting = false);
 
 	// helper to get user settings object
 	static UUserSettings* Get();
@@ -40,6 +40,10 @@ public:
 private:
 	// init helper
 	void InitializeDynamicSettings();
+
+	// private getters/setter for native settings
+	FString GetNativeSettingValue(FName InSettingId) const;
+	bool SetNativeSettingValue(const FName InSettingId, const FString& InValue);
 
 	// lookup reference of settings used in update broadcasts
 	TMap<FName, FUserSettingDefinition> DefinitionsById;

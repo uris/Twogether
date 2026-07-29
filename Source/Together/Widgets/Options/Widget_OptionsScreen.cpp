@@ -64,6 +64,7 @@ void UWidget_OptionsScreen::NativeConstruct()
 		OptionsListView->OnItemIsHoveredChanged().AddUObject(this, &ThisClass::HandleEntryHoveredChange);
 		OptionsListView->OnItemSelectionChanged().AddUObject(this, &ThisClass::HandleEntrySelectionChange);
 	}
+
 }
 
 void UWidget_OptionsScreen::NativeDestruct()

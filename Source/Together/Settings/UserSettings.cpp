@@ -3,6 +3,7 @@
 
 #include "UserSettings.h"
 
+#include "UserSettingTypesNative.h"
 #include "Engine/DataTable.h"
 #include "Engine/Engine.h"
 #include "Settings/TogetherSettings.h"
@@ -50,54 +51,101 @@ void UUserSettings::InitializeDynamicSettings()
 
 	for (const FUserSettingDefinition* Definition : Definitions)
 	{
-		if (!Definition ||
-		    Definition->SettingId.IsNone() ||
-		    Definition->bIsSettingGroup)
+		if (!Definition || Definition->bIsSettingGroup)
 		{
 			continue;
 		}
 
-		if (DefinitionsById.Contains(Definition->SettingId))
+		const FName EffectiveSettingId = Definition->bIsNativeSetting
+			                                 ? GetNativeSettingId(Definition->NativeSetting)
+			                                 : Definition->SettingId;
+		if (EffectiveSettingId.IsNone() || EffectiveSettingId == NativeSettingIds::Invalid)
+		{
+			UE_LOG(
+				LogTemp,
+				Warning,
+				TEXT("Skipping setting with an invalid effective setting ID."));
+			continue;
+		}
+
+		if (DefinitionsById.Contains(EffectiveSettingId))
 		{
 			UE_LOG(LogTemp,
 			       Warning,
 			       TEXT("Setting IDs must be unique - %s already exists"),
-			       *Definition->SettingId.ToString());
+			       *EffectiveSettingId.ToString());
 			continue;
 		}
 
-		DefinitionsById.Add(Definition->SettingId, *Definition);
-		DynamicSettings.FindOrAdd(Definition->SettingId, Definition->DefaultValue);
+		FUserSettingDefinition RuntimeDefinition = *Definition;
+		RuntimeDefinition.SettingId = EffectiveSettingId;
+		DefinitionsById.Add(EffectiveSettingId, MoveTemp(RuntimeDefinition));
+
+		if (Definition->bIsNativeSetting)
+		{
+			// Remove values left behind if this setting used to be stored dynamically.
+			DynamicSettings.Remove(EffectiveSettingId);
+		}
+		else
+		{
+			DynamicSettings.FindOrAdd(EffectiveSettingId, Definition->DefaultValue);
+		}
 	}
 }
 
-FString UUserSettings::GetSetting(const FName InSettingId, const FString& InFallback) const
+FString UUserSettings::GetSetting(const FName InSettingId, const FString& InFallback, const bool bIsNativeSetting) const
 {
-	if (const FString* Value = DynamicSettings.Find(InSettingId))
+	FString Value;
+
+	if (bIsNativeSetting)
 	{
-		return *Value;
+		Value = GetNativeSettingValue(InSettingId);
+	}
+	else
+	{
+		if (const FString* DynamicValue = DynamicSettings.Find(InSettingId))
+		{
+			Value = *DynamicValue;
+		}
+	}
+
+	if (!Value.IsEmpty())
+	{
+		return Value;
 	}
 
 	return InFallback;
 }
 
-void UUserSettings::SetSetting(const FName InSettingId, const FString& InValue)
+void UUserSettings::SetSetting(const FName InSettingId, const FString& InValue, const bool bIsNativeSetting)
 {
+	bool bDidUpdateSetting = false;
+
 	// can't update without the setting id
 	if (InSettingId.IsNone())
 	{
 		return;
 	}
 
-	// if values are the same, no need to update
-	if (DynamicSettings.FindOrAdd(InSettingId).Equals(InValue, ESearchCase::CaseSensitive))
+	// set a native unreal setting
+	if (bIsNativeSetting)
 	{
-		return;
+		bDidUpdateSetting = SetNativeSettingValue(InSettingId, InValue);
+	}
+	else
+	{
+		// if values are the same, no need to broadcast update
+		if (DynamicSettings.FindOrAdd(InSettingId).Equals(InValue, ESearchCase::CaseSensitive))
+		{
+			return;
+		}
+
+		DynamicSettings.FindOrAdd(InSettingId) = InValue;
+		bDidUpdateSetting = true;
 	}
 
-	// update and broadcast
-	DynamicSettings.FindOrAdd(InSettingId) = InValue;
-	if (const FUserSettingDefinition* Definition = DefinitionsById.Find(InSettingId))
+	// broadcast the update if the setting was updated
+	if (const FUserSettingDefinition* Definition = DefinitionsById.Find(InSettingId); Definition && bDidUpdateSetting)
 	{
 		OnUserSettingChanged.Broadcast(*Definition, InValue);
 	}
@@ -110,4 +158,44 @@ UUserSettings* UUserSettings::Get()
 		return CastChecked<UUserSettings>(GEngine->GetGameUserSettings());
 	}
 	return nullptr;
+}
+
+FString UUserSettings::GetNativeSettingValue(const FName InSettingId) const
+{
+	if (InSettingId == NativeSettingIds::WindowMode)
+	{
+		return LexToString(static_cast<int32>(GetFullscreenMode()));
+	}
+
+	return FString();
+}
+
+bool UUserSettings::SetNativeSettingValue(const FName InSettingId, const FString& InValue)
+{
+	// *** NATIVE WindowMode *** //
+	if (InSettingId == NativeSettingIds::WindowMode)
+	{
+		int32 ParsedValue = INDEX_NONE;
+		if (!LexTryParseString(ParsedValue, *InValue))
+		{
+			return false;
+		}
+
+		const EWindowMode::Type NewMode = static_cast<EWindowMode::Type>(ParsedValue);
+		if (NewMode != EWindowMode::Fullscreen &&
+		    NewMode != EWindowMode::WindowedFullscreen &&
+		    NewMode != EWindowMode::Windowed)
+		{
+			return false;
+		}
+
+		if (GetFullscreenMode() != NewMode)
+		{
+			SetFullscreenMode(NewMode);
+			return true;
+		}
+	}
+
+	// *** Fallback *** //
+	return false;
 }

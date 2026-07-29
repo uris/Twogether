@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Settings/UserSettingTypes.h"
 #include "UObject/Object.h"
 #include "OptionsDataRegistry.generated.h"
 
@@ -35,6 +36,8 @@ private:
 	// gets all children of a specific collection
 	static void FindChildListDataRecursive(const UUOptionsListItemCollection_Base* InParentCollection,
 	                                       TArray<UOptionsListItemDataObject_Base*>& OutChildList);
+
+	static FName GetSettingIdString(const FUserSettingDefinition& Definition);
 
 	// creates a base tab collection for each settings tab
 	UUOptionsListItemCollection_Base* InitTabCollection(FName DataId, const FText& DisplayName);

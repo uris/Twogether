@@ -4,18 +4,18 @@
 
 FOptionsDataInteractionHelper::FOptionsDataInteractionHelper(
 	const FName InSettingId,
-	const FString& InDefaultValue) :
+	const FString& InDefaultValue,
+	const bool bInIsNativeSetting) :
 	CachedWeakUserSettings(UUserSettings::Get()),
 	SettingId(InSettingId),
-	DefaultValue(InDefaultValue)
-{
-}
+	DefaultValue(InDefaultValue),
+	bIsNativeSetting(bInIsNativeSetting) {}
 
 FString FOptionsDataInteractionHelper::GetValueAsString() const
 {
 	if (const UUserSettings* UserSettings = CachedWeakUserSettings.Get())
 	{
-		return UserSettings->GetSetting(SettingId, DefaultValue);
+		return UserSettings->GetSetting(SettingId, DefaultValue, bIsNativeSetting);
 	}
 
 	return DefaultValue;
@@ -25,6 +25,6 @@ void FOptionsDataInteractionHelper::SetValueFromString(const FString& InStringVa
 {
 	if (UUserSettings* UserSettings = CachedWeakUserSettings.Get())
 	{
-		UserSettings->SetSetting(SettingId, InStringValue);
+		UserSettings->SetSetting(SettingId, InStringValue, bIsNativeSetting);
 	}
 }

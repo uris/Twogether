@@ -5,7 +5,65 @@
 #include "CommonNumericTextBlock.h"
 #include "CoreMinimal.h"
 #include "Engine/DataTable.h"
+
 #include "UserSettingTypes.generated.h"
+
+UENUM(BlueprintType)
+enum class ENativeUnrealSettings : uint8
+{
+	WindowMode = 0 UMETA(DisplayName = "Window Mode"),
+};
+
+UENUM(BlueprintType)
+enum class EUserSettingValueType : uint8
+{
+	Bool = 0 UMETA(DisplayName = "Bool"),
+	Integer = 1 UMETA(DisplayName = "Integer"),
+	Scalar = 2 UMETA(DisplayName = "Scalar"),
+	Float = 3 UMETA(DisplayName = "Float"),
+	String = 4 UMETA(DisplayName = "String"),
+};
+
+UENUM(BlueprintType)
+enum class EUserSettingTab : uint8
+{
+	Gameplay = 0 UMETA(DisplayName = "Gameplay"),
+	Audio = 1 UMETA(DisplayName = "Audio"),
+	Video = 2 UMETA(DisplayName = "Video"),
+	Input = 3 UMETA(DisplayName = "Input"),
+};
+
+//TODO: complete the list of video/other enums settings will support
+UENUM(BlueprintType)
+enum class EIntEnumType : uint8
+{
+	None = 0 UMETA(DisplayName = "None"),
+	WindowMode = 1 UMETA(DisplayName = "WindowMode"),
+	Resolution = 2 UMETA(DisplayName = "Resolution"),
+};
+
+USTRUCT(BlueprintType)
+struct FIntEnumSetting
+{
+	GENERATED_BODY()
+
+	// defined enum to use
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	EIntEnumType IntEnumType = EIntEnumType::None;
+
+	// log enum names/values to help override
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	bool bLogEnumValuesAndNames = false;
+
+	// apply custom display names for the different enum indexes
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TMap<int32, FName> CustomNamesOverride;
+
+	FIntEnumSetting() = default;
+
+	explicit FIntEnumSetting(const EIntEnumType& InIntEnumType)
+		: IntEnumType(InIntEnumType) {}
+};
 
 USTRUCT(BlueprintType)
 struct FBoolSetting
@@ -44,25 +102,6 @@ struct FStringSetting
 		: SettingDataId(InSettingDataId), DisplayName(InDisplayName), Value(InValue) {}
 };
 
-UENUM(BlueprintType)
-enum class EUserSettingValueType : uint8
-{
-	Bool = 0 UMETA(DisplayName = "Bool"),
-	Integer = 1 UMETA(DisplayName = "Integer"),
-	Scalar = 2 UMETA(DisplayName = "Scalar"),
-	Float = 3 UMETA(DisplayName = "Float"),
-	String = 4 UMETA(DisplayName = "String"),
-};
-
-UENUM(BlueprintType)
-enum class EUserSettingTab : uint8
-{
-	Gameplay = 0 UMETA(DisplayName = "Gameplay"),
-	Audio = 1 UMETA(DisplayName = "Audio"),
-	Video = 2 UMETA(DisplayName = "Video"),
-	Input = 3 UMETA(DisplayName = "Input"),
-};
-
 USTRUCT(BlueprintType)
 struct FUserSettingTabDefinition : public FTableRowBase
 {
@@ -83,7 +122,19 @@ struct FUserSettingDefinition : public FTableRowBase
 {
 	GENERATED_BODY()
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	bool bIsNativeSetting = false;
+
+	UPROPERTY(EditAnywhere,
+		meta = (EditCondition = "bIsNativeSetting == true",
+			EditConditionHides,
+			TitleProperty = "DisplayName"))
+	ENativeUnrealSettings NativeSetting;
+
+	UPROPERTY(EditAnywhere,
+		meta = (EditCondition = "bIsNativeSetting == false",
+			EditConditionHides,
+			TitleProperty = "DisplayName"))
 	FName SettingId;
 
 	UPROPERTY(EditAnywhere)
@@ -139,6 +190,9 @@ struct FUserSettingDefinition : public FTableRowBase
 			TitleProperty = "DisplayName"))
 	bool bShouldApplyChangesImmediately = false;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	bool bApplyVideoSettings = false;
+
 	/*
 	 * Default should be the string equivalent of the value type
 	 * Eg: if setting is a bool value, the default should be "true" or "false"
@@ -164,6 +218,13 @@ struct FUserSettingDefinition : public FTableRowBase
 			EditConditionHides,
 			TitleProperty = "DisplayName"))
 	FBoolSetting AvailableBoolValues;
+
+	UPROPERTY(
+		EditAnywhere,
+		meta = (EditCondition = "bIsSettingGroup == false && Type == EUserSettingValueType::Integer",
+			EditConditionHides,
+			TitleProperty = "DisplayName"))
+	EIntEnumType AvailableEnumValues;
 
 	UPROPERTY(
 		EditAnywhere,

@@ -7,7 +7,10 @@ class UUserSettings;
 class TOGETHER_API FOptionsDataInteractionHelper
 {
 public:
-	FOptionsDataInteractionHelper(FName InSettingId, const FString& InDefaultValue);
+	FOptionsDataInteractionHelper(
+		FName InSettingId,
+		const FString& InDefaultValue,
+		bool bInIsNativeSetting = false);
 
 	FString GetValueAsString() const;
 
@@ -19,4 +22,6 @@ private:
 	FName SettingId;
 
 	FString DefaultValue;
+
+	bool bIsNativeSetting = false;
 };
