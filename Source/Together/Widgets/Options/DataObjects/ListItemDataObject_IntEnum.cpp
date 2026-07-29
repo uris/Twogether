@@ -110,7 +110,11 @@ TArray<FStringSetting> UListItemDataObject_IntEnum::GenerateSettingsArray(const 
 		}
 
 		// explicitly ignore hidden values
-		if (Enum->HasMetaData(TEXT("Hidden"), Index))
+		bool bIsHidden = false;
+#if WITH_METADATA
+		bIsHidden = Enum->HasMetaData(TEXT("Hidden"), Index);
+#endif
+		if (bIsHidden)
 		{
 			continue;
 		}

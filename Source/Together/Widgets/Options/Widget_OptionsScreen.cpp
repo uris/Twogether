@@ -210,7 +210,7 @@ void UWidget_OptionsScreen::HandleEntryHoveredChange(UObject* InItem, const bool
 
 	if (bIsHovered)
 	{
-		const FString WidgetClassName = InItem->GetClass()->GetDisplayNameText().ToString();
+		const FString WidgetClassName = InItem->GetClass()->GetName();
 		SettingDetails->UpdateDetailsView(ListItemDataObject, WidgetClassName);
 		return;
 	}
@@ -279,7 +279,7 @@ void UWidget_OptionsScreen::SetSelectedItemDetails(UObject* InItem) const
 	// if object exists set display of details, otherwise clear
 	if (SelectedItemDataObject)
 	{
-		const FString WidgetClassName = SelectedItemDataObject->GetClass()->GetDisplayNameText().ToString();
+		const FString WidgetClassName = SelectedItemDataObject->GetClass()->GetName();
 		SettingDetails->UpdateDetailsView(SelectedItemDataObject, WidgetClassName);
 	}
 	else

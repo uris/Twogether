@@ -3,6 +3,8 @@
 
 #include "OptionsListItemDataObject_Base.h"
 
+#include "Settings/NativeSettingsHelper.h"
+#include "Settings/UserSettingTypes.h"
 #include "Settings/UserSettings.h"
 
 void UOptionsListItemDataObject_Base::InitDataObject()
@@ -10,17 +12,20 @@ void UOptionsListItemDataObject_Base::InitDataObject()
 	OnDataObjectInitialized();
 }
 
+void UOptionsListItemDataObject_Base::OnDataObjectInitialized()
+{
+	// override on children
+}
+
 void UOptionsListItemDataObject_Base::SetShouldApplyChangesImmediately(const bool InShouldApplyChangesImmediately)
 {
 	bShouldApplyChangesImmediately = InShouldApplyChangesImmediately;
 }
 
-void UOptionsListItemDataObject_Base::SetShouldApplyVideoSettings(const bool InShouldApplyVideoSettings)
+void UOptionsListItemDataObject_Base::SetApplyMode(const EUserSettingApplyMode InApplyMode)
 {
-	bApplyVideoSettings = InShouldApplyVideoSettings;
+	ApplyMode = InApplyMode;
 }
-
-void UOptionsListItemDataObject_Base::OnDataObjectInitialized() {}
 
 void UOptionsListItemDataObject_Base::NotifyListDataModified(UOptionsListItemDataObject_Base* InModifiedData,
                                                              const EOptionsListModifiedReason InReason) const
@@ -30,13 +35,20 @@ void UOptionsListItemDataObject_Base::NotifyListDataModified(UOptionsListItemDat
 	{
 		if (UUserSettings* UserSettings = UUserSettings::Get())
 		{
-			if (bApplyVideoSettings)
+			switch (ApplyMode)
 			{
-				UserSettings->ApplyResolutionSettings(false);
-			}
-			else
-			{
-				UserSettings->ApplyNonResolutionSettings();
+				case EUserSettingApplyMode::ApplyAll:
+					UNativeSettingsHelper::ApplyResolutionSettings(false);
+					UserSettings->ApplyNonResolutionSettings();
+					break;
+
+				case EUserSettingApplyMode::ApplyResolutionSettings:
+					UNativeSettingsHelper::ApplyResolutionSettings(false);
+					break;
+
+				case EUserSettingApplyMode::ApplyNonResolutionSettings:
+					UserSettings->ApplyNonResolutionSettings();
+					break;
 			}
 			UserSettings->SaveSettings();
 		}

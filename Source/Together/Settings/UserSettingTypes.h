@@ -34,6 +34,14 @@ enum class EUserSettingTab : uint8
 	Input = 3 UMETA(DisplayName = "Input"),
 };
 
+UENUM(BlueprintType)
+enum class EUserSettingApplyMode : uint8
+{
+	ApplyAll = 0 UMETA(DisplayName = "Apply All Settings"),
+	ApplyResolutionSettings = 1 UMETA(DisplayName = "Apply Resolution Settings"),
+	ApplyNonResolutionSettings = 2 UMETA(DisplayName = "Apply Non-Resolution Settings"),
+};
+
 //TODO: complete the list of video/other enums settings will support
 UENUM(BlueprintType)
 enum class EIntEnumType : uint8
@@ -192,7 +200,7 @@ struct FUserSettingDefinition : public FTableRowBase
 	bool bShouldApplyChangesImmediately = false;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	bool bApplyVideoSettings = false;
+	EUserSettingApplyMode ApplyMode = EUserSettingApplyMode::ApplyNonResolutionSettings;
 
 	/*
 	 * Default should be the string equivalent of the value type

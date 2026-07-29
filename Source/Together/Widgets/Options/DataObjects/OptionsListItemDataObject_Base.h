@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Settings/UserSettingTypes.h"
 #include "UObject/Object.h"
 #include "UObject/SoftObjectPtr.h"
 #include "OptionsListItemDataObject_Base.generated.h"
@@ -47,7 +48,7 @@ public:
 
 	void SetShouldApplyChangesImmediately(bool InShouldApplyChangesImmediately);
 
-	void SetShouldApplyVideoSettings(bool InShouldApplyVideoSettings);
+	void SetApplyMode(EUserSettingApplyMode InApplyMode);
 
 	virtual bool HasDefaultValue() const
 	{
@@ -90,7 +91,7 @@ private:
 	FText DisabledText;
 	TSoftObjectPtr<UTexture2D> DescriptionImage;
 	bool bShouldApplyChangesImmediately = false;
-	bool bApplyVideoSettings = false;
+	EUserSettingApplyMode ApplyMode = EUserSettingApplyMode::ApplyNonResolutionSettings;
 
 	UPROPERTY(Transient)
 	UOptionsListItemDataObject_Base* ParentData;

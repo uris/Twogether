@@ -6,6 +6,28 @@
 #include "Settings/UserSettingTypes.h"
 #include "Settings/UserSettings.h"
 
+namespace
+{
+bool GetMaxSupportedResolution(FIntPoint& OutResolution)
+{
+	TArray<FIntPoint> SupportedResolutions;
+	UKismetSystemLibrary::GetSupportedFullscreenResolutions(SupportedResolutions);
+
+	if (SupportedResolutions.IsEmpty())
+	{
+		return false;
+	}
+
+	SupportedResolutions.Sort([](const FIntPoint& A, const FIntPoint& B)
+	{
+		return static_cast<int64>(A.X) * A.Y < static_cast<int64>(B.X) * B.Y;
+	});
+
+	OutResolution = SupportedResolutions.Last();
+	return true;
+}
+}
+
 TArray<FStringSetting> UNativeSettingsHelper::GetSupportedResolutionsSettings(const FName& InSettingDataId)
 {
 	// *** Resolution values must be stored in the following format:
@@ -46,23 +68,12 @@ TArray<FStringSetting> UNativeSettingsHelper::GetSupportedResolutionsSettings(co
 
 FString UNativeSettingsHelper::MaxSupportedResolutionString()
 {
-	// *** Resolution values must be stored in the following format:
-	// (X=123, Y=345)
-	TArray<FIntPoint> SupportedResolutions;
-
-	// get supported resolutions
-	UKismetSystemLibrary::GetSupportedFullscreenResolutions(SupportedResolutions);
-
-	// sort supported resolutions by X low to high
-	SupportedResolutions.Sort([](const FIntPoint& A, const FIntPoint& B)
+	FIntPoint MaxResolution;
+	if (GetMaxSupportedResolution(MaxResolution))
 	{
-		return A.X < B.X;
-	});
-
-	if (!SupportedResolutions.IsEmpty())
-	{
-		const FIntPoint LastRes = SupportedResolutions.Last();
-		return FString::Printf(TEXT("%s x %s"), *LexToString(LastRes.X), *LexToString(LastRes.Y));
+		return FString::Printf(TEXT("%s x %s"),
+		                       *LexToString(MaxResolution.X),
+		                       *LexToString(MaxResolution.Y));
 	}
 
 	return FString();
@@ -103,6 +114,36 @@ bool UNativeSettingsHelper::SetScreenResolution(const FString& InValue)
 	}
 
 	return false;
+}
+
+void UNativeSettingsHelper::ApplyResolutionSettings(const bool bCheckForCommandLineOverrides)
+{
+	UUserSettings* UserSettings = UUserSettings::Get();
+	if (!UserSettings)
+	{
+		return;
+	}
+
+	const FIntPoint StagedResolution = UserSettings->GetScreenResolution();
+	const EWindowMode::Type WindowMode = UserSettings->GetFullscreenMode();
+	const bool bUseMaxResolution =
+		WindowMode == EWindowMode::Fullscreen ||
+		WindowMode == EWindowMode::WindowedFullscreen;
+
+	FIntPoint MaxResolution;
+	if (bUseMaxResolution && GetMaxSupportedResolution(MaxResolution))
+	{
+		UserSettings->SetScreenResolution(MaxResolution);
+	}
+
+	UserSettings->ApplyResolutionSettings(bCheckForCommandLineOverrides);
+
+	if (bUseMaxResolution)
+	{
+		// Restore the user's selected resolution in memory so a subsequent
+		// SaveSettings call does not persist the runtime fullscreen resolution.
+		UserSettings->SetScreenResolution(StagedResolution);
+	}
 }
 
 FString UNativeSettingsHelper::GetCurrentWindowMode()

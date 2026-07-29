@@ -35,6 +35,11 @@ public:
 	UFUNCTION(BlueprintCallable, Category="Game Settings|Video")
 	static bool SetScreenResolution(const FString& InValue);
 
+	// apply the staged resolution settings; fullscreen modes use the maximum supported
+	// resolution at runtime without replacing the staged resolution that will be saved
+	UFUNCTION(BlueprintCallable, Category="Game Settings|Video")
+	static void ApplyResolutionSettings(bool bCheckForCommandLineOverrides = false);
+
 	// *** WINDOW MODE *** //
 
 	// retrieve the current window mode value as a string in the format it is saved in settings: 1

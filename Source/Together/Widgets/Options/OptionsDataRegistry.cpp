@@ -100,8 +100,11 @@ void UOptionsDataRegistry::InitRegistry(ULocalPlayer* InOwningLocalPlayer)
 	for (int32 EnumIndex = 0; EnumIndex < TabEnum->NumEnums(); ++EnumIndex)
 	{
 		const FString EnumName = TabEnum->GetNameStringByIndex(EnumIndex);
-		if (TabEnum->HasMetaData(TEXT("Hidden"), EnumIndex) ||
-		    EnumName.EndsWith(TEXT("_MAX"), ESearchCase::IgnoreCase))
+		bool bIsHidden = false;
+#if WITH_METADATA
+		bIsHidden = TabEnum->HasMetaData(TEXT("Hidden"), EnumIndex);
+#endif
+		if (bIsHidden || EnumName.EndsWith(TEXT("_MAX"), ESearchCase::IgnoreCase))
 		{
 			continue;
 		}
@@ -379,7 +382,7 @@ UOptionsListItemDataObject_Base* UOptionsDataRegistry::CreateSettingDataObject(
 	ValueData->SetDescriptionImage(Definition.DescriptionImage);
 	ValueData->SetDefaultValueFromString(Definition.DefaultValue);
 	ValueData->SetShouldApplyChangesImmediately(Definition.bShouldApplyChangesImmediately);
-	ValueData->SetShouldApplyVideoSettings(Definition.bApplyVideoSettings);
+	ValueData->SetApplyMode(Definition.ApplyMode);
 
 	// create default getters / setter for inserting and retrieving from user settings
 	const TSharedPtr<FOptionsDataInteractionHelper> Interaction =
