@@ -1,6 +1,5 @@
 // Uris - All Rights Reserved
 
-
 #include "OptionsListItemDataObject_Base.h"
 
 #include "Settings/NativeSettingsHelper.h"
