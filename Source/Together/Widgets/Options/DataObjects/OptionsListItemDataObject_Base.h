@@ -12,6 +12,7 @@
 	FORCEINLINE DataType Get##PropertyName() const {return PropertyName;} \
 	void Set##PropertyName(DataType In##PropertyName) { PropertyName = In##PropertyName;}
 
+class UOptionsListItemDataObject_Base;
 class UTexture2D;
 
 UENUM(BlueprintType)
@@ -20,6 +21,24 @@ enum class EOptionsListModifiedReason : uint8
 	DirectlyModified,
 	DependencyModified,
 	ResetToDefault
+};
+
+USTRUCT()
+struct FResolvedEditCondition
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere)
+	FSettingEditCondition Condition;
+
+	UPROPERTY(EditAnywhere)
+	TWeakObjectPtr<UOptionsListItemDataObject_Base> TargetData;
+
+	FResolvedEditCondition() = default;
+
+	explicit FResolvedEditCondition(const FSettingEditCondition& InCondition,
+	                                const TWeakObjectPtr<UOptionsListItemDataObject_Base> InTargetData)
+		: Condition(InCondition), TargetData(InTargetData) {}
 };
 
 /**
@@ -31,24 +50,39 @@ class TOGETHER_API UOptionsListItemDataObject_Base : public UObject
 	GENERATED_BODY()
 
 public:
+	// broadcast data modified
 	DECLARE_MULTICAST_DELEGATE_TwoParams(FOnListDataModifiedDelegate,
 	                                     UOptionsListItemDataObject_Base*,
 	                                     EOptionsListModifiedReason)
+	DECLARE_MULTICAST_DELEGATE_OneParam(FOnEditabilityChangedDelegate, bool)
 
 	FOnListDataModifiedDelegate OnListDataModified;
+	FOnEditabilityChangedDelegate OnEditabilityChanged;
 
+	// get/set macros
 	LIST_DATA_ACCESSOR(FName, DataId)
+	LIST_DATA_ACCESSOR(FName, UserDefinedDataId)
 	LIST_DATA_ACCESSOR(FText, DisplayName)
 	LIST_DATA_ACCESSOR(FText, Description)
 	LIST_DATA_ACCESSOR(FText, DisabledText)
 	LIST_DATA_ACCESSOR(TSoftObjectPtr<UTexture2D>, DescriptionImage)
 	LIST_DATA_ACCESSOR(UOptionsListItemDataObject_Base*, ParentData)
+	LIST_DATA_ACCESSOR(FSettingEditConditionDefinition, EditConditionDefinition)
 
 	void InitDataObject();
 
 	void SetShouldApplyChangesImmediately(bool InShouldApplyChangesImmediately);
 
 	void SetApplyMode(EUserSettingApplyMode InApplyMode);
+
+	void AddResolvedEditCondition(const FResolvedEditCondition& InEditCondition);
+
+	bool AreEditConditionsMet() const;
+
+	bool IsEditable() const
+	{
+		return bIsEditable;
+	}
 
 	virtual bool HasDefaultValue() const
 	{
@@ -63,6 +97,11 @@ public:
 	virtual bool ResetToDefault()
 	{
 		return false;
+	}
+
+	virtual FString GetCurrentValueAsString() const
+	{
+		return FString();
 	}
 
 	virtual TArray<UOptionsListItemDataObject_Base*> GetAllChildListData() const
@@ -85,16 +124,30 @@ protected:
 		                                    EOptionsListModifiedReason::DirectlyModified) const;
 
 private:
+	void HandleEditConditionTargetModified(UOptionsListItemDataObject_Base* InModifiedData,
+	                                       EOptionsListModifiedReason InReason);
+	void RefreshEditability();
+
+	// core info data
 	FName DataId;
+	FName UserDefinedDataId;
 	FText DisplayName;
 	FText Description;
 	FText DisabledText;
 	TSoftObjectPtr<UTexture2D> DescriptionImage;
+
+	// behavior settings
 	bool bShouldApplyChangesImmediately = false;
 	EUserSettingApplyMode ApplyMode = EUserSettingApplyMode::ApplyNonResolutionSettings;
+
+	// edit conditions
+	FSettingEditConditionDefinition EditConditionDefinition;
+	bool bIsEditable = true;
 
 	UPROPERTY(Transient)
 	UOptionsListItemDataObject_Base* ParentData;
 
+	UPROPERTY(transient)
+	TArray<FResolvedEditCondition> ResolvedEditConditions;
 
 };

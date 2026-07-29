@@ -29,6 +29,8 @@ public:
 		return DefaultStringValue.IsSet() ? DefaultStringValue.GetValue() : "";
 	}
 
+	virtual FString GetCurrentValueAsString() const override;
+
 	virtual bool HasDefaultValue() const override
 	{
 		return DefaultStringValue.IsSet();

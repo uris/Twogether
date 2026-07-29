@@ -4,6 +4,7 @@
 
 #include "CommonNumericTextBlock.h"
 #include "CoreMinimal.h"
+#include "SettingsEditCondition.h"
 #include "Engine/DataTable.h"
 
 #include "UserSettingTypes.generated.h"
@@ -131,75 +132,88 @@ struct FUserSettingDefinition : public FTableRowBase
 {
 	GENERATED_BODY()
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	bool bIsNativeSetting = false;
-
-	UPROPERTY(EditAnywhere,
-		meta = (EditCondition = "bIsNativeSetting == true",
-			EditConditionHides,
-			TitleProperty = "DisplayName"))
-	ENativeUnrealSettings NativeSetting;
-
-	UPROPERTY(EditAnywhere,
-		meta = (EditCondition = "bIsNativeSetting == false",
-			EditConditionHides,
-			TitleProperty = "DisplayName"))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(ToolTip="Must be a unique setting identifier"))
 	FName SettingId;
 
-	UPROPERTY(EditAnywhere)
-	EUserSettingTab SettingTab;
-
-	UPROPERTY(EditAnywhere)
-	FName ParentSettingId;
-
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, meta=(ToolTip="Setting groups create visual heirarchy and are functionaly inert"))
 	bool bIsSettingGroup = false;
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(
+		EditAnywhere,
+		meta = (EditCondition = "bIsSettingGroup == false",
+			EditConditionHides,
+			TitleProperty = "DisplayName", ToolTip=
+			"Native settings hook into Unreal native capabilities and values, eg. resolution, window mode, etc."))
+	bool bIsNativeSetting = false;
+
+	UPROPERTY(
+		EditAnywhere,
+		meta = (EditCondition = "bIsNativeSetting == true",
+			EditConditionHides,
+			TitleProperty = "DisplayName", ToolTip="Select from supported native settings"))
+	ENativeUnrealSettings NativeSetting;
+
+	UPROPERTY(EditAnywhere, meta=(ToolTip="The high level tab the setting belongs under"))
+	EUserSettingTab SettingTab;
+
+	UPROPERTY(EditAnywhere,
+		meta=(ToolTip="Nest this setting under another setting visually (group or individual item)"))
+	FName ParentSettingId;
+
+	UPROPERTY(EditAnywhere, meta=(ToolTip="The order in which the setting should appear in the UI"))
 	int32 SortOrder = 100;
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, meta=(ToolTip="The name for the setting displayed as a title in the UI"))
 	FText DisplayName;
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(
+		EditAnywhere,
+		meta = (EditCondition = "bIsSettingGroup == false",
+			EditConditionHides,
+			TitleProperty = "DisplayName", ToolTip="Populates the details pane. Leave empty to not omit it"))
 	FText Description;
 
 	UPROPERTY(
 		EditAnywhere,
 		meta = (EditCondition = "bIsSettingGroup == false",
 			EditConditionHides,
-			TitleProperty = "DisplayName"))
+			TitleProperty = "DisplayName", ToolTip="Populates the details pane. Leave empty to not omit it"))
 	FText DisabledText;
 
 	UPROPERTY(
 		EditAnywhere,
 		meta = (EditCondition = "bIsSettingGroup == false",
 			EditConditionHides,
-			TitleProperty = "DisplayName"))
+			TitleProperty = "DisplayName", ToolTip="Populates the details pane. Leave empty to not omit it"))
 	FText TechText;
 
 	UPROPERTY(
 		EditAnywhere,
 		meta = (EditCondition = "bIsSettingGroup == false",
 			EditConditionHides,
-			TitleProperty = "DisplayName"))
+			TitleProperty = "DisplayName", ToolTip="Populates the details pane. Leave empty to not omit it"))
 	TSoftObjectPtr<UTexture2D> DescriptionImage;
 
 	UPROPERTY(
 		EditAnywhere,
 		meta = (EditCondition = "bIsSettingGroup == false",
 			EditConditionHides,
-			TitleProperty = "DisplayName"))
+			TitleProperty = "DisplayName", ToolTip=
+			"Drives how the setting is displayed and interacted with (slider, rotator, etc.)"))
 	EUserSettingValueType Type = EUserSettingValueType::Float;
 
 	UPROPERTY(
 		EditAnywhere,
 		meta = (EditCondition = "bIsSettingGroup == false",
 			EditConditionHides,
-			TitleProperty = "DisplayName"))
-	bool bShouldApplyChangesImmediately = false;
+			TitleProperty = "DisplayName", ToolTip="Determines if updated settings should save immediately"))
+	bool bShouldApplyChangesImmediately = true;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UPROPERTY(EditAnywhere,
+		BlueprintReadWrite,
+		meta = (ToolTip=
+			"Determines if settings should apply, enabling deferring applying settings that affect screen resolution, etc."
+		))
 	EUserSettingApplyMode ApplyMode = EUserSettingApplyMode::ApplyNonResolutionSettings;
 
 	/*
@@ -275,4 +289,7 @@ struct FUserSettingDefinition : public FTableRowBase
 			EditConditionHides,
 			ClampMin = "0"))
 	int32 MaximumFractionalDigits = 2;
+
+	UPROPERTY(EditAnywhere)
+	FSettingEditConditionDefinition EditConditions;
 };

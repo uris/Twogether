@@ -7,6 +7,7 @@
 #include "UObject/Object.h"
 #include "OptionsDataRegistry.generated.h"
 
+struct FResolvedEditCondition;
 class UOptionsListItemDataObject_Base;
 class UUOptionsListItemCollection_Base;
 class ULocalPlayer;
@@ -47,4 +48,7 @@ private:
 
 	// helper to create a settings array for native settings
 	static TArray<FStringSetting> GetNativeStringSettings(const FUserSettingDefinition& Definition);
+
+	// helper to create resolved edit conditions references for each item
+	static void ProcessEditConditions(const TMap<FName, UOptionsListItemDataObject_Base*>& AllItemsById);
 };

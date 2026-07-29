@@ -228,7 +228,7 @@ void UOptionsDataRegistry::InitRegistry(ULocalPlayer* InOwningLocalPlayer)
 			ItemsById.Add(EffectiveSettingId, Item);
 		}
 
-		// iterate through all settings
+		// iterate through all settings adding them to the correct parent tab
 		for (const FUserSettingDefinition* Definition : TabDefinitions)
 		{
 			const FName EffectiveSettingId = GetSettingIdString(*Definition);
@@ -272,7 +272,12 @@ void UOptionsDataRegistry::InitRegistry(ULocalPlayer* InOwningLocalPlayer)
 			// add the item as child
 			ParentCollection->AddChildListData(*ItemPtr);
 		}
+
+		// once all items are created, do another pass to define edit dependencies
+		ProcessEditConditions(ItemsById);
+
 	}
+
 }
 
 // base settings tab collection creator
@@ -376,6 +381,7 @@ UOptionsListItemDataObject_Base* UOptionsDataRegistry::CreateSettingDataObject(
 
 	// set the common data object properties
 	ValueData->SetDataId(GetSettingIdString(Definition));
+	ValueData->SetUserDefinedDataId(Definition.SettingId);
 	ValueData->SetDisplayName(Definition.DisplayName);
 	ValueData->SetDescription(Definition.Description);
 	ValueData->SetDisabledText(Definition.DisabledText);
@@ -383,6 +389,7 @@ UOptionsListItemDataObject_Base* UOptionsDataRegistry::CreateSettingDataObject(
 	ValueData->SetDefaultValueFromString(Definition.DefaultValue);
 	ValueData->SetShouldApplyChangesImmediately(Definition.bShouldApplyChangesImmediately);
 	ValueData->SetApplyMode(Definition.ApplyMode);
+	ValueData->SetEditConditionDefinition(Definition.EditConditions);
 
 	// create default getters / setter for inserting and retrieving from user settings
 	const TSharedPtr<FOptionsDataInteractionHelper> Interaction =
@@ -413,15 +420,11 @@ TArray<UOptionsListItemDataObject_Base*> UOptionsDataRegistry::GetListItemsBySel
 	// deref the found collection
 	const UUOptionsListItemCollection_Base* FoundTabCollection = *FoundTabCollectionPtr;
 
-	UE_LOG(LogTemp, Warning, TEXT("Found Tab Collection: %d"), FoundTabCollection->HasAnyChildListData())
-
 	// create local array to hold all children
 	TArray<UOptionsListItemDataObject_Base*> AllChildListItems;
 
 	// recurse to find all children and sub children
 	FindChildListDataRecursive(FoundTabCollection, AllChildListItems);
-
-	UE_LOG(LogTemp, Warning, TEXT("Total Children: %d"), AllChildListItems.Num());
 
 	// return the complete array
 	return AllChildListItems;
@@ -446,7 +449,6 @@ void UOptionsDataRegistry::FindChildListDataRecursive(const UUOptionsListItemCol
 {
 	if (!InParentCollection || !InParentCollection->HasAnyChildListData())
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Parent In Has No Children... Returning"));
 		return;
 	}
 
@@ -497,5 +499,58 @@ TArray<FStringSetting> UOptionsDataRegistry::GetNativeStringSettings(const FUser
 				GetNativeSettingId(Definition.NativeSetting));
 		default:
 			return {};
+	}
+}
+
+void UOptionsDataRegistry::ProcessEditConditions(const TMap<FName, UOptionsListItemDataObject_Base*>& AllItemsById)
+{
+	// protect for valid data objects
+	if (AllItemsById.IsEmpty())
+	{
+		return;
+	}
+
+	// flatten map to array
+	TArray<UOptionsListItemDataObject_Base*> AllItems;
+	AllItemsById.GenerateValueArray(AllItems);
+
+	// find dependencies for the owning item in the array
+	for (UOptionsListItemDataObject_Base* Item : AllItems)
+	{
+		// protect for existing setting
+		if (!Item)
+		{
+			continue;
+		}
+
+		// add the dependency
+		for (const FSettingEditCondition& Condition : Item->GetEditConditionDefinition().Conditions)
+		{
+			// match using the user supplied data id from the data row entry, not the resolved id
+			// since native settings internally use their own setting id based on unreals nomenclature
+			UOptionsListItemDataObject_Base* const* FoundItem = AllItems.FindByPredicate(
+				[&Condition](const UOptionsListItemDataObject_Base* Setting)
+				{
+					return Setting &&
+					       Setting->GetUserDefinedDataId() == Condition.TargetSettingDataId;
+				});
+
+			// set the target item
+			UOptionsListItemDataObject_Base* TargetItem = FoundItem ? *FoundItem : nullptr;
+
+			if (!TargetItem)
+			{
+				UE_LOG(
+					LogTemp,
+					Warning,
+					TEXT("Edit condition for '%s' references missing setting '%s'."),
+					*Item->GetDataId().ToString(),
+					*Condition.TargetSettingDataId.ToString());
+				continue;
+			}
+
+			Item->AddResolvedEditCondition(FResolvedEditCondition(Condition, TargetItem));
+		}
+
 	}
 }

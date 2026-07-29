@@ -21,8 +21,9 @@ void UUIOptionsListEntry::NativeOnListItemObjectSet(UObject* ListItemObject)
 
 	// test for collection class type to set its visibility to not selectable / interactable
 	const bool IsCollectionType = IsValid(Cast<UUOptionsListItemCollection_Base>(ListItemObject));
-	SetVisibility(IsCollectionType ? ESlateVisibility::HitTestInvisible:ESlateVisibility::Visible);
+	SetVisibility(IsCollectionType ? ESlateVisibility::HitTestInvisible : ESlateVisibility::Visible);
 
+	// trigger call to method to handle tasks after a data object is known to exist
 	OnOwningListDataObjectSet(CastChecked<UOptionsListItemDataObject_Base>(ListItemObject));
 }
 
@@ -33,6 +34,7 @@ void UUIOptionsListEntry::NativeOnEntryReleased()
 		Cast<UOptionsListItemDataObject_Base>(CachedListItemObject))
 	{
 		PreviousItem->OnListDataModified.RemoveAll(this);
+		PreviousItem->OnEditabilityChanged.RemoveAll(this);
 	}
 
 	OnEntrySelectionRequested.Clear();
@@ -60,12 +62,27 @@ void UUIOptionsListEntry::OnOwningListDataObjectSet(UOptionsListItemDataObject_B
 	{
 		InOwningListDataObject->OnListDataModified.AddUObject(this, &ThisClass::OnOwningListDataObjectModified);
 	}
+
+	if (!InOwningListDataObject->OnEditabilityChanged.IsBoundToObject(this))
+	{
+		InOwningListDataObject->OnEditabilityChanged.AddUObject(
+			this,
+			&ThisClass::HandleEditabilityChanged);
+	}
+
+	// call handle editable to immediately update the visual state of the entry
+	HandleEditabilityChanged(InOwningListDataObject->IsEditable());
 }
 
 void UUIOptionsListEntry::OnOwningListDataObjectModified(UOptionsListItemDataObject_Base* InOwningListDataObject,
                                                          EOptionsListModifiedReason InReason)
 {
 	// override
+}
+
+void UUIOptionsListEntry::HandleEditabilityChanged(const bool bInIsEditable)
+{
+	SetIsEnabled(bInIsEditable);
 }
 
 void UUIOptionsListEntry::NativeOnItemSelectionChanged(const bool bInIsSelected)

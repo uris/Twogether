@@ -67,6 +67,9 @@ protected:
 	virtual void OnOwningListDataObjectModified(UOptionsListItemDataObject_Base* InOwningListDataObject,
 	                                            EOptionsListModifiedReason InReason);
 
+	// receive edibility change notification for this entry and change state accordingly
+	void HandleEditabilityChanged(bool bInIsEditable);
+
 	// state override forwarded to virtual interface
 	virtual void NativeOnItemSelectionChanged(bool bInIsSelected) override;
 
