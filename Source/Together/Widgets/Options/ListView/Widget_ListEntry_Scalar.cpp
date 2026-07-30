@@ -109,6 +109,18 @@ void UWidget_ListEntry_Scalar::NativeListEntryWidgetSelected(const bool bInIsSel
 	Super::NativeListEntryWidgetSelected(bInIsSelected);
 }
 
+void UWidget_ListEntry_Scalar::ApplyEditabilityToControls(const bool bInIsEditable)
+{
+
+	// update the slider's enabled state
+	if (Slider->Slider)
+	{
+		Slider->Slider->SetIsEnabled(bInIsEditable);
+	}
+
+	ApplyStyleUpdates();
+}
+
 void UWidget_ListEntry_Scalar::HandleOnValueChanged(const float InVolume) const
 {
 	if (IsValid(CachedOwningScalarObject))
@@ -127,6 +139,18 @@ void UWidget_ListEntry_Scalar::HandleOnMouseCaptureBegin()
 
 void UWidget_ListEntry_Scalar::ApplyStyleUpdates() const
 {
+
+	// if disabled, set the disabled style
+	if (!bIsEditable)
+	{
+		if (SettingDisplayName && DisabledTextStyle)
+		{
+			SettingDisplayName->SetStyle(DisabledTextStyle);
+		}
+		return;
+	}
+
+	// otherwise set normal or hovered
 	if ((bIsSelected || bIsHovered) && HoveredTextStyle)
 	{
 		if (SettingDisplayName)

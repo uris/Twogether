@@ -44,11 +44,17 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	bool bIsSelected = false;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+	bool bIsEditable = true;
+
 	// virtual interface for hover state
 	virtual void NativeListEntryWidgetHovered(bool bInIsHovered);
 
 	// virtual interface for selection state
 	virtual void NativeListEntryWidgetSelected(bool bInIsSelected);
+
+	// child instance overrides, so they can apply disabled state to actual controls, keeping the entry selectable
+	virtual void ApplyEditabilityToControls(bool bInIsEditable);
 
 protected:
 	// handle focus for gamepad input

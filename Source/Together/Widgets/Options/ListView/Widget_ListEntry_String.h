@@ -31,15 +31,24 @@ public:
 		Category = "UI Options List Entry|Styles")
 	TSubclassOf<UCommonTextStyle> HoveredTextStyle;
 
+	UPROPERTY(EditAnywhere,
+		BlueprintReadWrite,
+		Category = "UI Options List Entry|Styles")
+	TSubclassOf<UCommonTextStyle> DisabledTextStyle;
+
 	TObjectPtr<UListItemDataObject_String> GetOwningListDataObject() const
 	{
 		return CachedOwningListDataObject;
 	};
 
+	virtual void ApplyEditabilityToControls(const bool bInIsEditable) override;
+
 protected:
 	virtual FReply NativeOnFocusReceived(const FGeometry& InGeometry, const FFocusEvent& InFocusEvent) override;
 
 	virtual void NativeOnInitialized() override;
+
+	virtual void NativePreConstruct() override;
 
 	virtual void NativeDestruct() override;
 

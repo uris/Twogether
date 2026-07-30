@@ -27,6 +27,11 @@ public:
 		Category = "Custom Properties|Text Styles")
 	TSubclassOf<UCommonTextStyle> HoveredTextStyle;
 
+	UPROPERTY(EditAnywhere,
+		BlueprintReadWrite,
+		Category = "Custom Properties|Text Styles")
+	TSubclassOf<UCommonTextStyle> DisabledTextStyle;
+
 	UFUNCTION()
 	void HandleOnValueChanged(float InVolume) const;
 
@@ -36,6 +41,8 @@ public:
 	virtual void NativeListEntryWidgetHovered(bool bInIsHovered) override;
 
 	virtual void NativeListEntryWidgetSelected(bool bInIsSelected) override;
+
+	virtual void ApplyEditabilityToControls(bool bInIsEditable) override;
 
 protected:
 	virtual void NativeOnInitialized() override;

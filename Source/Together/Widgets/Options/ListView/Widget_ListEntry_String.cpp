@@ -34,6 +34,13 @@ void UWidget_ListEntry_String::NativeOnInitialized()
 	ApplyStyleUpdates();
 }
 
+void UWidget_ListEntry_String::NativePreConstruct()
+{
+	Super::NativePreConstruct();
+
+	ApplyStyleUpdates();
+}
+
 void UWidget_ListEntry_String::NativeDestruct()
 {
 	Super::NativeDestruct();
@@ -66,6 +73,26 @@ void UWidget_ListEntry_String::OnOwningListDataObjectModified(UOptionsListItemDa
 		// display the currently selected item
 		SettingRotator->SetSelectedOptionByText(CachedOwningListDataObject->GetCurrentDisplayText());
 	}
+}
+
+void UWidget_ListEntry_String::ApplyEditabilityToControls(const bool bInIsEditable)
+{
+	// update the rotator-enabled state
+	if (SettingRotator)
+	{
+		SettingRotator->SetIsEnabled(bInIsEditable);
+	}
+	if (CycleLeft)
+	{
+		CycleLeft->SetIsEnabled(bInIsEditable);
+	}
+	if (CycleRight)
+	{
+		CycleRight->SetIsEnabled(bInIsEditable);
+	}
+
+	// update styles
+	ApplyStyleUpdates();
 }
 
 FReply UWidget_ListEntry_String::NativeOnFocusReceived(const FGeometry& InGeometry, const FFocusEvent& InFocusEvent)
@@ -156,6 +183,16 @@ void UWidget_ListEntry_String::CycleSelection(const EStringSettingDirection InDi
 
 void UWidget_ListEntry_String::ApplyStyleUpdates() const
 {
+
+	if (!bIsEditable)
+	{
+		if (SettingDisplayName && DisabledTextStyle)
+		{
+			SettingDisplayName->SetStyle(DisabledTextStyle);
+		}
+		return;
+	}
+
 	if ((bIsSelected || bIsHovered) && HoveredTextStyle)
 	{
 		if (SettingDisplayName)

@@ -82,7 +82,21 @@ void UUIOptionsListEntry::OnOwningListDataObjectModified(UOptionsListItemDataObj
 
 void UUIOptionsListEntry::HandleEditabilityChanged(const bool bInIsEditable)
 {
-	SetIsEnabled(bInIsEditable);
+	if (bIsEditable == bInIsEditable)
+	{
+		return;
+	}
+
+	// set state
+	bIsEditable = bInIsEditable;
+
+	// broadcast to children overriding
+	ApplyEditabilityToControls(bIsEditable);
+}
+
+void UUIOptionsListEntry::ApplyEditabilityToControls(bool bInIsEditable)
+{
+	// implemented by children
 }
 
 void UUIOptionsListEntry::NativeOnItemSelectionChanged(const bool bInIsSelected)

@@ -528,6 +528,8 @@ void UOptionsDataRegistry::ProcessEditConditions(const TMap<FName, UOptionsListI
 	TArray<UOptionsListItemDataObject_Base*> AllItems;
 	AllItemsById.GenerateValueArray(AllItems);
 
+	UE_LOG(LogTemp, Warning, TEXT("AllItems Length: %i"), AllItems.Num());
+
 	// find dependencies for the owning item in the array
 	for (UOptionsListItemDataObject_Base* Item : AllItems)
 	{
@@ -545,8 +547,7 @@ void UOptionsDataRegistry::ProcessEditConditions(const TMap<FName, UOptionsListI
 			UOptionsListItemDataObject_Base* const* FoundItem = AllItems.FindByPredicate(
 				[&Condition](const UOptionsListItemDataObject_Base* Setting)
 				{
-					return Setting &&
-					       Setting->GetUserDefinedDataId() == Condition.TargetSettingDataId;
+					return Setting && Setting->GetUserDefinedDataId() == Condition.TargetSettingDataId;
 				});
 
 			// set the target item
