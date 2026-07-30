@@ -185,3 +185,12 @@ bool UNativeSettingsHelper::SetWindowMode(const FString& InValue)
 
 	return false;
 }
+
+FScalarSettingValues UNativeSettingsHelper::GetDisplayGammaSettings()
+{
+	FScalarSettingValues GammaSettings = FScalarSettingValues();
+	GammaSettings.MinValue = 1.7f;
+	GammaSettings.MaxValue = 2.7f;
+	GammaSettings.NumericType = ECommonNumericType::Percentage;
+	return GammaSettings;
+}

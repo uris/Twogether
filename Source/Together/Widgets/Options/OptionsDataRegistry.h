@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "DataObjects/ListItemDataObject_IntEnum.h"
 #include "Settings/UserSettingTypes.h"
 #include "UObject/Object.h"
 #include "OptionsDataRegistry.generated.h"
@@ -51,9 +52,25 @@ private:
 	static TArray<FStringSetting> GetStringSettings(const FName& SettingId,
 	                                                const FUserSettingDefinition& Definition);
 
-	// helper to create a settings array for native settings
+	// helper: create normalized string settings values for the base data object
 	static TArray<FStringSetting> GetNativeStringSettings(const FUserSettingDefinition& Definition);
 
-	// helper to create resolved edit conditions references for each item
+	// helper: create normalized scalar setting values for the base data object
+	static FScalarSettingValues GetNativeScalarSettings(const FUserSettingDefinition& Definition);
+
+	// helper: create resolved edit conditions after all items has been created for a tab group
 	static void ProcessEditConditions(const TMap<FName, UOptionsListItemDataObject_Base*>& AllItemsById);
+
+	// helper: normalized setting type based on whether setting is native
+	static EUserSettingValueType NormalizedSettingType(const FUserSettingDefinition& Definition);
+
+	// helper: switch to call templated function for creating string settings values for native enum
+	TArray<FStringSetting> GetNativeEnumSettingValues(const FUserSettingDefinition& Definition);
+
+	// helper: get regular settings values from provided list of values
+	static TArray<FStringSetting> GetEnumSettingValues(const FUserSettingDefinition& Definition);
+
+	// helper: template to create string settings from a specified enum type
+	template <typename EnumType>
+	TArray<FStringSetting> EnumTypeToStringSettings(const FName& InDataId);
 };

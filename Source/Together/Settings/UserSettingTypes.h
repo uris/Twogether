@@ -14,6 +14,7 @@ enum class ENativeUnrealSettings : uint8
 {
 	WindowMode = 0 UMETA(DisplayName = "Window Mode"),
 	ScreenResolution = 1 UMETA(DisplayName = "Screen Resolution"),
+	DisplayGamma = 2 UMETA(DisplayName = "Screen Gamma (Brightness)"),
 };
 
 UENUM(BlueprintType)
@@ -46,9 +47,8 @@ enum class EUserSettingApplyMode : uint8
 UENUM(BlueprintType)
 enum class EIntEnumType : uint8
 {
-	None = 0 UMETA(DisplayName = "None"),
+	EnteredValueList = 0 UMETA(DisplayName = "Entered Value List"),
 	WindowMode = 1 UMETA(DisplayName = "WindowMode"),
-	Resolution = 2 UMETA(DisplayName = "Resolution"),
 };
 
 USTRUCT(BlueprintType)
@@ -95,26 +95,20 @@ struct FStringSettingValue
 };
 
 USTRUCT(BlueprintType)
-struct FIntEnumSetting
+struct FIntEnumSettingValue
 {
 	GENERATED_BODY()
 
-	// defined enum to use
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	EIntEnumType IntEnumType = EIntEnumType::None;
+	FText DisplayName = FText::GetEmpty();
 
-	// log enum names/values to help override
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	bool bLogEnumValuesAndNames = false;
+	int32 NumericValue;
 
-	// apply custom display names for the different enum indexes
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	TMap<int32, FName> CustomNamesOverride;
+	FIntEnumSettingValue() = default;
 
-	FIntEnumSetting() = default;
-
-	explicit FIntEnumSetting(const EIntEnumType& InIntEnumType)
-		: IntEnumType(InIntEnumType) {}
+	explicit FIntEnumSettingValue(const FText& InDisplayName, const int32& InNumericValue)
+		: DisplayName(InDisplayName), NumericValue(InNumericValue) {}
 };
 
 USTRUCT(BlueprintType)
@@ -205,7 +199,7 @@ struct FUserSettingDefinition : public FTableRowBase
 	UPROPERTY(
 		EditAnywhere,
 		Category="Definition",
-		meta = (EditCondition = "bIsSettingGroup == false",
+		meta = (EditCondition = "bIsSettingGroup == false && bIsNativeSetting == false",
 			EditConditionHides,
 			TitleProperty = "DisplayName", ToolTip=
 			"Drives how the setting is displayed and interacted with (slider, rotator, etc.)"))
@@ -296,7 +290,7 @@ struct FUserSettingDefinition : public FTableRowBase
 		meta = (EditCondition = "bIsSettingGroup == false && Type == EUserSettingValueType::Enum",
 			EditConditionHides,
 			TitleProperty = "DisplayName"))
-	EIntEnumType AvailableEnumValues;
+	TArray<FIntEnumSettingValue> AvailableEnumValues;
 
 	UPROPERTY(
 		EditAnywhere,

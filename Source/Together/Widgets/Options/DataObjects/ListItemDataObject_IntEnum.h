@@ -32,18 +32,7 @@ public:
 		return StaticEnumOption->GetValueByNameString(InNameString);
 	}
 
-	// create and add the settings for the requested enum type
-	bool AddDynamicSetting(EIntEnumType InEnumType);
-
 protected:
 	virtual void OnDataObjectInitialized() override;
-
-private:
-	// create settings from specified enum defined in the data object
-	bool CreateIntEnumSettings(EIntEnumType InEnumType, const FName& InSettingDataId);
-
-	// create an array of settings for a specified enum type
-	template <typename EnumType>
-	TArray<FStringSetting> GenerateSettingsArray(const FName& InSettingDataId);
 
 };

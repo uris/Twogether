@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "UserSettingTypes.h"
 #include "Kismet/BlueprintFunctionLibrary.h"
 
 #include "NativeSettingsHelper.generated.h"
@@ -49,4 +50,9 @@ public:
 	// retrieve the current window mode value as a string in the format it is saved in settings: 1
 	UFUNCTION(BlueprintCallable, Category="Game Settings|Video")
 	static bool SetWindowMode(const FString& InValue);
+
+	// *** GAMMA *** //
+
+	// get the gamma settings values
+	static FScalarSettingValues GetDisplayGammaSettings();
 };

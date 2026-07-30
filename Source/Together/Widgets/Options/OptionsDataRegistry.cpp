@@ -296,21 +296,29 @@ UUOptionsListItemCollection_Base* UOptionsDataRegistry::InitTabCollection(
 UOptionsListItemDataObject_Base* UOptionsDataRegistry::CreateSettingDataObject(
 	const FUserSettingDefinition& Definition)
 {
+	// readability
+	const bool bIsNative = Definition.bIsNativeSetting;
 
-	// create each setting unique item data object properties based on value type
+	// set value type based on if the setting is native
+	const EUserSettingValueType SettingType = NormalizedSettingType(Definition);
+
+	// get the normalized setting id replacing user provided id with system ids for unreal native settings
+	const FName DataId = GetSettingIdString(Definition);
+
+	// create the base item data object to hold settings values
 	UListItemDataObject_Value* ValueData = nullptr;
-	switch (Definition.Type)
+
+	// create instances of the base data object as a function of the setting type
+	switch (SettingType)
 	{
-		// string values
+		// string type (normalized to FStringSettings)
 		case EUserSettingValueType::String:
 		{
-			UListItemDataObject_String* StringData =
-				NewObject<UListItemDataObject_String>(this);
-			const FName DataId = GetSettingIdString(Definition);
+			UListItemDataObject_String* StringData = NewObject<UListItemDataObject_String>(this);
 			StringData->SetDataId(DataId);
-			for (const FStringSetting& AvailableValue : Definition.bIsNativeSetting
-				                                            ? GetNativeStringSettings(Definition)
-				                                            : GetStringSettings(DataId, Definition))
+			TArray<FStringSetting> AllValues;
+			AllValues = bIsNative ? GetNativeStringSettings(Definition) : GetStringSettings(DataId, Definition);
+			for (const FStringSetting& AvailableValue : AllValues)
 			{
 				StringData->AddDynamicSetting(AvailableValue);
 			}
@@ -318,26 +326,26 @@ UOptionsListItemDataObject_Base* UOptionsDataRegistry::CreateSettingDataObject(
 			break;
 		}
 
-		// string values
+		// bool type (normalized to FStringSettings)
 		case EUserSettingValueType::Bool:
 		{
-			UListItemDataObject_Boolean* BoolData =
-				NewObject<UListItemDataObject_Boolean>(this);
-			BoolData->SetDataId(GetSettingIdString(Definition));
+			UListItemDataObject_Boolean* BoolData = NewObject<UListItemDataObject_Boolean>(this);
+			BoolData->SetDataId(DataId);
 			BoolData->AddDynamicSetting(Definition.AvailableBoolValues);
 			ValueData = BoolData;
 			break;
 		}
 
-		// enum values are shown as string
+		// enum type (normalized to FStringSettings)
 		case EUserSettingValueType::Enum:
 		{
-			UListItemDataObject_IntEnum* EnumData =
-				NewObject<UListItemDataObject_IntEnum>(this);
-			EnumData->SetDataId(GetSettingIdString(Definition));
-			if (!EnumData->AddDynamicSetting(Definition.AvailableEnumValues))
+			UListItemDataObject_IntEnum* EnumData = NewObject<UListItemDataObject_IntEnum>(this);
+			EnumData->SetDataId(DataId);
+			TArray<FStringSetting> AllValues;
+			AllValues = bIsNative ? GetNativeEnumSettingValues(Definition) : GetEnumSettingValues(Definition);
+			for (const FStringSetting& AvailableValue : AllValues)
 			{
-				return nullptr;
+				EnumData->AddDynamicSetting(AvailableValue);
 			}
 			ValueData = EnumData;
 			break;
@@ -346,23 +354,31 @@ UOptionsListItemDataObject_Base* UOptionsDataRegistry::CreateSettingDataObject(
 		// scalar values
 		case EUserSettingValueType::Scalar:
 		{
-			UListItemDataObject_Scalar* ScalarData =
-				NewObject<UListItemDataObject_Scalar>(this);
-			const FScalarSettingValues ScalarValues = Definition.AvailableScalarValues;
+			UListItemDataObject_Scalar* ScalarData = NewObject<UListItemDataObject_Scalar>(this);
+			ScalarData->SetDataId(DataId);
+
+			FScalarSettingValues ScalarValues;
+			ScalarValues = bIsNative ? GetNativeScalarSettings(Definition) : Definition.AvailableScalarValues;
+
 			const float MinValue = FMath::Min(ScalarValues.MinValue, ScalarValues.MaxValue);
 			const float MaxValue = FMath::Max(ScalarValues.MinValue, ScalarValues.MaxValue);
-			ScalarData->SetValueRange(TRange<float>(MinValue, MaxValue));
-			ScalarData->SetOutputRange(TRange<float>(MinValue, MaxValue));
-			ScalarData->SetSliderStepSize(FMath::Max(ScalarValues.StepSize, UE_SMALL_NUMBER));
+			const float OutputRangeSize = MaxValue - MinValue;
+
+			// sliders always operate in normalized display space - the scalar data
+			// object maps this range to/from the configured stored-value range.
+			ScalarData->SetValueRange(TRange<float>(0.0f, 1.0f)); // display range
+			ScalarData->SetOutputRange(TRange<float>(MinValue, MaxValue)); // value range
+
+			const float NormalizedStepSize = OutputRangeSize > UE_SMALL_NUMBER
+				                                 ? ScalarValues.StepSize / OutputRangeSize
+				                                 : 1.0f;
+			ScalarData->SetSliderStepSize(FMath::Clamp(NormalizedStepSize, UE_SMALL_NUMBER, 1.0f));
 			ScalarData->SetValueType(ScalarValues.NumericType);
 
 			FCommonNumberFormattingOptions Formatting;
-			Formatting.MinimumFractionalDigits =
-				FMath::Max(0, ScalarValues.MinimumFractionalDigits);
-			Formatting.MaximumFractionalDigits =
-				FMath::Max(
-					Formatting.MinimumFractionalDigits,
-					ScalarValues.MaximumFractionalDigits);
+			Formatting.MinimumFractionalDigits = FMath::Max(0, ScalarValues.MinimumFractionalDigits);
+			Formatting.MaximumFractionalDigits = FMath::Max(Formatting.MinimumFractionalDigits,
+			                                                ScalarValues.MaximumFractionalDigits);
 			ScalarData->SetFormatting(Formatting);
 			ValueData = ScalarData;
 			break;
@@ -381,8 +397,8 @@ UOptionsListItemDataObject_Base* UOptionsDataRegistry::CreateSettingDataObject(
 	}
 
 	// set the common data object properties
-	ValueData->SetDataId(GetSettingIdString(Definition));
-	ValueData->SetUserDefinedDataId(Definition.SettingId);
+	ValueData->SetDataId(DataId);
+	ValueData->SetUserDefinedDataId(Definition.SettingId); // retain reference to user setting id
 	ValueData->SetDisplayName(Definition.DisplayName);
 	ValueData->SetDescription(Definition.Description);
 	ValueData->SetDisabledText(FText::FromString(TEXT(""))); // populated if the edit condition is not met
@@ -494,11 +510,27 @@ FName UOptionsDataRegistry::GetSettingIdString(const FUserSettingDefinition& Def
 
 TArray<FStringSetting> UOptionsDataRegistry::GetNativeStringSettings(const FUserSettingDefinition& Definition)
 {
+	// get the native id string
+	const FName NativeId = GetSettingIdString(Definition);
+
 	switch (Definition.NativeSetting)
 	{
 		case ENativeUnrealSettings::ScreenResolution:
-			return UNativeSettingsHelper::GetSupportedResolutionsSettings(
-				GetNativeSettingId(Definition.NativeSetting));
+			return UNativeSettingsHelper::GetSupportedResolutionsSettings(NativeId);
+		case ENativeUnrealSettings::WindowMode:
+			// TODO: replace with native getter
+			return UNativeSettingsHelper::GetSupportedResolutionsSettings(NativeId);
+		default:
+			return {};
+	}
+}
+
+FScalarSettingValues UOptionsDataRegistry::GetNativeScalarSettings(const FUserSettingDefinition& Definition)
+{
+	switch (Definition.NativeSetting)
+	{
+		case ENativeUnrealSettings::DisplayGamma:
+			return UNativeSettingsHelper::GetDisplayGammaSettings();
 		default:
 			return {};
 	}
@@ -569,4 +601,116 @@ void UOptionsDataRegistry::ProcessEditConditions(const TMap<FName, UOptionsListI
 		}
 
 	}
+}
+
+EUserSettingValueType UOptionsDataRegistry::NormalizedSettingType(const FUserSettingDefinition& Definition)
+{
+	if (Definition.bIsNativeSetting)
+	{
+		switch (Definition.NativeSetting)
+		{
+			case ENativeUnrealSettings::WindowMode:
+				return EUserSettingValueType::Enum;
+			case ENativeUnrealSettings::ScreenResolution:
+				return EUserSettingValueType::String;
+			case ENativeUnrealSettings::DisplayGamma:
+				return EUserSettingValueType::Scalar;
+			default:
+				return EUserSettingValueType::String;
+		}
+	}
+	else
+	{
+		return Definition.Type;
+	}
+}
+
+TArray<FStringSetting> UOptionsDataRegistry::GetNativeEnumSettingValues(const FUserSettingDefinition& Definition)
+{
+
+	// get normalized setting id
+	const FName DataId = GetSettingIdString(Definition);
+
+	// create available settings based on the enum type
+	switch (Definition.NativeSetting)
+	{
+		case ENativeUnrealSettings::WindowMode:
+			return EnumTypeToStringSettings<EWindowMode::Type>(DataId);
+		default:
+		{
+			TArray<FStringSetting> SettingsArray;
+			return SettingsArray;
+		}
+	}
+}
+
+TArray<FStringSetting> UOptionsDataRegistry::GetEnumSettingValues(const FUserSettingDefinition& Definition)
+{
+
+	// get normalized setting id
+	const FName DataId = GetSettingIdString(Definition);
+
+	TArray<FStringSetting> SettingsArray;
+
+	for (const FIntEnumSettingValue EnumEntry : Definition.AvailableEnumValues)
+	{
+		FStringSetting Setting;
+		Setting.DisplayName = EnumEntry.DisplayName;
+		Setting.Value = LexToString(EnumEntry.NumericValue);
+		Setting.SettingDataId = DataId;
+		SettingsArray.Add(Setting);
+	}
+
+	return SettingsArray;
+}
+
+template <typename EnumType>
+TArray<FStringSetting> UOptionsDataRegistry::EnumTypeToStringSettings(const FName& InDataId)
+{
+	TArray<FStringSetting> SettingsArray;
+
+	static_assert(TIsEnum<EnumType>::Value, "EnumType must be an enum");
+
+	const UEnum* Enum = StaticEnum<EnumType>();
+
+	if (!ensure(Enum))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Not a reflected enum"))
+		return SettingsArray;
+	}
+
+	const int32 NumEntries = Enum->NumEnums();
+
+	for (int32 Index = 0; Index < NumEntries; ++Index)
+	{
+
+		// explicitly ignore a generated sentinel on reflected types
+		if (Index == NumEntries - 1 &&
+		    Enum->GetValueByIndex(Index) == Enum->GetMaxEnumValue())
+		{
+			continue;
+		}
+
+		// explicitly ignore hidden values
+		bool bIsHidden = false;
+#if WITH_METADATA
+		bIsHidden = Enum->HasMetaData(TEXT("Hidden"), Index);
+#endif
+		if (bIsHidden)
+		{
+			continue;
+		}
+
+		const int64 EnumValue = Enum->GetValueByIndex(Index);
+		// const FString EnumName = Enum->GetNameStringByIndex(Index);
+		const FText EnumDisplayName = Enum->GetDisplayNameTextByIndex(Index);
+
+		FStringSetting SettingEntry;
+		SettingEntry.SettingDataId = FName(InDataId);
+		SettingEntry.DisplayName = EnumDisplayName;
+		SettingEntry.Value = LexToString(EnumValue);
+		SettingsArray.Add(SettingEntry);
+	}
+
+	return SettingsArray;
 }
