@@ -1,0 +1,5 @@
+"C:\Program Files\Epic Games\UE_5.8\Engine\Binaries\Win64\UnrealEditor.exe" "C:\Users\urisv\OneDrive\Documents\UnrealProjects\Twogether\Together.uproject" -game -ResX=1280 -ResY=720 -log -WINDOWED
+
+Notes:
+Omit -ResX=1280 -ResY=720 to launch with user settings res
+Omit -WINDOWED to launch with user settings window mode

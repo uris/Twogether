@@ -154,3 +154,8 @@ FString UUIFunctionLibrary::FloatToString(const float InValue)
 {
 	return LexToString(InValue);
 }
+
+bool UUIFunctionLibrary::IsPreviewingInEditor()
+{
+	return GIsEditor || GIsPlayInEditorWorld;
+}

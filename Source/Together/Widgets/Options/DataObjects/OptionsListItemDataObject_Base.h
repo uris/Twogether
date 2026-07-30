@@ -54,6 +54,7 @@ public:
 	DECLARE_MULTICAST_DELEGATE_TwoParams(FOnListDataModifiedDelegate,
 	                                     UOptionsListItemDataObject_Base*,
 	                                     EOptionsListModifiedReason)
+
 	DECLARE_MULTICAST_DELEGATE_OneParam(FOnEditabilityChangedDelegate, bool)
 
 	FOnListDataModifiedDelegate OnListDataModified;
@@ -65,6 +66,7 @@ public:
 	LIST_DATA_ACCESSOR(FText, DisplayName)
 	LIST_DATA_ACCESSOR(FText, Description)
 	LIST_DATA_ACCESSOR(FText, DisabledText)
+	LIST_DATA_ACCESSOR(bool, bDisableInEditorPreview)
 	LIST_DATA_ACCESSOR(TSoftObjectPtr<UTexture2D>, DescriptionImage)
 	LIST_DATA_ACCESSOR(UOptionsListItemDataObject_Base*, ParentData)
 	LIST_DATA_ACCESSOR(FSettingEditConditionDefinition, EditConditionDefinition)
@@ -150,6 +152,7 @@ private:
 	// edit conditions
 	FSettingEditConditionDefinition EditConditionDefinition;
 	bool bIsEditable = true;
+	bool bDisableInEditorPreview = false;
 
 	UPROPERTY(Transient)
 	UOptionsListItemDataObject_Base* ParentData;

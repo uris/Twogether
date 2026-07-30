@@ -57,4 +57,7 @@ public :
 
 	UFUNCTION(BlueprintPure, Category = "Conversion")
 	static FString FloatToString(float InValue);
+
+	UFUNCTION(BlueprintPure, Category = "Editor Preview")
+	static bool IsPreviewingInEditor();
 };

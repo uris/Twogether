@@ -39,6 +39,9 @@
 Thumbs.db
 Desktop.ini
 
+# Run outside of editor command line bat file
+TestOnline.bat
+
 # Temporary and backup files
 *.tmp
 *.temp

@@ -21,6 +21,8 @@ bool UListItemDataObject_IntEnum::AddDynamicSetting(const EIntEnumType InEnumTyp
 
 void UListItemDataObject_IntEnum::OnDataObjectInitialized()
 {
+	Super::OnDataObjectInitialized();
+
 	if (Settings.IsEmpty())
 	{
 		UE_LOG(
@@ -55,8 +57,6 @@ void UListItemDataObject_IntEnum::OnDataObjectInitialized()
 		// Enum settings persist their underlying integer value, not their display label.
 		SetDefaultValueFromString(Settings[0].Value);
 	}
-
-	Super::OnDataObjectInitialized();
 }
 
 bool UListItemDataObject_IntEnum::CreateIntEnumSettings(const EIntEnumType InEnumType, const FName& InSettingDataId)

@@ -15,6 +15,56 @@ void UUserSettings::LoadSettings(const bool bForceReload)
 {
 	Super::LoadSettings(bForceReload);
 	InitializeDynamicSettings();
+	UnappliedChanges.Reset();
+	UnsavedChanges.Reset();
+
+	// Apply the loaded display settings immediately. Fullscreen and borderless
+	// modes use the maximum supported resolution at runtime, while windowed mode
+	// uses the resolution loaded from the user's saved settings.
+	UNativeSettingsHelper::ApplyResolutionSettings(false);
+
+	OnSettingsLoaded.Broadcast();
+}
+
+void UUserSettings::ApplySettings(const bool bCheckForCommandLineOverrides)
+{
+	bApplyingAllSettings = true;
+	Super::ApplySettings(bCheckForCommandLineOverrides);
+	bApplyingAllSettings = false;
+
+	BroadcastAppliedSettings(EUserSettingsApplyScope::All);
+
+	TArray<FName> SavedSettingIds;
+	UnsavedChanges.GenerateKeyArray(SavedSettingIds);
+	if (!SavedSettingIds.IsEmpty())
+	{
+		UnsavedChanges.Reset();
+		OnSettingsSaved.Broadcast(SavedSettingIds);
+	}
+}
+
+void UUserSettings::ApplyNonResolutionSettings()
+{
+	Super::ApplyNonResolutionSettings();
+	if (!bApplyingAllSettings)
+	{
+		BroadcastAppliedSettings(EUserSettingsApplyScope::NonResolution);
+	}
+}
+
+void UUserSettings::SaveSettings()
+{
+	Super::SaveSettings();
+
+	if (bApplyingAllSettings || UnsavedChanges.IsEmpty())
+	{
+		return;
+	}
+
+	TArray<FName> SavedSettingIds;
+	UnsavedChanges.GenerateKeyArray(SavedSettingIds);
+	UnsavedChanges.Reset();
+	OnSettingsSaved.Broadcast(SavedSettingIds);
 }
 
 void UUserSettings::InitializeDynamicSettings()
@@ -129,6 +179,8 @@ void UUserSettings::SetSetting(const FName InSettingId, const FString& InValue, 
 		return;
 	}
 
+	const FString PreviousValue = GetSetting(InSettingId, FString(), bIsNativeSetting);
+
 	// set a native unreal setting
 	if (bIsNativeSetting)
 	{
@@ -146,20 +198,90 @@ void UUserSettings::SetSetting(const FName InSettingId, const FString& InValue, 
 		bDidUpdateSetting = true;
 	}
 
-	// broadcast the update if the setting was updated
-	if (const FUserSettingDefinition* Definition = DefinitionsById.Find(InSettingId); Definition && bDidUpdateSetting)
+	if (bDidUpdateSetting)
 	{
-		OnUserSettingChanged.Broadcast(*Definition, InValue);
+		TrackSettingChange(InSettingId, PreviousValue, InValue);
 	}
 }
 
-UUserSettings* UUserSettings::Get()
+void UUserSettings::NotifyResolutionSettingsApplied()
 {
-	if (GEngine)
+	if (!bApplyingAllSettings)
 	{
-		return CastChecked<UUserSettings>(GEngine->GetGameUserSettings());
+		BroadcastAppliedSettings(EUserSettingsApplyScope::Resolution);
 	}
-	return nullptr;
+}
+
+void UUserSettings::TrackSettingChange(const FName InSettingId,
+                                       const FString& InPreviousValue,
+                                       const FString& InNewValue)
+{
+	FUserSettingChange& UnappliedChange = UnappliedChanges.FindOrAdd(
+		InSettingId,
+		FUserSettingChange(InSettingId, InPreviousValue, InNewValue));
+	UnappliedChange.NewValue = InNewValue;
+	if (UnappliedChange.PreviousValue.Equals(UnappliedChange.NewValue, ESearchCase::CaseSensitive))
+	{
+		UnappliedChanges.Remove(InSettingId);
+	}
+
+	FUserSettingChange& UnsavedChange = UnsavedChanges.FindOrAdd(
+		InSettingId,
+		FUserSettingChange(InSettingId, InPreviousValue, InNewValue));
+	UnsavedChange.NewValue = InNewValue;
+	if (UnsavedChange.PreviousValue.Equals(UnsavedChange.NewValue, ESearchCase::CaseSensitive))
+	{
+		UnsavedChanges.Remove(InSettingId);
+	}
+
+	OnSettingChanged.Broadcast(FUserSettingChange(InSettingId, InPreviousValue, InNewValue));
+}
+
+void UUserSettings::BroadcastAppliedSettings(const EUserSettingsApplyScope InScope)
+{
+	TArray<FUserSettingChange> AppliedChanges;
+	TArray<FName> AppliedSettingIds;
+
+	for (const TPair<FName, FUserSettingChange>& Pair : UnappliedChanges)
+	{
+		if (DoesSettingMatchApplyScope(Pair.Key, InScope))
+		{
+			AppliedChanges.Add(Pair.Value);
+			AppliedSettingIds.Add(Pair.Key);
+		}
+	}
+
+	if (AppliedChanges.IsEmpty())
+	{
+		return;
+	}
+
+	for (const FName AppliedSettingId : AppliedSettingIds)
+	{
+		UnappliedChanges.Remove(AppliedSettingId);
+	}
+
+	OnSettingsApplied.Broadcast(AppliedChanges, InScope);
+}
+
+bool UUserSettings::DoesSettingMatchApplyScope(const FName InSettingId,
+                                               const EUserSettingsApplyScope InScope) const
+{
+	if (InScope == EUserSettingsApplyScope::All)
+	{
+		return true;
+	}
+
+	const FUserSettingDefinition* Definition = DefinitionsById.Find(InSettingId);
+	if (!Definition)
+	{
+		return InScope == EUserSettingsApplyScope::NonResolution;
+	}
+
+	return InScope == EUserSettingsApplyScope::Resolution
+		       ? Definition->ApplyMode == EUserSettingApplyMode::ApplyResolutionSettings
+		       : Definition->ApplyMode == EUserSettingApplyMode::ApplyNonResolutionSettings ||
+		         Definition->ApplyMode == EUserSettingApplyMode::ApplyAll;
 }
 
 FString UUserSettings::GetNativeSettingValue(const FName InSettingId)
@@ -192,4 +314,13 @@ bool UUserSettings::SetNativeSettingValue(const FName InSettingId, const FString
 
 	// *** Fallback *** //
 	return false;
+}
+
+UUserSettings* UUserSettings::Get()
+{
+	if (GEngine)
+	{
+		return CastChecked<UUserSettings>(GEngine->GetGameUserSettings());
+	}
+	return nullptr;
 }

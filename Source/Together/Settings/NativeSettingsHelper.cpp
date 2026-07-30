@@ -144,6 +144,8 @@ void UNativeSettingsHelper::ApplyResolutionSettings(const bool bCheckForCommandL
 		// SaveSettings call does not persist the runtime fullscreen resolution.
 		UserSettings->SetScreenResolution(StagedResolution);
 	}
+
+	UserSettings->NotifyResolutionSettingsApplied();
 }
 
 FString UNativeSettingsHelper::GetCurrentWindowMode()

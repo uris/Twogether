@@ -19,6 +19,8 @@ void UListItemDataObject_Boolean::AddDynamicSetting(const FBoolSetting& InSettin
 
 void UListItemDataObject_Boolean::OnDataObjectInitialized()
 {
+	Super::OnDataObjectInitialized();
+
 	EnsureBoolSettings();
 
 	const FString ConfiguredDefault = GetDefaultValueAsString();
@@ -41,8 +43,6 @@ void UListItemDataObject_Boolean::OnDataObjectInitialized()
 			*ConfiguredDefault);
 		SetDefaultValueFromString(TEXT("false"));
 	}
-
-	Super::OnDataObjectInitialized();
 }
 
 void UListItemDataObject_Boolean::EnsureBoolSettings()

@@ -391,6 +391,7 @@ UOptionsListItemDataObject_Base* UOptionsDataRegistry::CreateSettingDataObject(
 	ValueData->SetShouldApplyChangesImmediately(Definition.bShouldApplyChangesImmediately);
 	ValueData->SetApplyMode(Definition.ApplyMode);
 	ValueData->SetEditConditionDefinition(Definition.EditConditions);
+	ValueData->SetbDisableInEditorPreview(Definition.bDisableInEditorPreview);
 
 	// create default getters / setter for inserting and retrieving from user settings
 	const TSharedPtr<FOptionsDataInteractionHelper> Interaction =
@@ -401,7 +402,7 @@ UOptionsListItemDataObject_Base* UOptionsDataRegistry::CreateSettingDataObject(
 	ValueData->SetDataDynamicGetter(Interaction);
 	ValueData->SetDataDynamicSetter(Interaction);
 
-	// return the items value data
+	// return the item value data
 	return ValueData;
 }
 

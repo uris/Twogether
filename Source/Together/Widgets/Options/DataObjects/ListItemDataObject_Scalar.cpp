@@ -87,7 +87,7 @@ bool UListItemDataObject_Scalar::CanResetBackToDefault() const
 	{
 		float DefaultOutputValue = 0.0f;
 		if (!TryStringToFloat(GetDefaultValueAsString(), DefaultOutputValue) ||
-			!FMath::IsFinite(DefaultOutputValue))
+		    !FMath::IsFinite(DefaultOutputValue))
 		{
 			return false;
 		}
@@ -116,7 +116,7 @@ bool UListItemDataObject_Scalar::ResetToDefault()
 
 	float DefaultOutputValue = 0.0f;
 	if (!TryStringToFloat(GetDefaultValueAsString(), DefaultOutputValue) ||
-		!FMath::IsFinite(DefaultOutputValue))
+	    !FMath::IsFinite(DefaultOutputValue))
 	{
 		UE_LOG(
 			LogTemp,
@@ -152,7 +152,7 @@ float UListItemDataObject_Scalar::GetFallbackOutputValue() const
 	{
 		float ParsedDefaultValue = 0.0f;
 		if (TryStringToFloat(GetDefaultValueAsString(), ParsedDefaultValue) &&
-			FMath::IsFinite(ParsedDefaultValue))
+		    FMath::IsFinite(ParsedDefaultValue))
 		{
 			DefaultOutputValue = ParsedDefaultValue;
 		}

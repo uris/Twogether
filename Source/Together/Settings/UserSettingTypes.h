@@ -308,4 +308,7 @@ struct FUserSettingDefinition : public FTableRowBase
 
 	UPROPERTY(EditAnywhere, Category="Editing Rules")
 	FSettingEditConditionDefinition EditConditions;
+
+	UPROPERTY(EditAnywhere, Category="Editing Rules")
+	bool bDisableInEditorPreview = false;
 };

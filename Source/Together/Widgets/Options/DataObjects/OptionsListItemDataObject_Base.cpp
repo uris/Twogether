@@ -2,6 +2,7 @@
 
 #include "OptionsListItemDataObject_Base.h"
 
+#include "UIFunctionLibrary.h"
 #include "Settings/NativeSettingsHelper.h"
 #include "Settings/UserSettingTypes.h"
 #include "Settings/UserSettings.h"
@@ -13,7 +14,7 @@ void UOptionsListItemDataObject_Base::InitDataObject()
 
 void UOptionsListItemDataObject_Base::OnDataObjectInitialized()
 {
-	// override on children
+	RefreshEditability();
 }
 
 void UOptionsListItemDataObject_Base::SetShouldApplyChangesImmediately(const bool InShouldApplyChangesImmediately)
@@ -49,6 +50,19 @@ bool UOptionsListItemDataObject_Base::AreEditConditionsMet()
 	// clean disabled text
 	ClearDisabledText();
 
+	// if the edit condition prevents modification in the editor
+	UE_LOG(LogTemp,
+	       Verbose,
+	       TEXT("Preview Disabled: %d, In Editor: %d"),
+	       bDisableInEditorPreview,
+	       UUIFunctionLibrary::IsPreviewingInEditor());
+	if (bDisableInEditorPreview && UUIFunctionLibrary::IsPreviewingInEditor())
+	{
+		InsertDisabledText(
+			FText::FromString(TEXT("Cannot edit or modify this setting while in editor or and editor preview window")));
+		return false;
+	}
+
 	// no conditions means it evaluates to match ok
 	if (EditConditionDefinition.Conditions.IsEmpty())
 	{
@@ -66,6 +80,9 @@ bool UOptionsListItemDataObject_Base::AreEditConditionsMet()
 	// AND / OR definition
 	const bool bMatchAll =
 		EditConditionDefinition.MatchType == EEditConditionGroupOperator::MatchAll;
+
+	// store edit conditions messages for each condition that evaluates to false
+	TArray<FText> UnmetConditionMessages;
 
 	// enforce AND across all definitions - on error resolve true
 	if (bMatchAll &&
@@ -153,6 +170,18 @@ bool UOptionsListItemDataObject_Base::AreEditConditionsMet()
 		{
 			return true;
 		}
+
+		if (!bMatchAll && !Condition.EditingDisabledMessage.IsEmpty())
+		{
+			UnmetConditionMessages.Add(FText::FromString(Condition.EditingDisabledMessage));
+		}
+	}
+
+	// MatchAny only fails after every condition has failed. Preserve the messages
+	// from those failed conditions so the details view can explain why editing is disabled.
+	for (const FText& UnmetConditionMessage : UnmetConditionMessages)
+	{
+		InsertDisabledText(UnmetConditionMessage);
 	}
 
 	return bMatchAll;
