@@ -64,6 +64,7 @@ public:
 	static bool SetActiveDisplayGamma(const FString& InValue);
 
 	// *** SCALABILITY LEVEL *** //
+
 	UFUNCTION(BlueprintCallable, Category="Game Settings|Video")
 	static FString GetActiveScalabilityLevel();
 

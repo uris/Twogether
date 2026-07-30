@@ -225,7 +225,6 @@ FString UNativeSettingsHelper::GetActiveScalabilityLevel()
 {
 	if (const UGameUserSettings* Settings = UGameUserSettings::GetGameUserSettings())
 	{
-		UE_LOG(LogTemp, Display, TEXT("GetActiveScalabilityLevel %i"), Settings->GetOverallScalabilityLevel());
 		return LexToString(Settings->GetOverallScalabilityLevel());
 	}
 	return TEXT("1");
@@ -233,7 +232,6 @@ FString UNativeSettingsHelper::GetActiveScalabilityLevel()
 
 bool UNativeSettingsHelper::SetActiveScalabilityLevel(const FString& InValue)
 {
-	UE_LOG(LogTemp, Display, TEXT("GetActiveScalabilityLevel %i"), UUIFunctionLibrary::StringToInt(InValue));
 	if (UGameUserSettings* Settings = UGameUserSettings::GetGameUserSettings())
 	{
 
