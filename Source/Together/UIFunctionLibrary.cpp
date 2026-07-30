@@ -150,6 +150,13 @@ float UUIFunctionLibrary::StringToFloat(const FString& InString)
 	return OutValue;
 }
 
+int32 UUIFunctionLibrary::StringToInt(const FString& InString)
+{
+	int32 OutValue = 0;
+	LexFromString(OutValue, *InString);
+	return OutValue;
+}
+
 FString UUIFunctionLibrary::FloatToString(const float InValue)
 {
 	return LexToString(InValue);

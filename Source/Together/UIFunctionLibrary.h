@@ -56,6 +56,9 @@ public :
 	static float StringToFloat(const FString& InString);
 
 	UFUNCTION(BlueprintPure, Category = "Conversion")
+	static int32 StringToInt(const FString& InString);
+
+	UFUNCTION(BlueprintPure, Category = "Conversion")
 	static FString FloatToString(float InValue);
 
 	UFUNCTION(BlueprintPure, Category = "Editor Preview")

@@ -15,6 +15,7 @@ enum class ENativeUnrealSettings : uint8
 	WindowMode = 0 UMETA(DisplayName = "Window Mode"),
 	ScreenResolution = 1 UMETA(DisplayName = "Screen Resolution"),
 	DisplayGamma = 2 UMETA(DisplayName = "Screen Gamma (Brightness)"),
+	OverallScalabilityLevel = 3 UMETA(DisplayName = "Overall Quality"),
 };
 
 UENUM(BlueprintType)

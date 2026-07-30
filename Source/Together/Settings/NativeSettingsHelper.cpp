@@ -2,9 +2,12 @@
 
 #include "NativeSettingsHelper.h"
 
+#include "UIFunctionLibrary.h"
+#include "Engine/Engine.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "Settings/UserSettingTypes.h"
 #include "Settings/UserSettings.h"
+#include "GameFramework/GameUserSettings.h"
 
 namespace
 {
@@ -189,8 +192,54 @@ bool UNativeSettingsHelper::SetWindowMode(const FString& InValue)
 FScalarSettingValues UNativeSettingsHelper::GetDisplayGammaSettings()
 {
 	FScalarSettingValues GammaSettings = FScalarSettingValues();
-	GammaSettings.MinValue = 1.7f;
-	GammaSettings.MaxValue = 2.7f;
+	GammaSettings.MinValue = 0.2f;
+	GammaSettings.MaxValue = 4.2f;
 	GammaSettings.NumericType = ECommonNumericType::Percentage;
+	GammaSettings.MaximumFractionalDigits = 0.f;
+	GammaSettings.MinimumFractionalDigits = 0.f;
 	return GammaSettings;
+}
+
+FString UNativeSettingsHelper::GetActiveDisplayGamma()
+{
+	if (GEngine)
+	{
+		return LexToString(GEngine->GetDisplayGamma());
+	}
+	return TEXT("2.2f");
+}
+
+bool UNativeSettingsHelper::SetActiveDisplayGamma(const FString& InValue)
+{
+	if (GEngine)
+	{
+
+		GEngine->DisplayGamma = UUIFunctionLibrary::StringToFloat(InValue);
+		return true;
+	}
+
+	return false;
+}
+
+FString UNativeSettingsHelper::GetActiveScalabilityLevel()
+{
+	if (const UGameUserSettings* Settings = UGameUserSettings::GetGameUserSettings())
+	{
+		UE_LOG(LogTemp, Display, TEXT("GetActiveScalabilityLevel %i"), Settings->GetOverallScalabilityLevel());
+		return LexToString(Settings->GetOverallScalabilityLevel());
+	}
+	return TEXT("1");
+}
+
+bool UNativeSettingsHelper::SetActiveScalabilityLevel(const FString& InValue)
+{
+	UE_LOG(LogTemp, Display, TEXT("GetActiveScalabilityLevel %i"), UUIFunctionLibrary::StringToInt(InValue));
+	if (UGameUserSettings* Settings = UGameUserSettings::GetGameUserSettings())
+	{
+
+		Settings->SetOverallScalabilityLevel(UUIFunctionLibrary::StringToInt(InValue));
+		return true;
+	}
+
+	return false;
 }

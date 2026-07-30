@@ -610,6 +610,7 @@ EUserSettingValueType UOptionsDataRegistry::NormalizedSettingType(const FUserSet
 		switch (Definition.NativeSetting)
 		{
 			case ENativeUnrealSettings::WindowMode:
+			case ENativeUnrealSettings::OverallScalabilityLevel:
 				return EUserSettingValueType::Enum;
 			case ENativeUnrealSettings::ScreenResolution:
 				return EUserSettingValueType::String;
@@ -636,6 +637,8 @@ TArray<FStringSetting> UOptionsDataRegistry::GetNativeEnumSettingValues(const FU
 	{
 		case ENativeUnrealSettings::WindowMode:
 			return EnumTypeToStringSettings<EWindowMode::Type>(DataId);
+		case ENativeUnrealSettings::OverallScalabilityLevel:
+			return EnumTypeToStringSettings<EOverallScalabilityLevel>(DataId);
 		default:
 		{
 			TArray<FStringSetting> SettingsArray;

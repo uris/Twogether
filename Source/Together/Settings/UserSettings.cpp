@@ -10,6 +10,7 @@
 #include "Settings/UserSettingTypes.h"
 
 #include "NativeSettingsHelper.h"
+#include "UIFunctionLibrary.h"
 
 void UUserSettings::LoadSettings(const bool bForceReload)
 {
@@ -297,6 +298,16 @@ FString UUserSettings::GetNativeSettingValue(const FName InSettingId)
 		return UNativeSettingsHelper::GetCurrentResolutionString();
 	}
 
+	if (InSettingId == NativeSettingIds::DisplayGamma)
+	{
+		return UNativeSettingsHelper::GetActiveDisplayGamma();
+	}
+
+	if (InSettingId == NativeSettingIds::OverallScalabilityLevel)
+	{
+		return UNativeSettingsHelper::GetActiveScalabilityLevel();
+	}
+
 	return FString();
 }
 
@@ -310,6 +321,16 @@ bool UUserSettings::SetNativeSettingValue(const FName InSettingId, const FString
 	if (InSettingId == NativeSettingIds::ScreenResolution)
 	{
 		return UNativeSettingsHelper::SetScreenResolution(InValue);
+	}
+
+	if (InSettingId == NativeSettingIds::DisplayGamma)
+	{
+		return UNativeSettingsHelper::SetActiveDisplayGamma(InValue);
+	}
+
+	if (InSettingId == NativeSettingIds::OverallScalabilityLevel)
+	{
+		return UNativeSettingsHelper::SetActiveScalabilityLevel(InValue);
 	}
 
 	// *** Fallback *** //

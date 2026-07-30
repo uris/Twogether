@@ -54,5 +54,19 @@ public:
 	// *** GAMMA *** //
 
 	// get the gamma settings values
+	UFUNCTION(BlueprintCallable, Category="Game Settings|Video")
 	static FScalarSettingValues GetDisplayGammaSettings();
+
+	UFUNCTION(BlueprintCallable, Category="Game Settings|Video")
+	static FString GetActiveDisplayGamma();
+
+	UFUNCTION(BlueprintCallable, Category="Game Settings|Video")
+	static bool SetActiveDisplayGamma(const FString& InValue);
+
+	// *** SCALABILITY LEVEL *** //
+	UFUNCTION(BlueprintCallable, Category="Game Settings|Video")
+	static FString GetActiveScalabilityLevel();
+
+	UFUNCTION(BlueprintCallable, Category="Game Settings|Video")
+	static bool SetActiveScalabilityLevel(const FString& InValue);
 };
