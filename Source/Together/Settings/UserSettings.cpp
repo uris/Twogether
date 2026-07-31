@@ -19,11 +19,6 @@ void UUserSettings::LoadSettings(const bool bForceReload)
 	UnappliedChanges.Reset();
 	UnsavedChanges.Reset();
 
-	// Apply the loaded display settings immediately. Fullscreen and borderless
-	// modes use the maximum supported resolution at runtime, while windowed mode
-	// uses the resolution loaded from the user's saved settings.
-	UNativeSettingsHelper::ApplyResolutionSettings(false);
-
 	OnSettingsLoaded.Broadcast();
 }
 
