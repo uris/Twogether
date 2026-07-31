@@ -96,6 +96,28 @@ bool UListItemDataObject_String::ResetToDefault()
 	return true;
 }
 
+bool UListItemDataObject_String::SetCurrentValueFromDependency(const FString& InValue)
+{
+	if (CurrentSetting.Value == InValue)
+	{
+		return false;
+	}
+
+	if (!DataDynamicSetter || !DidSetDisplayNameFromStringValue(InValue))
+	{
+		UE_LOG(
+			LogTemp,
+			Warning,
+			TEXT("Unable to apply dependency value '%s' to string setting '%s'."),
+			*InValue,
+			*GetDataId().ToString());
+		return false;
+	}
+
+	DataDynamicSetter->SetValueFromString(CurrentSetting.Value);
+	return true;
+}
+
 void UListItemDataObject_String::OnRotatorInitiatedValueChange(const FText& InDisplayName)
 {
 	if (const int32 IndexOfText = GetSettingIndexByDisplayName(InDisplayName); IndexOfText != INDEX_NONE)
@@ -160,6 +182,11 @@ FText UListItemDataObject_String::CycleCurrentSetting(const EStringSettingDirect
 		NextIndex = Settings.Num() - 1;
 	}
 
+	if (GetbSkipZeroIndex() && NextIndex == 0)
+	{
+		NextIndex = InDirection == EStringSettingDirection::Next ? 1 : Settings.Num() - 1;
+	}
+
 	// set it to current values
 	CurrentSetting = Settings[NextIndex];
 	const bool bDidUpdate = DidSetDisplayNameFromStringValue(CurrentSetting.Value);
@@ -173,6 +200,26 @@ FText UListItemDataObject_String::CycleCurrentSetting(const EStringSettingDirect
 
 	// return the display name for convenience
 	return bDidUpdate ? CurrentSetting.DisplayName : FText::GetEmpty();
+}
+
+void UListItemDataObject_String::CycleZeroIndex(const bool bApplyAndNotify)
+{
+	const int32 CurrentIndex = GetSettingIndexByValue(CurrentSetting.Value);
+
+	if (CurrentIndex == INDEX_NONE || CurrentIndex == 0)
+	{
+		return;
+	}
+
+	// set zero as current array value
+	CurrentSetting = Settings[0];
+	const bool bDidUpdate = DidSetDisplayNameFromStringValue(CurrentSetting.Value);
+
+	if (bApplyAndNotify && DataDynamicSetter)
+	{
+		DataDynamicSetter->SetValueFromString(CurrentSetting.Value);
+		NotifyListDataModified(this);
+	}
 }
 
 TArray<FText> UListItemDataObject_String::GetAvailableDisplayOptionsArray()

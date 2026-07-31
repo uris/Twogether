@@ -4,10 +4,56 @@
 
 #include "CommonNumericTextBlock.h"
 #include "CoreMinimal.h"
+#include "SettingsDependancy.h"
 #include "SettingsEditCondition.h"
+#include "UserSettingApplyMode.h"
 #include "Engine/DataTable.h"
 
 #include "UserSettingTypes.generated.h"
+
+class UOptionsListItemDataObject_Base;
+
+USTRUCT()
+struct FResolvedEditCondition
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere)
+	FSettingEditCondition Condition;
+
+	UPROPERTY(EditAnywhere)
+	TWeakObjectPtr<UOptionsListItemDataObject_Base> TargetData;
+
+	FResolvedEditCondition() = default;
+
+	explicit FResolvedEditCondition(
+		const FSettingEditCondition& InCondition,
+		const TWeakObjectPtr<UOptionsListItemDataObject_Base> InTargetData)
+		: Condition(InCondition), TargetData(InTargetData) {}
+};
+
+USTRUCT()
+struct FResolvedSettingDependency
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere)
+	FSettingDependency Dependency;
+
+	UPROPERTY(EditAnywhere)
+	TWeakObjectPtr<UOptionsListItemDataObject_Base> DependantData;
+
+	UPROPERTY(EditAnywhere)
+	TWeakObjectPtr<UOptionsListItemDataObject_Base> OtherData;
+
+	FResolvedSettingDependency() = default;
+
+	explicit FResolvedSettingDependency(
+		const FSettingDependency& InDependency,
+		const TWeakObjectPtr<UOptionsListItemDataObject_Base> InDependantData,
+		const TWeakObjectPtr<UOptionsListItemDataObject_Base> InOtherData = nullptr)
+		: Dependency(InDependency), DependantData(InDependantData), OtherData(InOtherData) {}
+};
 
 UENUM(BlueprintType)
 enum class ENativeUnrealSettings : uint8
@@ -16,6 +62,8 @@ enum class ENativeUnrealSettings : uint8
 	ScreenResolution = 1 UMETA(DisplayName = "Screen Resolution"),
 	DisplayGamma = 2 UMETA(DisplayName = "Screen Gamma (Brightness)"),
 	OverallScalabilityLevel = 3 UMETA(DisplayName = "Overall Quality"),
+	ResolutionScaleNormalized = 4 UMETA(DisplayName = "3D Resolution Scale"),
+	GlobalIlluminationQuality = 5 UMETA(DisplayName = "Global Illumination Quality"),
 };
 
 UENUM(BlueprintType)
@@ -36,15 +84,6 @@ enum class EUserSettingTab : uint8
 	Input = 3 UMETA(DisplayName = "Input"),
 };
 
-UENUM(BlueprintType)
-enum class EUserSettingApplyMode : uint8
-{
-	ApplyAll = 0 UMETA(DisplayName = "Apply All Settings"),
-	ApplyResolutionSettings = 1 UMETA(DisplayName = "Apply Resolution Settings"),
-	ApplyNonResolutionSettings = 2 UMETA(DisplayName = "Apply Non-Resolution Settings"),
-};
-
-//TODO: complete the list of video/other enums settings will support
 UENUM(BlueprintType)
 enum class EIntEnumType : uint8
 {
@@ -104,7 +143,7 @@ struct FIntEnumSettingValue
 	FText DisplayName = FText::GetEmpty();
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	int32 NumericValue;
+	int32 NumericValue = 0;
 
 	FIntEnumSettingValue() = default;
 
@@ -195,7 +234,7 @@ struct FUserSettingDefinition : public FTableRowBase
 		meta = (EditCondition = "bIsNativeSetting == true",
 			EditConditionHides,
 			TitleProperty = "DisplayName", ToolTip="Select from supported native settings"))
-	ENativeUnrealSettings NativeSetting;
+	ENativeUnrealSettings NativeSetting = ENativeUnrealSettings::WindowMode;
 
 	UPROPERTY(
 		EditAnywhere,
@@ -207,7 +246,7 @@ struct FUserSettingDefinition : public FTableRowBase
 	EUserSettingValueType Type = EUserSettingValueType::String;
 
 	UPROPERTY(EditAnywhere, Category="Setting Group", meta=(ToolTip="The high level tab the setting belongs under"))
-	EUserSettingTab SettingTab;
+	EUserSettingTab SettingTab = EUserSettingTab::Gameplay;
 
 	UPROPERTY(EditAnywhere,
 		Category="Setting Group",
@@ -306,4 +345,7 @@ struct FUserSettingDefinition : public FTableRowBase
 
 	UPROPERTY(EditAnywhere, Category="Editing Rules")
 	bool bDisableInEditorPreview = false;
+
+	UPROPERTY(EditAnywhere, Category="Dependency Conditions")
+	TArray<FSettingDependency> DependencyConditions;
 };

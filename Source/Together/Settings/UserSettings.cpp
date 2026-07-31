@@ -308,6 +308,16 @@ FString UUserSettings::GetNativeSettingValue(const FName InSettingId)
 		return UNativeSettingsHelper::GetActiveScalabilityLevel();
 	}
 
+	if (InSettingId == NativeSettingIds::ResolutionScaleNormalized)
+	{
+		return UNativeSettingsHelper::Get3DResolutionScale();
+	}
+
+	if (InSettingId == NativeSettingIds::GlobalIlluminationQuality)
+	{
+		return UNativeSettingsHelper::GetGlobalIlluminationQuality();
+	}
+
 	return FString();
 }
 
@@ -331,6 +341,16 @@ bool UUserSettings::SetNativeSettingValue(const FName InSettingId, const FString
 	if (InSettingId == NativeSettingIds::OverallScalabilityLevel)
 	{
 		return UNativeSettingsHelper::SetActiveScalabilityLevel(InValue);
+	}
+
+	if (InSettingId == NativeSettingIds::ResolutionScaleNormalized)
+	{
+		return UNativeSettingsHelper::Set3DResolutionScale(InValue);
+	}
+
+	if (InSettingId == NativeSettingIds::GlobalIlluminationQuality)
+	{
+		return UNativeSettingsHelper::SetGlobalIlluminationQuality(InValue);
 	}
 
 	// *** Fallback *** //

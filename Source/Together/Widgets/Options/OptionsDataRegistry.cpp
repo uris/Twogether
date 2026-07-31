@@ -4,6 +4,7 @@
 #include "OptionsDataRegistry.h"
 
 #include "OptionsDataInteractionHelper.h"
+#include "UIFunctionLibrary.h"
 #include "DataObjects/ListItemDataObject_Boolean.h"
 #include "DataObjects/ListItemDataObject_IntEnum.h"
 #include "DataObjects/ListItemDataObject_String.h"
@@ -275,6 +276,7 @@ void UOptionsDataRegistry::InitRegistry(ULocalPlayer* InOwningLocalPlayer)
 
 		// once all items are created, do another pass to define edit dependencies
 		ProcessEditConditions(ItemsById);
+		ProcessSettingDependencies(ItemsById, TabId);
 
 	}
 
@@ -343,11 +345,17 @@ UOptionsListItemDataObject_Base* UOptionsDataRegistry::CreateSettingDataObject(
 			EnumData->SetDataId(DataId);
 			TArray<FStringSetting> AllValues;
 			AllValues = bIsNative ? GetNativeEnumSettingValues(Definition) : GetEnumSettingValues(Definition);
+			bool bSkipZeroIndex = false;
 			for (const FStringSetting& AvailableValue : AllValues)
 			{
 				EnumData->AddDynamicSetting(AvailableValue);
+				if (AvailableValue.Value.Equals(TEXT("-1")))
+				{
+					bSkipZeroIndex = true;
+				}
 			}
 			ValueData = EnumData;
+			ValueData->SetbSkipZeroIndex(bSkipZeroIndex);
 			break;
 		}
 
@@ -407,6 +415,7 @@ UOptionsListItemDataObject_Base* UOptionsDataRegistry::CreateSettingDataObject(
 	ValueData->SetShouldApplyChangesImmediately(Definition.bShouldApplyChangesImmediately);
 	ValueData->SetApplyMode(Definition.ApplyMode);
 	ValueData->SetEditConditionDefinition(Definition.EditConditions);
+	ValueData->SetDependencyDefinitions(Definition.DependencyConditions);
 	ValueData->SetbDisableInEditorPreview(Definition.bDisableInEditorPreview);
 
 	// create default getters / setter for inserting and retrieving from user settings
@@ -603,6 +612,88 @@ void UOptionsDataRegistry::ProcessEditConditions(const TMap<FName, UOptionsListI
 	}
 }
 
+void UOptionsDataRegistry::ProcessSettingDependencies(
+	const TMap<FName, UOptionsListItemDataObject_Base*>& AllItemsById,
+	const FName TabId)
+{
+	if (AllItemsById.IsEmpty())
+	{
+		return;
+	}
+
+	TMap<FName, UOptionsListItemDataObject_Base*> ItemsByAuthoredId;
+	for (const TPair<FName, UOptionsListItemDataObject_Base*>& Pair : AllItemsById)
+	{
+		UOptionsListItemDataObject_Base* Item = Pair.Value;
+		if (Item && !Item->GetUserDefinedDataId().IsNone())
+		{
+			ItemsByAuthoredId.Add(Item->GetUserDefinedDataId(), Item);
+		}
+	}
+
+	for (const TPair<FName, UOptionsListItemDataObject_Base*>& Pair : ItemsByAuthoredId)
+	{
+		const FName OwnerId = Pair.Key;
+		UOptionsListItemDataObject_Base* OwnerItem = Pair.Value;
+
+		for (const FSettingDependency& Dependency : OwnerItem->GetDependencyDefinitions())
+		{
+			UOptionsListItemDataObject_Base* const* DependantItem =
+				ItemsByAuthoredId.Find(Dependency.DependantSettingId);
+			if (!DependantItem)
+			{
+				UE_LOG(
+					LogTemp,
+					Warning,
+					TEXT("Dependency for '%s' references setting '%s', which is missing from tab '%s'. "
+						"Dependencies cannot cross setting tabs."),
+					*OwnerId.ToString(),
+					*Dependency.DependantSettingId.ToString(),
+					*TabId.ToString());
+				continue;
+			}
+
+			UOptionsListItemDataObject_Base* OtherItem = nullptr;
+			if (Dependency.DependencyResult == EDependencyResult::SetToMatchOther)
+			{
+				UOptionsListItemDataObject_Base* const* FoundOther =
+					ItemsByAuthoredId.Find(Dependency.OtherSettingId);
+				if (!FoundOther)
+				{
+					UE_LOG(
+						LogTemp,
+						Warning,
+						TEXT("Dependency for '%s' references other setting '%s', which is missing from tab '%s'. "
+							"Dependencies cannot cross setting tabs."),
+						*OwnerId.ToString(),
+						*Dependency.OtherSettingId.ToString(),
+						*TabId.ToString());
+					continue;
+				}
+				OtherItem = *FoundOther;
+			}
+
+			// Dependency-triggered changes do not trigger further dependencies, so
+			// reciprocal relationships are safe. A setting listening to itself is
+			// still invalid and almost certainly an authored-data error.
+			if (OwnerId == Dependency.DependantSettingId)
+			{
+				UE_LOG(
+					LogTemp,
+					Error,
+					TEXT("Blocking self-referencing setting dependency '%s' -> '%s' in tab '%s'."),
+					*OwnerId.ToString(),
+					*Dependency.DependantSettingId.ToString(),
+					*TabId.ToString());
+				continue;
+			}
+
+			OwnerItem->AddResolvedSettingDependency(
+				FResolvedSettingDependency(Dependency, *DependantItem, OtherItem));
+		}
+	}
+}
+
 EUserSettingValueType UOptionsDataRegistry::NormalizedSettingType(const FUserSettingDefinition& Definition)
 {
 	if (Definition.bIsNativeSetting)
@@ -611,6 +702,8 @@ EUserSettingValueType UOptionsDataRegistry::NormalizedSettingType(const FUserSet
 		{
 			case ENativeUnrealSettings::WindowMode:
 			case ENativeUnrealSettings::OverallScalabilityLevel:
+			case ENativeUnrealSettings::ResolutionScaleNormalized:
+			case ENativeUnrealSettings::GlobalIlluminationQuality:
 				return EUserSettingValueType::Enum;
 			case ENativeUnrealSettings::ScreenResolution:
 				return EUserSettingValueType::String;
@@ -628,7 +721,6 @@ EUserSettingValueType UOptionsDataRegistry::NormalizedSettingType(const FUserSet
 
 TArray<FStringSetting> UOptionsDataRegistry::GetNativeEnumSettingValues(const FUserSettingDefinition& Definition)
 {
-
 	// get normalized setting id
 	const FName DataId = GetSettingIdString(Definition);
 
@@ -638,7 +730,9 @@ TArray<FStringSetting> UOptionsDataRegistry::GetNativeEnumSettingValues(const FU
 		case ENativeUnrealSettings::WindowMode:
 			return EnumTypeToStringSettings<EWindowMode::Type>(DataId);
 		case ENativeUnrealSettings::OverallScalabilityLevel:
-			return EnumTypeToStringSettings<EOverallScalabilityLevel>(DataId);
+		case ENativeUnrealSettings::ResolutionScaleNormalized:
+		case ENativeUnrealSettings::GlobalIlluminationQuality:
+			return EnumTypeToStringSettings<ENormalizedGraphicsQuality>(DataId, true);
 		default:
 		{
 			TArray<FStringSetting> SettingsArray;
@@ -668,9 +762,14 @@ TArray<FStringSetting> UOptionsDataRegistry::GetEnumSettingValues(const FUserSet
 }
 
 template <typename EnumType>
-TArray<FStringSetting> UOptionsDataRegistry::EnumTypeToStringSettings(const FName& InDataId)
+TArray<FStringSetting> UOptionsDataRegistry::EnumTypeToStringSettings(const FName& InDataId, const bool bAddCustom)
 {
 	TArray<FStringSetting> SettingsArray;
+	if (bAddCustom)
+	{
+		const FStringSetting Custom = FStringSetting(InDataId, FText::FromString(TEXT("Custom")), TEXT("-1"));
+		SettingsArray.Add(Custom);
+	}
 
 	static_assert(TIsEnum<EnumType>::Value, "EnumType must be an enum");
 

@@ -45,6 +45,21 @@ void UOptionsListItemDataObject_Base::AddResolvedEditCondition(const FResolvedEd
 	RefreshEditability();
 }
 
+void UOptionsListItemDataObject_Base::AddResolvedSettingDependency(
+	const FResolvedSettingDependency& InDependency)
+{
+	ResolvedSettingDependencies.Add(InDependency);
+
+	if (UOptionsListItemDataObject_Base* DependantData = InDependency.DependantData.Get();
+		DependantData && !DependencyBoundTargets.Contains(DependantData))
+	{
+		DependantData->OnListDataModified.AddUObject(
+			this,
+			&ThisClass::HandleDependencyTargetModified);
+		DependencyBoundTargets.Add(DependantData);
+	}
+}
+
 bool UOptionsListItemDataObject_Base::AreEditConditionsMet()
 {
 	// clean disabled text
@@ -194,6 +209,62 @@ void UOptionsListItemDataObject_Base::HandleEditConditionTargetModified(
 	RefreshEditability();
 }
 
+void UOptionsListItemDataObject_Base::HandleDependencyTargetModified(
+	UOptionsListItemDataObject_Base* InModifiedData,
+	const EOptionsListModifiedReason InReason)
+{
+	// Dependency changes intentionally propagate only one level. Resetting is
+	// considered a direct user request and should trigger dependencies.
+	if (!InModifiedData || InReason == EOptionsListModifiedReason::DependencyModified)
+	{
+		return;
+	}
+
+	// process each matched dependency
+	for (const FResolvedSettingDependency& ResolvedDependency : ResolvedSettingDependencies)
+	{
+		if (ResolvedDependency.DependantData.Get() != InModifiedData)
+		{
+			continue;
+		}
+
+		const FSettingDependency& Dependency = ResolvedDependency.Dependency;
+		FString ResultValue;
+
+		switch (Dependency.DependencyResult)
+		{
+			case EDependencyResult::SetToValue:
+				ResultValue = Dependency.Value;
+				break;
+
+			case EDependencyResult::SetToMatchThis:
+				ResultValue = InModifiedData->GetCurrentValueAsString();
+				break;
+
+			case EDependencyResult::SetToMatchOther:
+			{
+				const UOptionsListItemDataObject_Base* OtherData =
+					ResolvedDependency.OtherData.Get();
+				if (!OtherData)
+				{
+					continue;
+				}
+				ResultValue = OtherData->GetCurrentValueAsString();
+				break;
+			}
+		}
+
+		if (SetCurrentValueFromDependency(ResultValue))
+		{
+			NotifyListDataModified(
+				this,
+				EOptionsListModifiedReason::DependencyModified,
+				Dependency.bShouldApplyChangesImmediately,
+				Dependency.ApplyMode);
+		}
+	}
+}
+
 void UOptionsListItemDataObject_Base::RefreshEditability()
 {
 	// process edit conditions to check edibility
@@ -218,12 +289,25 @@ void UOptionsListItemDataObject_Base::RefreshEditability()
 void UOptionsListItemDataObject_Base::NotifyListDataModified(UOptionsListItemDataObject_Base* InModifiedData,
                                                              const EOptionsListModifiedReason InReason) const
 {
+	NotifyListDataModified(
+		InModifiedData,
+		InReason,
+		bShouldApplyChangesImmediately,
+		ApplyMode);
+}
+
+void UOptionsListItemDataObject_Base::NotifyListDataModified(
+	UOptionsListItemDataObject_Base* InModifiedData,
+	const EOptionsListModifiedReason InReason,
+	const bool bInShouldApplyChangesImmediately,
+	const EUserSettingApplyMode InApplyMode) const
+{
 	OnListDataModified.Broadcast(InModifiedData, InReason);
-	if (bShouldApplyChangesImmediately)
+	if (bInShouldApplyChangesImmediately)
 	{
 		if (UUserSettings* UserSettings = UUserSettings::Get())
 		{
-			switch (ApplyMode)
+			switch (InApplyMode)
 			{
 				case EUserSettingApplyMode::ApplyAll:
 					UNativeSettingsHelper::ApplyResolutionSettings(false);

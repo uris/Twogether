@@ -34,6 +34,10 @@ public:
 	// enable setting next/previous settings as current
 	FText CycleCurrentSetting(EStringSettingDirection InDirection = EStringSettingDirection::Next);
 
+	// enable cycling directly to zero index (used for settings with a custom attribute)
+	// optionally omit updating and applying settings
+	void CycleZeroIndex(const bool bApplyAndNotify);
+
 	// helper: get the display names text array only from the settings arrow for the rotator values
 	TArray<FText> GetAvailableDisplayOptionsArray();
 
@@ -46,6 +50,11 @@ public:
 	virtual bool CanResetBackToDefault() const override;
 
 	virtual bool ResetToDefault() override;
+	virtual FString GetCurrentValueAsString() const override
+	{
+		return CurrentSetting.Value;
+	}
+	virtual bool SetCurrentValueFromDependency(const FString& InValue) override;
 
 protected:
 	// cache the currently displayed text and corresponding value

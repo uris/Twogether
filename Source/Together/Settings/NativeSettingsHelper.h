@@ -52,6 +52,7 @@ public:
 	static bool SetWindowMode(const FString& InValue);
 
 	// *** GAMMA *** //
+	// Helps configure brightness / contrast
 
 	// get the gamma settings values
 	UFUNCTION(BlueprintCallable, Category="Game Settings|Video")
@@ -64,10 +65,38 @@ public:
 	static bool SetActiveDisplayGamma(const FString& InValue);
 
 	// *** SCALABILITY LEVEL *** //
+	// Helps configure brightness / contrast
 
 	UFUNCTION(BlueprintCallable, Category="Game Settings|Video")
 	static FString GetActiveScalabilityLevel();
 
 	UFUNCTION(BlueprintCallable, Category="Game Settings|Video")
 	static bool SetActiveScalabilityLevel(const FString& InValue);
+
+	// *** 3D RESOLUTION SCALE NORMALIZED *** //
+	/**
+	 * Does not affect UI. Only 3D world space. Virtually reduces the screen resolution for 3D rendering
+	 * purposes by a factor, essentially reducing the "rendering" resolution. Trades 3D rendering
+	 * quality (more pixelation at low levels) for better/faster performance. Internally
+	 * calculates a min/max rendering scale range for the current screen resolution, then
+	 * gets/sets a normalized 0-1 value along that range to drive the rendering resolution
+	 * Note: for direct access to get/set unnormalized scale as a percentage 0-1, use
+	 * GetResolutionScaleInformationEx() / SetResolutionScaleValueEx(float)
+	*/
+
+	UFUNCTION(BlueprintCallable, Category="Game Settings|Video")
+	static FString Get3DResolutionScale();
+
+	UFUNCTION(BlueprintCallable, Category="Game Settings|Video")
+	static bool Set3DResolutionScale(const FString& InValue);
+
+	// *** GLOBAL ILLUMINATION QUALITY *** //
+
+	UFUNCTION(BlueprintCallable, Category="Game Settings|Video")
+	static FString GetGlobalIlluminationQuality();
+
+	UFUNCTION(BlueprintCallable, Category="Game Settings|Video")
+	static bool SetGlobalIlluminationQuality(const FString& InValue);
+
+
 };

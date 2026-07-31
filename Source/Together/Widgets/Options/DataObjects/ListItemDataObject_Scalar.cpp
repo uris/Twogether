@@ -137,6 +137,39 @@ bool UListItemDataObject_Scalar::ResetToDefault()
 	return true;
 }
 
+bool UListItemDataObject_Scalar::SetCurrentValueFromDependency(const FString& InValue)
+{
+	float OutputValue = 0.0f;
+	if (!DataDynamicSetter ||
+	    !TryStringToFloat(InValue, OutputValue) ||
+	    !FMath::IsFinite(OutputValue))
+	{
+		UE_LOG(
+			LogTemp,
+			Warning,
+			TEXT("Unable to apply dependency value '%s' to scalar setting '%s'."),
+			*InValue,
+			*GetDataId().ToString());
+		return false;
+	}
+
+	OutputValue = FMath::Clamp(
+		OutputValue,
+		OutputRange.GetLowerBoundValue(),
+		OutputRange.GetUpperBoundValue());
+
+	float CurrentOutputValue = 0.0f;
+	if (DataDynamicGetter &&
+	    TryStringToFloat(DataDynamicGetter->GetValueAsString(), CurrentOutputValue) &&
+	    FMath::IsNearlyEqual(CurrentOutputValue, OutputValue, KINDA_SMALL_NUMBER))
+	{
+		return false;
+	}
+
+	DataDynamicSetter->SetValueFromString(FloatToString(OutputValue));
+	return true;
+}
+
 void UListItemDataObject_Scalar::OnDataObjectInitialized()
 {
 	Super::OnDataObjectInitialized();

@@ -23,24 +23,6 @@ enum class EOptionsListModifiedReason : uint8
 	ResetToDefault
 };
 
-USTRUCT()
-struct FResolvedEditCondition
-{
-	GENERATED_BODY()
-
-	UPROPERTY(EditAnywhere)
-	FSettingEditCondition Condition;
-
-	UPROPERTY(EditAnywhere)
-	TWeakObjectPtr<UOptionsListItemDataObject_Base> TargetData;
-
-	FResolvedEditCondition() = default;
-
-	explicit FResolvedEditCondition(const FSettingEditCondition& InCondition,
-	                                const TWeakObjectPtr<UOptionsListItemDataObject_Base> InTargetData)
-		: Condition(InCondition), TargetData(InTargetData) {}
-};
-
 /**
  *
  */
@@ -67,9 +49,11 @@ public:
 	LIST_DATA_ACCESSOR(FText, Description)
 	LIST_DATA_ACCESSOR(FText, DisabledText)
 	LIST_DATA_ACCESSOR(bool, bDisableInEditorPreview)
+	LIST_DATA_ACCESSOR(bool, bSkipZeroIndex)
 	LIST_DATA_ACCESSOR(TSoftObjectPtr<UTexture2D>, DescriptionImage)
 	LIST_DATA_ACCESSOR(UOptionsListItemDataObject_Base*, ParentData)
 	LIST_DATA_ACCESSOR(FSettingEditConditionDefinition, EditConditionDefinition)
+	LIST_DATA_ACCESSOR(TArray<FSettingDependency>, DependencyDefinitions)
 
 	void InitDataObject();
 
@@ -78,6 +62,8 @@ public:
 	void SetApplyMode(EUserSettingApplyMode InApplyMode);
 
 	void AddResolvedEditCondition(const FResolvedEditCondition& InEditCondition);
+
+	void AddResolvedSettingDependency(const FResolvedSettingDependency& InDependency);
 
 	bool AreEditConditionsMet();
 
@@ -106,6 +92,11 @@ public:
 		return FString();
 	}
 
+	virtual bool SetCurrentValueFromDependency(const FString& InValue)
+	{
+		return false;
+	}
+
 	virtual TArray<UOptionsListItemDataObject_Base*> GetAllChildListData() const
 	{
 		return TArray<UOptionsListItemDataObject_Base*>();
@@ -126,15 +117,30 @@ protected:
 		                                    EOptionsListModifiedReason::DirectlyModified) const;
 
 private:
+	// core trigger for handling effects that should trigger from edit condition logic
 	void HandleEditConditionTargetModified(UOptionsListItemDataObject_Base* InModifiedData,
 	                                       EOptionsListModifiedReason InReason);
+
+	// core trigger for handling effects that should trigger from dependency logic
+	void HandleDependencyTargetModified(UOptionsListItemDataObject_Base* InModifiedData,
+	                                    EOptionsListModifiedReason InReason);
+
+	// apply and save modifications
+	void NotifyListDataModified(UOptionsListItemDataObject_Base* InModifiedData,
+	                            EOptionsListModifiedReason InReason,
+	                            bool bInShouldApplyChangesImmediately,
+	                            EUserSettingApplyMode InApplyMode) const;
+
+	// trigger evaluating edit conditions
 	void RefreshEditability();
 
+	// helper to clear value od disabled text entry
 	void ClearDisabledText()
 	{
 		DisabledText = FText();
 	}
 
+	// helper to append lines to the disabled rich text
 	void InsertDisabledText(const FText& InDisabledText);
 
 	// core info data
@@ -154,10 +160,22 @@ private:
 	bool bIsEditable = true;
 	bool bDisableInEditorPreview = false;
 
-	UPROPERTY(Transient)
-	UOptionsListItemDataObject_Base* ParentData;
-
 	UPROPERTY(transient)
 	TArray<FResolvedEditCondition> ResolvedEditConditions;
+
+	// special conditions
+	bool bSkipZeroIndex = false;
+
+	// dependencies
+	TArray<FSettingDependency> DependencyDefinitions;
+
+	UPROPERTY(Transient)
+	TArray<FResolvedSettingDependency> ResolvedSettingDependencies;
+
+	TSet<TWeakObjectPtr<UOptionsListItemDataObject_Base>> DependencyBoundTargets;
+
+	// misc.
+	UPROPERTY(Transient)
+	UOptionsListItemDataObject_Base* ParentData;
 
 };

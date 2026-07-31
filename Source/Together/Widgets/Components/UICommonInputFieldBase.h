@@ -8,6 +8,7 @@
 
 #include "UICommonInputFieldBase.generated.h"
 
+class FWorldInterval;
 // delegate firing when input validation state changes
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnChangeInputFieldValidation,
                                              UUICommonInputFieldBase*,

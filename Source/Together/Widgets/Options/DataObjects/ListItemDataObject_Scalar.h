@@ -30,6 +30,7 @@ public:
 
 	virtual bool CanResetBackToDefault() const override;
 	virtual bool ResetToDefault() override;
+	virtual bool SetCurrentValueFromDependency(const FString& InValue) override;
 
 protected:
 	virtual void OnDataObjectInitialized() override;

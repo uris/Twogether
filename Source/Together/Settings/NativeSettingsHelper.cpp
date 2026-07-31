@@ -3,6 +3,7 @@
 #include "NativeSettingsHelper.h"
 
 #include "UIFunctionLibrary.h"
+#include "UserSettingTypesNative.h"
 #include "Engine/Engine.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "Settings/UserSettingTypes.h"
@@ -11,6 +12,42 @@
 
 namespace
 {
+template <typename EnumType>
+bool TryParseSupportedEnumValue(const FString& InValue, EnumType& OutValue)
+{
+	static_assert(TIsEnum<EnumType>::Value, "EnumType must be an enum");
+
+	int64 NumericValue = INDEX_NONE;
+	const UEnum* Enum = StaticEnum<EnumType>();
+	if (!LexTryParseString(NumericValue, *InValue) || !Enum)
+	{
+		return false;
+	}
+
+	const int32 EnumIndex = Enum->GetIndexByValue(NumericValue);
+	if (EnumIndex == INDEX_NONE)
+	{
+		return false;
+	}
+
+	// Reject Unreal's generated terminal sentinel.
+	if (EnumIndex == Enum->NumEnums() - 1 &&
+	    NumericValue == Enum->GetMaxEnumValue())
+	{
+		return false;
+	}
+
+#if WITH_METADATA
+	if (Enum->HasMetaData(TEXT("Hidden"), EnumIndex))
+	{
+		return false;
+	}
+#endif
+
+	OutValue = static_cast<EnumType>(NumericValue);
+	return true;
+}
+
 bool GetMaxSupportedResolution(FIntPoint& OutResolution)
 {
 	TArray<FIntPoint> SupportedResolutions;
@@ -232,12 +269,88 @@ FString UNativeSettingsHelper::GetActiveScalabilityLevel()
 
 bool UNativeSettingsHelper::SetActiveScalabilityLevel(const FString& InValue)
 {
-	if (UGameUserSettings* Settings = UGameUserSettings::GetGameUserSettings())
+	UGameUserSettings* Settings = UGameUserSettings::GetGameUserSettings();
+	if (!Settings)
 	{
-
-		Settings->SetOverallScalabilityLevel(UUIFunctionLibrary::StringToInt(InValue));
-		return true;
+		return false;
 	}
 
-	return false;
+	ENormalizedGraphicsQuality Quality;
+	if (!TryParseSupportedEnumValue(InValue, Quality))
+	{
+		// Custom is a display-only entry with value -1. It must not be staged
+		// in Unreal's native scalability state.
+		return false;
+	}
+
+	Settings->SetOverallScalabilityLevel(static_cast<int32>(Quality));
+	return true;
+}
+
+FString UNativeSettingsHelper::Get3DResolutionScale()
+{
+	if (const UGameUserSettings* Settings = UGameUserSettings::GetGameUserSettings())
+	{
+
+		const ENormalizedGraphicsQuality EnumValue = UUIFunctionLibrary::RangedFloatToEnum<ENormalizedGraphicsQuality>(
+			Settings->GetResolutionScaleNormalized());
+		UE_LOG(LogTemp,
+		       Warning,
+		       TEXT("Get3DResolutionScale: %s, Enum: %s"),
+		       *LexToString(Settings->GetResolutionScaleNormalized()),
+		       *LexToString(static_cast<int64>(EnumValue)));
+		return LexToString(static_cast<int64>(EnumValue));
+	}
+
+	return TEXT("0");
+}
+
+bool UNativeSettingsHelper::Set3DResolutionScale(const FString& InValue)
+{
+	UE_LOG(LogTemp, Warning, TEXT("Set3DResolutionScale: %s"), *InValue);
+	UGameUserSettings* Settings = UGameUserSettings::GetGameUserSettings();
+
+	if (!Settings)
+	{
+		return false;
+	}
+
+	ENormalizedGraphicsQuality Quality;
+	if (!TryParseSupportedEnumValue(InValue, Quality))
+	{
+		return false;
+	}
+
+	const float NormalizedValue =
+		UUIFunctionLibrary::EnumToNormalizedFloat<ENormalizedGraphicsQuality>(Quality);
+	Settings->SetResolutionScaleNormalized(NormalizedValue);
+
+	return true;
+}
+
+FString UNativeSettingsHelper::GetGlobalIlluminationQuality()
+{
+	if (const UGameUserSettings* Settings = UGameUserSettings::GetGameUserSettings())
+	{
+		return LexToString(static_cast<int32>(Settings->GetGlobalIlluminationQuality()));
+	}
+	return TEXT("0");
+}
+
+bool UNativeSettingsHelper::SetGlobalIlluminationQuality(const FString& InValue)
+{
+	UGameUserSettings* Settings = UGameUserSettings::GetGameUserSettings();
+	if (!Settings)
+	{
+		return false;
+	}
+
+	ENormalizedGraphicsQuality Quality;
+	if (!TryParseSupportedEnumValue(InValue, Quality))
+	{
+		return false;
+	}
+
+	Settings->SetGlobalIlluminationQuality(static_cast<int32>(Quality));
+	return true;
 }

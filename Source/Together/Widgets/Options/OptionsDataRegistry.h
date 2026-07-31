@@ -8,7 +8,6 @@
 #include "UObject/Object.h"
 #include "OptionsDataRegistry.generated.h"
 
-struct FResolvedEditCondition;
 class UOptionsListItemDataObject_Base;
 class UUOptionsListItemCollection_Base;
 class ULocalPlayer;
@@ -61,6 +60,10 @@ private:
 	// helper: create resolved edit conditions after all items has been created for a tab group
 	static void ProcessEditConditions(const TMap<FName, UOptionsListItemDataObject_Base*>& AllItemsById);
 
+	// helper: create resolved setting dependencies after all items have been created for a tab group
+	static void ProcessSettingDependencies(const TMap<FName, UOptionsListItemDataObject_Base*>& AllItemsById,
+	                                       FName TabId);
+
 	// helper: normalized setting type based on whether setting is native
 	static EUserSettingValueType NormalizedSettingType(const FUserSettingDefinition& Definition);
 
@@ -72,5 +75,5 @@ private:
 
 	// helper: template to create string settings from a specified enum type
 	template <typename EnumType>
-	TArray<FStringSetting> EnumTypeToStringSettings(const FName& InDataId);
+	TArray<FStringSetting> EnumTypeToStringSettings(const FName& InDataId, const bool bAddCustom = false);
 };

@@ -4,6 +4,7 @@
 #include "UIFunctionLibrary.h"
 
 #include "GameplayTagsManager.h"
+#include "VisualizeTexture.h"
 #include "Engine/Engine.h"
 #include "Settings/TogetherSettings.h"
 #include "Engine/GameInstance.h"
@@ -166,3 +167,4 @@ bool UUIFunctionLibrary::IsPreviewingInEditor()
 {
 	return GIsEditor || GIsPlayInEditorWorld;
 }
+
