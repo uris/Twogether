@@ -6,6 +6,7 @@
 #include "CommonTextBlock.h"
 #include "Components/RichTextBlock.h"
 #include "CommonLazyImage.h"
+#include "Components/NamedSlot.h"
 #include "DataObjects/OptionsListItemDataObject_Base.h"
 #include "Settings/TogetherSettings.h"
 #include "Subsystems/UI/UISubsystem.h"
@@ -17,23 +18,25 @@ void UWidget_OptionsDetails::NativeConstruct()
 }
 
 void UWidget_OptionsDetails::UpdateDetailsView(const UOptionsListItemDataObject_Base* InListItemData,
-                                               const FString& InWidgetClassName) const
+                                               const FString& InWidgetClassName)
 {
 	SetTitle(InListItemData);
 	SetImage(InListItemData);
 	SetDescription(InListItemData);
 	SetMessage(InListItemData);
 	SetDebugInfo(InListItemData);
+	SetWidget(InListItemData);
 }
 
 
-void UWidget_OptionsDetails::ClearDetailsView() const
+void UWidget_OptionsDetails::ClearDetailsView()
 {
 	SetTitle();
 	SetImage();
 	SetDescription();
 	SetMessage();
 	SetDebugInfo();
+	ClearWidget();
 }
 
 void UWidget_OptionsDetails::SetTitle(const UOptionsListItemDataObject_Base* InListItemData) const
@@ -146,4 +149,39 @@ void UWidget_OptionsDetails::SetUnderline(const bool bShowUnderline) const
 		return;
 	}
 	Underline->SetVisibility(bShowUnderline ? ESlateVisibility::SelfHitTestInvisible : ESlateVisibility::Collapsed);
+}
+
+void UWidget_OptionsDetails::SetWidget(const UOptionsListItemDataObject_Base* InListItemData)
+{
+	ClearWidget();
+
+	if (!InListItemData || InListItemData->GetDescriptionWidget().IsNull() || !SizeBoxSlot)
+	{
+		return;
+	}
+
+	UClass* LoadedClass = InListItemData->GetDescriptionWidget().LoadSynchronous();
+	if (!LoadedClass)
+	{
+		return;
+	}
+
+	LoadedOptionalWidget = CreateWidget<UUserWidget>(GetOwningPlayer(), LoadedClass);
+	if (LoadedOptionalWidget)
+	{
+		SizeBoxSlot->AddChild(LoadedOptionalWidget);
+		SizeBoxSlot->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
+		SizeBoxSlot->SetMinDesiredHeight(400.f);
+	}
+}
+
+void UWidget_OptionsDetails::ClearWidget()
+{
+	if (SizeBoxSlot)
+	{
+		SizeBoxSlot->ClearChildren();
+		SizeBoxSlot->SetVisibility(ESlateVisibility::Collapsed);
+	}
+
+	LoadedOptionalWidget = nullptr;
 }

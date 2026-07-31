@@ -21,9 +21,9 @@ class TOGETHER_API UWidget_OptionsDetails : public UUserWidget
 
 public:
 	void UpdateDetailsView(const UOptionsListItemDataObject_Base* InListItemData,
-	                       const FString& InWidgetClassName) const;
+	                       const FString& InWidgetClassName);
 
-	void ClearDetailsView() const;
+	void ClearDetailsView();
 
 protected:
 	virtual void NativeConstruct() override;
@@ -34,6 +34,9 @@ private:
 
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<USizeBox> Underline;
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<USizeBox> SizeBoxSlot;
 
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UCommonLazyImage> Image;
@@ -47,6 +50,9 @@ private:
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<URichTextBlock> DebugInfo;
 
+	UPROPERTY(EditDefaultsOnly, Category="Details")
+	TSoftClassPtr<UUserWidget> OptionalWidgetClass;
+
 	// helpers
 	void SetTitle(const UOptionsListItemDataObject_Base* InListItemData = nullptr) const;
 	void SetImage(const UOptionsListItemDataObject_Base* InListItemData = nullptr) const;
@@ -54,5 +60,10 @@ private:
 	void SetMessage(const UOptionsListItemDataObject_Base* InListItemData = nullptr) const;
 	void SetDebugInfo(const UOptionsListItemDataObject_Base* InListItemData = nullptr) const;
 	void SetUnderline(bool bShowUnderline) const;
+	void SetWidget(const UOptionsListItemDataObject_Base* InListItemData = nullptr);
+	void ClearWidget();
 
+private:
+	UPROPERTY(Transient)
+	TObjectPtr<UUserWidget> LoadedOptionalWidget;
 };

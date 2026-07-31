@@ -51,9 +51,11 @@ public:
 	LIST_DATA_ACCESSOR(bool, bDisableInEditorPreview)
 	LIST_DATA_ACCESSOR(bool, bSkipZeroIndex)
 	LIST_DATA_ACCESSOR(TSoftObjectPtr<UTexture2D>, DescriptionImage)
+	LIST_DATA_ACCESSOR(TSoftClassPtr<UUserWidget>, DescriptionWidget)
 	LIST_DATA_ACCESSOR(UOptionsListItemDataObject_Base*, ParentData)
 	LIST_DATA_ACCESSOR(FSettingEditConditionDefinition, EditConditionDefinition)
 	LIST_DATA_ACCESSOR(TArray<FSettingDependency>, DependencyDefinitions)
+
 
 	void InitDataObject();
 
@@ -150,6 +152,7 @@ private:
 	FText Description;
 	FText DisabledText;
 	TSoftObjectPtr<UTexture2D> DescriptionImage;
+	TSoftClassPtr<UUserWidget> DescriptionWidget;
 
 	// behavior settings
 	bool bShouldApplyChangesImmediately = false;

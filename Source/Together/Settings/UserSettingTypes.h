@@ -55,6 +55,29 @@ struct FResolvedSettingDependency
 		: Dependency(InDependency), DependantData(InDependantData), OtherData(InOtherData) {}
 };
 
+USTRUCT()
+struct FDynamicWidget
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere)
+	FSettingDependency Dependency;
+
+	UPROPERTY(EditAnywhere)
+	TWeakObjectPtr<UOptionsListItemDataObject_Base> DependantData;
+
+	UPROPERTY(EditAnywhere)
+	TWeakObjectPtr<UOptionsListItemDataObject_Base> OtherData;
+
+	FResolvedSettingDependency() = default;
+
+	explicit FResolvedSettingDependency(
+		const FSettingDependency& InDependency,
+		const TWeakObjectPtr<UOptionsListItemDataObject_Base> InDependantData,
+		const TWeakObjectPtr<UOptionsListItemDataObject_Base> InOtherData = nullptr)
+		: Dependency(InDependency), DependantData(InDependantData), OtherData(InOtherData) {}
+};
+
 UENUM(BlueprintType)
 enum class ENativeUnrealSettings : uint8
 {
@@ -280,6 +303,14 @@ struct FUserSettingDefinition : public FTableRowBase
 			EditConditionHides,
 			TitleProperty = "DisplayName", ToolTip="Populates the details pane. Leave empty to not omit it"))
 	TSoftObjectPtr<UTexture2D> DescriptionImage;
+
+	UPROPERTY(
+		EditAnywhere,
+		Category="Display",
+		meta = (EditCondition = "bIsSettingGroup == false",
+			EditConditionHides,
+			TitleProperty = "DisplayName", ToolTip="Populates the details pane. Leave empty to not omit it"))
+	TSoftClassPtr<UUserWidget> DescriptionWidget;
 
 	UPROPERTY(
 		EditAnywhere,

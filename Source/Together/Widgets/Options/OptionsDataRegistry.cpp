@@ -416,6 +416,7 @@ UOptionsListItemDataObject_Base* UOptionsDataRegistry::CreateSettingDataObject(
 	ValueData->SetEditConditionDefinition(Definition.EditConditions);
 	ValueData->SetDependencyDefinitions(Definition.DependencyConditions);
 	ValueData->SetbDisableInEditorPreview(Definition.bDisableInEditorPreview);
+	ValueData->SetDescriptionWidget(Definition.DescriptionWidget);
 
 	// create default getters / setter for inserting and retrieving from user settings
 	const TSharedPtr<FOptionsDataInteractionHelper> Interaction =
