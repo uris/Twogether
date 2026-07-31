@@ -17,6 +17,8 @@ inline const FName DisplayGamma(TEXT("DisplayGamma"));
 inline const FName OverallScalabilityLevel(TEXT("OverallScalabilityLevel"));
 inline const FName ResolutionScaleNormalized(TEXT("ResolutionScaleNormalized"));
 inline const FName GlobalIlluminationQuality(TEXT("GlobalIlluminationQuality"));
+inline const FName ShadowQuality(TEXT("ShadowQuality"));
+inline const FName AntiAliasingQuality(TEXT("AntiAliasingQuality"));
 }
 
 inline FName GetNativeSettingId(const ENativeUnrealSettings NativeSetting)
@@ -35,6 +37,10 @@ inline FName GetNativeSettingId(const ENativeUnrealSettings NativeSetting)
 			return NativeSettingIds::ResolutionScaleNormalized;
 		case ENativeUnrealSettings::GlobalIlluminationQuality:
 			return NativeSettingIds::GlobalIlluminationQuality;
+		case ENativeUnrealSettings::ShadowQuality:
+			return NativeSettingIds::ShadowQuality;
+		case ENativeUnrealSettings::AntiAliasingQuality:
+			return NativeSettingIds::AntiAliasingQuality;
 		default:
 			return NativeSettingIds::Invalid;
 	}

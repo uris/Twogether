@@ -354,3 +354,57 @@ bool UNativeSettingsHelper::SetGlobalIlluminationQuality(const FString& InValue)
 	Settings->SetGlobalIlluminationQuality(static_cast<int32>(Quality));
 	return true;
 }
+
+FString UNativeSettingsHelper::GetShadowQuality()
+{
+	if (const UGameUserSettings* Settings = UGameUserSettings::GetGameUserSettings())
+	{
+		return LexToString(static_cast<int32>(Settings->GetShadowQuality()));
+	}
+	return TEXT("0");
+}
+
+bool UNativeSettingsHelper::SetShadowQuality(const FString& InValue)
+{
+	UGameUserSettings* Settings = UGameUserSettings::GetGameUserSettings();
+	if (!Settings)
+	{
+		return false;
+	}
+
+	ENormalizedGraphicsQuality Quality;
+	if (!TryParseSupportedEnumValue(InValue, Quality))
+	{
+		return false;
+	}
+
+	Settings->SetShadowQuality(static_cast<int32>(Quality));
+	return true;
+}
+
+FString UNativeSettingsHelper::GetAntiAliasingQuality()
+{
+	if (const UGameUserSettings* Settings = UGameUserSettings::GetGameUserSettings())
+	{
+		return LexToString(static_cast<int32>(Settings->GetAntiAliasingQuality()));
+	}
+	return TEXT("0");
+}
+
+bool UNativeSettingsHelper::SetAntiAliasingQuality(const FString& InValue)
+{
+	UGameUserSettings* Settings = UGameUserSettings::GetGameUserSettings();
+	if (!Settings)
+	{
+		return false;
+	}
+
+	ENormalizedGraphicsQuality Quality;
+	if (!TryParseSupportedEnumValue(InValue, Quality))
+	{
+		return false;
+	}
+
+	Settings->SetAntiAliasingQuality(static_cast<int32>(Quality));
+	return true;
+}

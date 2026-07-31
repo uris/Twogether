@@ -318,6 +318,11 @@ FString UUserSettings::GetNativeSettingValue(const FName InSettingId)
 		return UNativeSettingsHelper::GetGlobalIlluminationQuality();
 	}
 
+	if (InSettingId == NativeSettingIds::ShadowQuality)
+	{
+		return UNativeSettingsHelper::GetShadowQuality();
+	}
+
 	return FString();
 }
 
@@ -351,6 +356,11 @@ bool UUserSettings::SetNativeSettingValue(const FName InSettingId, const FString
 	if (InSettingId == NativeSettingIds::GlobalIlluminationQuality)
 	{
 		return UNativeSettingsHelper::SetGlobalIlluminationQuality(InValue);
+	}
+
+	if (InSettingId == NativeSettingIds::ShadowQuality)
+	{
+		return UNativeSettingsHelper::SetShadowQuality(InValue);
 	}
 
 	// *** Fallback *** //

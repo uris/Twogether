@@ -64,6 +64,8 @@ enum class ENativeUnrealSettings : uint8
 	OverallScalabilityLevel = 3 UMETA(DisplayName = "Overall Quality"),
 	ResolutionScaleNormalized = 4 UMETA(DisplayName = "3D Resolution Scale"),
 	GlobalIlluminationQuality = 5 UMETA(DisplayName = "Global Illumination Quality"),
+	ShadowQuality = 6 UMETA(DisplayName = "Shadow Quality"),
+	AntiAliasingQuality = 7 UMETA(DisplayName = "AntiAliasing Quality"),
 };
 
 UENUM(BlueprintType)

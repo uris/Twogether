@@ -4,7 +4,6 @@
 #include "OptionsDataRegistry.h"
 
 #include "OptionsDataInteractionHelper.h"
-#include "UIFunctionLibrary.h"
 #include "DataObjects/ListItemDataObject_Boolean.h"
 #include "DataObjects/ListItemDataObject_IntEnum.h"
 #include "DataObjects/ListItemDataObject_String.h"
@@ -704,6 +703,8 @@ EUserSettingValueType UOptionsDataRegistry::NormalizedSettingType(const FUserSet
 			case ENativeUnrealSettings::OverallScalabilityLevel:
 			case ENativeUnrealSettings::ResolutionScaleNormalized:
 			case ENativeUnrealSettings::GlobalIlluminationQuality:
+			case ENativeUnrealSettings::ShadowQuality:
+			case ENativeUnrealSettings::AntiAliasingQuality:
 				return EUserSettingValueType::Enum;
 			case ENativeUnrealSettings::ScreenResolution:
 				return EUserSettingValueType::String;
@@ -732,6 +733,8 @@ TArray<FStringSetting> UOptionsDataRegistry::GetNativeEnumSettingValues(const FU
 		case ENativeUnrealSettings::OverallScalabilityLevel:
 		case ENativeUnrealSettings::ResolutionScaleNormalized:
 		case ENativeUnrealSettings::GlobalIlluminationQuality:
+		case ENativeUnrealSettings::ShadowQuality:
+		case ENativeUnrealSettings::AntiAliasingQuality:
 			return EnumTypeToStringSettings<ENormalizedGraphicsQuality>(DataId, true);
 		default:
 		{

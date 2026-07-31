@@ -79,24 +79,29 @@ public :
 			return Min;
 		}
 
-		// UHT-generated enums normally have a final hidden _MAX entry.
-		const int32 ValueCount = Enum->NumEnums() - 1;
-		if (ValueCount <= 1)
+		const TArray<int64> UsableValues = GetUsableEnumValues<EnumType>();
+		if (UsableValues.IsEmpty())
 		{
 			return Min;
 		}
 
-		const int32 EnumIndex = Enum->GetIndexByValue(static_cast<int64>(InEnumValue));
+		const int32 EnumIndex = UsableValues.IndexOfByKey(
+			static_cast<int64>(InEnumValue));
 		if (!ensureMsgf(
-			EnumIndex != INDEX_NONE && EnumIndex < ValueCount,
-			TEXT("Invalid or sentinel enum value")))
+			EnumIndex != INDEX_NONE,
+			TEXT("Invalid, custom, hidden, or sentinel enum value")))
 		{
 			return Min;
+		}
+
+		if (UsableValues.Num() == 1)
+		{
+			return Max;
 		}
 
 		const float Alpha =
 			static_cast<float>(EnumIndex + 1) /
-			static_cast<float>(ValueCount);
+			static_cast<float>(UsableValues.Num());
 
 		return FMath::Lerp(Min, Max, Alpha);
 	}
@@ -116,16 +121,15 @@ public :
 			return static_cast<EnumType>(0);
 		}
 
-		// Exclude Unreal's generated _MAX sentinel.
-		const int32 ValueCount = Enum->NumEnums() - 1;
-		if (!ensureMsgf(ValueCount > 0, TEXT("Enum has no usable values")))
+		const TArray<int64> UsableValues = GetUsableEnumValues<EnumType>();
+		if (!ensureMsgf(!UsableValues.IsEmpty(), TEXT("Enum has no usable values")))
 		{
 			return static_cast<EnumType>(0);
 		}
 
-		if (ValueCount == 1 || FMath::IsNearlyEqual(Min, Max))
+		if (UsableValues.Num() == 1 || FMath::IsNearlyEqual(Min, Max))
 		{
-			return static_cast<EnumType>(Enum->GetValueByIndex(0));
+			return static_cast<EnumType>(UsableValues[0]);
 		}
 
 		const float Alpha = FMath::Clamp(
@@ -133,9 +137,57 @@ public :
 			0.0f,
 			1.0f);
 
-		const int32 EnumIndex = FMath::RoundToInt(
-			Alpha * static_cast<float>(ValueCount - 1));
+		// Real enum entries occupy positive steps through the range; zero is
+		// intentionally not assigned to an entry. For example, five entries
+		// map to .2, .4, .6, .8, and 1.0.
+		const int32 EnumIndex = FMath::Clamp(
+			FMath::RoundToInt(Alpha * static_cast<float>(UsableValues.Num())) - 1,
+			0,
+			UsableValues.Num() - 1);
 
-		return static_cast<EnumType>(Enum->GetValueByIndex(EnumIndex));
+		return static_cast<EnumType>(UsableValues[EnumIndex]);
+	}
+
+private:
+	template <typename EnumType>
+	static TArray<int64> GetUsableEnumValues()
+	{
+		static_assert(TIsEnum<EnumType>::Value, "EnumType must be an enum");
+
+		TArray<int64> UsableValues;
+		const UEnum* Enum = StaticEnum<EnumType>();
+		if (!Enum)
+		{
+			return UsableValues;
+		}
+
+		for (int32 EnumIndex = 0; EnumIndex < Enum->NumEnums(); ++EnumIndex)
+		{
+			const int64 EnumValue = Enum->GetValueByIndex(EnumIndex);
+
+			// -1 is reserved for display-only entries such as Custom.
+			if (EnumValue == -1)
+			{
+				continue;
+			}
+
+			// Exclude Unreal's generated terminal sentinel.
+			if (EnumIndex == Enum->NumEnums() - 1 &&
+			    EnumValue == Enum->GetMaxEnumValue())
+			{
+				continue;
+			}
+
+#if WITH_METADATA
+			if (Enum->HasMetaData(TEXT("Hidden"), EnumIndex))
+			{
+				continue;
+			}
+#endif
+
+			UsableValues.Add(EnumValue);
+		}
+
+		return UsableValues;
 	}
 };

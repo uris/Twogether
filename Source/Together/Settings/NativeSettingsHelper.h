@@ -91,6 +91,7 @@ public:
 	static bool Set3DResolutionScale(const FString& InValue);
 
 	// *** GLOBAL ILLUMINATION QUALITY *** //
+	// Control lighting, ray tracing, etc.
 
 	UFUNCTION(BlueprintCallable, Category="Game Settings|Video")
 	static FString GetGlobalIlluminationQuality();
@@ -98,5 +99,20 @@ public:
 	UFUNCTION(BlueprintCallable, Category="Game Settings|Video")
 	static bool SetGlobalIlluminationQuality(const FString& InValue);
 
+	// *** SHADOW QUALITY *** //
+
+	UFUNCTION(BlueprintCallable, Category="Game Settings|Video")
+	static FString GetShadowQuality();
+
+	UFUNCTION(BlueprintCallable, Category="Game Settings|Video")
+	static bool SetShadowQuality(const FString& InValue);
+
+	// *** ANTI-ALIASING QUALITY *** //
+
+	UFUNCTION(BlueprintCallable, Category="Game Settings|Video")
+	static FString GetAntiAliasingQuality();
+
+	UFUNCTION(BlueprintCallable, Category="Game Settings|Video")
+	static bool SetAntiAliasingQuality(const FString& InValue);
 
 };
