@@ -18,7 +18,7 @@ class TOGETHER_API UUICommonRotator : public UCommonRotator
 public:
 	void SetSelectedOptionByText(const FText& InTextOption);
 
-	void SetTextStyle(const TSubclassOf<UCommonTextStyle> InTextStyle);
+	void SetTextStyle(const TSubclassOf<UCommonTextStyle>& InTextStyle) const;
 
 private:
 	int32 GetIndexByTextValue(const FText& InText) const;

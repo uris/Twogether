@@ -170,8 +170,10 @@ void UOptionsDataRegistry::InitRegistry(ULocalPlayer* InOwningLocalPlayer)
 		TMap<FName, UOptionsListItemDataObject_Base*> ItemsById;
 
 		// iterate all settings definitions to create the uber list of settings for the tab
+		int32 EntryIndex = -1;
 		for (const FUserSettingDefinition* Definition : TabDefinitions)
 		{
+			EntryIndex++;
 			const FName EffectiveSettingId = GetSettingIdString(*Definition);
 
 			// ignore all settings that don't have a settings id
@@ -197,6 +199,7 @@ void UOptionsDataRegistry::InitRegistry(ULocalPlayer* InOwningLocalPlayer)
 				Item->SetDescription(FText());
 				Item->SetDisabledText(FText());
 				Item->SetDescriptionImage(nullptr);
+				Item->SetbIsFirstEntry(EntryIndex == 0);
 			}
 
 			// if the items are root settings, with actual values
@@ -417,6 +420,7 @@ UOptionsListItemDataObject_Base* UOptionsDataRegistry::CreateSettingDataObject(
 	ValueData->SetDependencyDefinitions(Definition.DependencyConditions);
 	ValueData->SetbDisableInEditorPreview(Definition.bDisableInEditorPreview);
 	ValueData->SetDescriptionWidget(Definition.DescriptionWidget);
+	ValueData->SetbIsChildEntry(!Definition.ParentSettingId.IsNone());
 
 	// create default getters / setter for inserting and retrieving from user settings
 	const TSharedPtr<FOptionsDataInteractionHelper> Interaction =
@@ -495,7 +499,6 @@ void UOptionsDataRegistry::FindChildListDataRecursive(const UUOptionsListItemCol
 		const UUOptionsListItemCollection_Base* ChildCollection = Cast<UUOptionsListItemCollection_Base>(ChildListData);
 		if (ChildCollection && ChildCollection->HasAnyChildListData())
 		{
-			UE_LOG(LogTemp, Warning, TEXT("Found Sub Collection: Recursing"));
 			FindChildListDataRecursive(ChildCollection, OutChildList);
 		}
 	}
@@ -569,8 +572,6 @@ void UOptionsDataRegistry::ProcessEditConditions(const TMap<FName, UOptionsListI
 	// flatten map to array
 	TArray<UOptionsListItemDataObject_Base*> AllItems;
 	AllItemsById.GenerateValueArray(AllItems);
-
-	UE_LOG(LogTemp, Warning, TEXT("AllItems Length: %i"), AllItems.Num());
 
 	// find dependencies for the owning item in the array
 	for (UOptionsListItemDataObject_Base* Item : AllItems)

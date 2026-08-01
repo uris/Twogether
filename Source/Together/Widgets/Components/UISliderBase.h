@@ -8,6 +8,7 @@
 #include "Blueprint/UserWidget.h"
 #include "UISliderBase.generated.h"
 
+struct FListTextStyle;
 class USizeBox;
 class UImage;
 /**
@@ -79,6 +80,11 @@ public:
 		Category = "Custom Properties|Text Styles")
 	TSubclassOf<UCommonTextStyle> ValueSelectedTextStyle;
 
+	UPROPERTY(EditAnywhere,
+		BlueprintReadWrite,
+		Category = "Custom Properties|Text Styles")
+	TSubclassOf<UCommonTextStyle> ValueDisabledTextStyle;
+
 	UPROPERTY(BlueprintReadOnly, meta=(BindWidget))
 	TObjectPtr<UAnalogSlider> Slider;
 
@@ -93,6 +99,9 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void UpdateSliderStyle(bool bIsSelected, bool bIsHovered) const;
+
+	UFUNCTION(BlueprintCallable)
+	void UpdateTextStyles(const FListTextStyle& InTextStyles);
 
 protected:
 	virtual void NativePreConstruct() override;

@@ -50,9 +50,6 @@ private:
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<URichTextBlock> DebugInfo;
 
-	UPROPERTY(EditDefaultsOnly, Category="Details")
-	TSoftClassPtr<UUserWidget> OptionalWidgetClass;
-
 	// helpers
 	void SetTitle(const UOptionsListItemDataObject_Base* InListItemData = nullptr) const;
 	void SetImage(const UOptionsListItemDataObject_Base* InListItemData = nullptr) const;

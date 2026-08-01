@@ -7,6 +7,7 @@
 #include "SettingsDependancy.h"
 #include "SettingsEditCondition.h"
 #include "UserSettingApplyMode.h"
+#include "Blueprint/UserWidget.h"
 #include "Engine/DataTable.h"
 
 #include "UserSettingTypes.generated.h"
@@ -61,21 +62,20 @@ struct FDynamicWidget
 	GENERATED_BODY()
 
 	UPROPERTY(EditAnywhere)
-	FSettingDependency Dependency;
+	TSoftClassPtr<UUserWidget> WidgetClass = nullptr;
 
-	UPROPERTY(EditAnywhere)
-	TWeakObjectPtr<UOptionsListItemDataObject_Base> DependantData;
+	UPROPERTY(EditAnywhere, Category="Dimenstions")
+	float WidthOverride = 0.0f;
+	UPROPERTY(EditAnywhere, Category="Dimenstions")
+	float HeightOverride = 0.0f;
+	UPROPERTY(EditAnywhere, Category="Dimenstions")
+	float MinDesiredWidth = 0.0f;
+	UPROPERTY(EditAnywhere, Category="Dimenstions")
+	float MinDesiredHeight = 0.0f;
 
-	UPROPERTY(EditAnywhere)
-	TWeakObjectPtr<UOptionsListItemDataObject_Base> OtherData;
+	FDynamicWidget() = default;
 
-	FResolvedSettingDependency() = default;
-
-	explicit FResolvedSettingDependency(
-		const FSettingDependency& InDependency,
-		const TWeakObjectPtr<UOptionsListItemDataObject_Base> InDependantData,
-		const TWeakObjectPtr<UOptionsListItemDataObject_Base> InOtherData = nullptr)
-		: Dependency(InDependency), DependantData(InDependantData), OtherData(InOtherData) {}
+	explicit FDynamicWidget(const TSubclassOf<UUserWidget>& InWidgetClass): WidgetClass(InWidgetClass) {}
 };
 
 UENUM(BlueprintType)
@@ -310,7 +310,7 @@ struct FUserSettingDefinition : public FTableRowBase
 		meta = (EditCondition = "bIsSettingGroup == false",
 			EditConditionHides,
 			TitleProperty = "DisplayName", ToolTip="Populates the details pane. Leave empty to not omit it"))
-	TSoftClassPtr<UUserWidget> DescriptionWidget;
+	FDynamicWidget DescriptionWidget;
 
 	UPROPERTY(
 		EditAnywhere,

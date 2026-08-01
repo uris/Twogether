@@ -4,34 +4,20 @@
 
 #include "CoreMinimal.h"
 #include "UIOptionsListEntry.h"
+#include "Widgets/Components/UISliderBase.h"
 #include "Widget_ListEntry_Scalar.generated.h"
 
+class UVerticalBox;
 class UListItemDataObject_Scalar;
-class UUISliderBase;
 /**
  *
  */
-UCLASS()
+UCLASS(Abstract, BlueprintType)
 class TOGETHER_API UWidget_ListEntry_Scalar : public UUIOptionsListEntry
 {
 	GENERATED_BODY()
 
 public:
-	UPROPERTY(EditAnywhere,
-		BlueprintReadWrite,
-		Category = "Custom Properties|Text Styles")
-	TSubclassOf<UCommonTextStyle> DefaultTextStyle;
-
-	UPROPERTY(EditAnywhere,
-		BlueprintReadWrite,
-		Category = "Custom Properties|Text Styles")
-	TSubclassOf<UCommonTextStyle> HoveredTextStyle;
-
-	UPROPERTY(EditAnywhere,
-		BlueprintReadWrite,
-		Category = "Custom Properties|Text Styles")
-	TSubclassOf<UCommonTextStyle> DisabledTextStyle;
-
 	UFUNCTION()
 	void HandleOnValueChanged(float InVolume) const;
 
@@ -54,14 +40,16 @@ protected:
 	virtual void OnOwningListDataObjectModified(UOptionsListItemDataObject_Base* InOwningListDataObject,
 	                                            EOptionsListModifiedReason InReason) override;
 
+	virtual void ApplyStyles() override;
+
 	virtual FReply NativeOnFocusReceived(const FGeometry& InGeometry, const FFocusEvent& InFocusEvent) override;
 
 	UPROPERTY(BlueprintReadOnly, meta=(BindWidgetOptional, AllowPrivateAccess="True"))
 	TObjectPtr<UUISliderBase> Slider;
 
 private:
-	void ApplyStyleUpdates() const;
-
 	UPROPERTY(transient)
 	UListItemDataObject_Scalar* CachedOwningScalarObject;
+
+	bool bUpdatingFromDataObject = false;
 };

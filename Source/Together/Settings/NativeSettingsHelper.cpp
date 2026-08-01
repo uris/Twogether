@@ -9,42 +9,169 @@
 #include "Settings/UserSettingTypes.h"
 #include "Settings/UserSettings.h"
 #include "GameFramework/GameUserSettings.h"
+#include "Misc/ConfigCacheIni.h"
 
 namespace
 {
+template <typename EnumType>
+TArray<EnumType> GetSupportedEnumValues()
+{
+	static_assert(TIsEnum<EnumType>::Value, "EnumType must be an enum");
+
+	TArray<EnumType> Values;
+	const UEnum* Enum = StaticEnum<EnumType>();
+	if (!Enum)
+	{
+		return Values;
+	}
+
+	for (int32 EnumIndex = 0; EnumIndex < Enum->NumEnums(); ++EnumIndex)
+	{
+		const int64 NumericValue = Enum->GetValueByIndex(EnumIndex);
+		if (NumericValue == -1)
+		{
+			continue;
+		}
+
+		if (EnumIndex == Enum->NumEnums() - 1 &&
+		    NumericValue == Enum->GetMaxEnumValue())
+		{
+			continue;
+		}
+
+#if WITH_METADATA
+		if (Enum->HasMetaData(TEXT("Hidden"), EnumIndex))
+		{
+			continue;
+		}
+#endif
+
+		Values.Add(static_cast<EnumType>(NumericValue));
+	}
+
+	return Values;
+}
+
 template <typename EnumType>
 bool TryParseSupportedEnumValue(const FString& InValue, EnumType& OutValue)
 {
 	static_assert(TIsEnum<EnumType>::Value, "EnumType must be an enum");
 
 	int64 NumericValue = INDEX_NONE;
-	const UEnum* Enum = StaticEnum<EnumType>();
-	if (!LexTryParseString(NumericValue, *InValue) || !Enum)
+	if (!LexTryParseString(NumericValue, *InValue))
 	{
 		return false;
 	}
 
-	const int32 EnumIndex = Enum->GetIndexByValue(NumericValue);
-	if (EnumIndex == INDEX_NONE)
+	const TArray<EnumType> SupportedValues = GetSupportedEnumValues<EnumType>();
+	const EnumType ParsedValue = static_cast<EnumType>(NumericValue);
+	if (!SupportedValues.Contains(ParsedValue))
 	{
 		return false;
 	}
 
-	// Reject Unreal's generated terminal sentinel.
-	if (EnumIndex == Enum->NumEnums() - 1 &&
-	    NumericValue == Enum->GetMaxEnumValue())
+	OutValue = ParsedValue;
+	return true;
+}
+
+bool GetScalabilityPresetValues(const TCHAR* PresetKey, TArray<float>& OutPresets)
+{
+	OutPresets.Reset();
+
+	TArray<FString> PresetStrings;
+	if (!GConfig ||
+	    !GConfig->GetSingleLineArray(
+		    TEXT("ScalabilitySettings"),
+		    PresetKey,
+		    PresetStrings,
+		    GScalabilityIni) ||
+	    PresetStrings.IsEmpty())
 	{
 		return false;
 	}
 
-#if WITH_METADATA
-	if (Enum->HasMetaData(TEXT("Hidden"), EnumIndex))
+	OutPresets.Reserve(PresetStrings.Num());
+	for (const FString& PresetString : PresetStrings)
+	{
+		float Preset = 0.0f;
+		if (!LexTryParseString(Preset, *PresetString) || !FMath::IsFinite(Preset))
+		{
+			OutPresets.Reset();
+			return false;
+		}
+		OutPresets.Add(Preset);
+	}
+
+	return true;
+}
+
+template <typename EnumType>
+bool TryGetScalarPresetForEnum(
+	const TCHAR* PresetKey,
+	const EnumType InValue,
+	float& OutPreset)
+{
+	const TArray<EnumType> SupportedValues = GetSupportedEnumValues<EnumType>();
+	const int32 ValueIndex = SupportedValues.IndexOfByKey(InValue);
+
+	TArray<float> Presets;
+	if (ValueIndex == INDEX_NONE ||
+	    !GetScalabilityPresetValues(PresetKey, Presets) ||
+	    !Presets.IsValidIndex(ValueIndex))
 	{
 		return false;
 	}
-#endif
 
-	OutValue = static_cast<EnumType>(NumericValue);
+	OutPreset = Presets[ValueIndex];
+	return true;
+}
+
+template <typename EnumType>
+bool TryResolveEnumForScalarPreset(
+	const TCHAR* PresetKey,
+	const float CurrentValue,
+	EnumType& OutValue,
+	const TOptional<EnumType>& PreferredValue = TOptional<EnumType>())
+{
+	const TArray<EnumType> SupportedValues = GetSupportedEnumValues<EnumType>();
+	TArray<float> Presets;
+	if (!FMath::IsFinite(CurrentValue) ||
+	    SupportedValues.IsEmpty() ||
+	    !GetScalabilityPresetValues(PresetKey, Presets))
+	{
+		return false;
+	}
+
+	const int32 ComparableCount = FMath::Min(SupportedValues.Num(), Presets.Num());
+	if (ComparableCount <= 0)
+	{
+		return false;
+	}
+
+	int32 ClosestIndex = 0;
+	float ClosestDistance = FMath::Abs(CurrentValue - Presets[0]);
+	for (int32 PresetIndex = 1; PresetIndex < ComparableCount; ++PresetIndex)
+	{
+		const float Distance = FMath::Abs(CurrentValue - Presets[PresetIndex]);
+		if (Distance < ClosestDistance)
+		{
+			ClosestDistance = Distance;
+			ClosestIndex = PresetIndex;
+		}
+	}
+
+	if (PreferredValue.IsSet())
+	{
+		const int32 PreferredIndex = SupportedValues.IndexOfByKey(PreferredValue.GetValue());
+		if (PreferredIndex >= 0 &&
+		    PreferredIndex < ComparableCount &&
+		    FMath::IsNearlyEqual(Presets[PreferredIndex], Presets[ClosestIndex]))
+		{
+			ClosestIndex = PreferredIndex;
+		}
+	}
+
+	OutValue = SupportedValues[ClosestIndex];
 	return true;
 }
 
@@ -234,6 +361,7 @@ FScalarSettingValues UNativeSettingsHelper::GetDisplayGammaSettings()
 	GammaSettings.NumericType = ECommonNumericType::Percentage;
 	GammaSettings.MaximumFractionalDigits = 0.f;
 	GammaSettings.MinimumFractionalDigits = 0.f;
+	GammaSettings.StepSize = 0.05f;
 	return GammaSettings;
 }
 
@@ -262,6 +390,10 @@ FString UNativeSettingsHelper::GetActiveScalabilityLevel()
 {
 	if (const UGameUserSettings* Settings = UGameUserSettings::GetGameUserSettings())
 	{
+		UE_LOG(LogTemp,
+		       Warning,
+		       TEXT("GetActiveScalabilityLevel: %s"),
+		       *LexToString(Settings->GetOverallScalabilityLevel()));
 		return LexToString(Settings->GetOverallScalabilityLevel());
 	}
 	return TEXT("1");
@@ -283,6 +415,11 @@ bool UNativeSettingsHelper::SetActiveScalabilityLevel(const FString& InValue)
 		return false;
 	}
 
+	UE_LOG(LogTemp,
+	       Warning,
+	       TEXT("SetOverallScalabilityLevel: InValue: %s, EnumValue: %i"),
+	       *InValue,
+	       static_cast<int32>(Quality));
 	Settings->SetOverallScalabilityLevel(static_cast<int32>(Quality));
 	return true;
 }
@@ -291,15 +428,32 @@ FString UNativeSettingsHelper::Get3DResolutionScale()
 {
 	if (const UGameUserSettings* Settings = UGameUserSettings::GetGameUserSettings())
 	{
+		float CurrentNormalized = 0.0f;
+		float CurrentPercentage = 0.0f;
+		float MinPercentage = 0.0f;
+		float MaxPercentage = 0.0f;
+		Settings->GetResolutionScaleInformationEx(
+			CurrentNormalized,
+			CurrentPercentage,
+			MinPercentage,
+			MaxPercentage);
 
-		const ENormalizedGraphicsQuality EnumValue = UUIFunctionLibrary::RangedFloatToEnum<ENormalizedGraphicsQuality>(
-			Settings->GetResolutionScaleNormalized());
-		UE_LOG(LogTemp,
-		       Warning,
-		       TEXT("Get3DResolutionScale: %s, Enum: %s"),
-		       *LexToString(Settings->GetResolutionScaleNormalized()),
-		       *LexToString(static_cast<int64>(EnumValue)));
-		return LexToString(static_cast<int64>(EnumValue));
+		const int32 OverallQuality = Settings->GetOverallScalabilityLevel();
+		TOptional<ENormalizedGraphicsQuality> PreferredQuality;
+		if (OverallQuality >= 0)
+		{
+			PreferredQuality = static_cast<ENormalizedGraphicsQuality>(OverallQuality);
+		}
+
+		ENormalizedGraphicsQuality Quality;
+		if (TryResolveEnumForScalarPreset(
+			TEXT("PerfIndexValues_ResolutionQuality"),
+			CurrentPercentage,
+			Quality,
+			PreferredQuality))
+		{
+			return LexToString(static_cast<int64>(Quality));
+		}
 	}
 
 	return TEXT("0");
@@ -307,7 +461,6 @@ FString UNativeSettingsHelper::Get3DResolutionScale()
 
 bool UNativeSettingsHelper::Set3DResolutionScale(const FString& InValue)
 {
-	UE_LOG(LogTemp, Warning, TEXT("Set3DResolutionScale: %s"), *InValue);
 	UGameUserSettings* Settings = UGameUserSettings::GetGameUserSettings();
 
 	if (!Settings)
@@ -321,9 +474,16 @@ bool UNativeSettingsHelper::Set3DResolutionScale(const FString& InValue)
 		return false;
 	}
 
-	const float NormalizedValue =
-		UUIFunctionLibrary::EnumToNormalizedFloat<ENormalizedGraphicsQuality>(Quality);
-	Settings->SetResolutionScaleNormalized(NormalizedValue);
+	float ResolutionPercentage = 0.0f;
+	if (!TryGetScalarPresetForEnum(
+		TEXT("PerfIndexValues_ResolutionQuality"),
+		Quality,
+		ResolutionPercentage))
+	{
+		return false;
+	}
+
+	Settings->SetResolutionScaleValueEx(ResolutionPercentage);
 
 	return true;
 }

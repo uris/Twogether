@@ -7,11 +7,14 @@
 #include "Blueprint/IUserObjectListEntry.h"
 #include "UIOptionsListEntry.generated.h"
 
+class UListEntryStyle;
+class UVerticalBox;
 class UCommonTextStyle;
 enum class EOptionsListModifiedReason : uint8;
 class UUICommonTextBase;
 class UOptionsListItemDataObject_Base;
 class UCommonTextBlock;
+
 /**
  *
  */
@@ -28,9 +31,15 @@ public:
 	FOnEntrySelectionRequested OnEntrySelectionRequested;
 
 	UPROPERTY(BlueprintReadOnly,
-		Category = "UI Options List Entry|DisplayName",
+		Category = "Custom Properties|DisplayName",
 		meta = (BindWidgetOptional))
 	TObjectPtr<UUICommonTextBase> SettingDisplayName;
+
+	UPROPERTY(BlueprintReadOnly, meta=(BindWidgetOptional))
+	TObjectPtr<UVerticalBox> EntryWrapper;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Style")
+	TObjectPtr<UListEntryStyle> ListEntryStyle;
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "UI Options List Entry")
 	void BP_NativeOnHovered(bool bHovered);
@@ -57,6 +66,9 @@ public:
 	virtual void ApplyEditabilityToControls(bool bInIsEditable);
 
 protected:
+	// empty override to apply global styles and for children to handle specific style updates
+	virtual void ApplyStyles();
+
 	// handle focus for gamepad input
 	virtual FReply NativeOnFocusReceived(const FGeometry& InGeometry, const FFocusEvent& InFocusEvent) override;
 
@@ -90,4 +102,7 @@ protected:
 
 	UPROPERTY(Transient)
 	TObjectPtr<UObject> CachedListItemObject;
+
+private:
+	void SetIndent(bool bHasParent) const;
 };

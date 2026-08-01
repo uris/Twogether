@@ -63,8 +63,6 @@ void UMultiplayerSubsystem::Deinitialize()
 
 	// call parent
 	Super::Deinitialize();
-
-	UE_LOG(LogTemp, Warning, TEXT("MSS deinitialized"));
 }
 
 void UMultiplayerSubsystem::HostGame(const FString& GameName)

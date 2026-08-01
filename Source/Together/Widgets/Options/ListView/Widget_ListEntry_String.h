@@ -8,6 +8,7 @@
 #include "Widgets/Options/ListView/UIOptionsListEntry.h"
 #include "Widget_ListEntry_String.generated.h"
 
+class UVerticalBox;
 class UListItemDataObject_String;
 class UUICommonRotator;
 class UUICommonTextBase;
@@ -21,21 +22,6 @@ class TOGETHER_API UWidget_ListEntry_String : public UUIOptionsListEntry
 	GENERATED_BODY()
 
 public:
-	UPROPERTY(EditAnywhere,
-		BlueprintReadWrite,
-		Category = "UI Options List Entry|Styles")
-	TSubclassOf<UCommonTextStyle> DefaultTextStyle;
-
-	UPROPERTY(EditAnywhere,
-		BlueprintReadWrite,
-		Category = "UI Options List Entry|Styles")
-	TSubclassOf<UCommonTextStyle> HoveredTextStyle;
-
-	UPROPERTY(EditAnywhere,
-		BlueprintReadWrite,
-		Category = "UI Options List Entry|Styles")
-	TSubclassOf<UCommonTextStyle> DisabledTextStyle;
-
 	TObjectPtr<UListItemDataObject_String> GetOwningListDataObject() const
 	{
 		return CachedOwningListDataObject;
@@ -60,6 +46,8 @@ protected:
 	virtual void NativeListEntryWidgetHovered(bool bInIsHovered) override;
 
 	virtual void NativeListEntryWidgetSelected(bool bInIsSelected) override;
+
+	virtual void ApplyStyles() override;
 
 private:
 	UPROPERTY(BlueprintReadOnly,
@@ -86,9 +74,6 @@ private:
 	void HandleRotatorClicked() const;
 	void HandleRotatedEvent(int32 Value, bool bUserInitiated) const;
 	void CycleSelection(EStringSettingDirection InDirection) const;
-
-	// apply hover/selected/default styles based on being owner of event
-	void ApplyStyleUpdates() const;
 
 	// utility to check is owner: unused for now
 	bool IsListDataObjectOwner(UUIOptionsListEntry* InObject) const;

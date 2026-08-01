@@ -269,19 +269,16 @@ void UWidget_OptionsScreen::SetSelectedItemDetails(UObject* InItem) const
 	UOptionsListItemDataObject_Base* SelectedItemDataObject;
 	if (InItem)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("InItem"));
 		SelectedItemDataObject = Cast<UOptionsListItemDataObject_Base>(InItem);
 	}
 	else
 	{
-		UE_LOG(LogTemp, Warning, TEXT("GetSelectedItem"));
 		SelectedItemDataObject = OptionsListView->GetSelectedItem<UOptionsListItemDataObject_Base>();
 	}
 
 	// if object exists set display of details, otherwise clear
 	if (SelectedItemDataObject)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Warning details for %s"), *SelectedItemDataObject->GetDisabledText().ToString());
 		const FString WidgetClassName = SelectedItemDataObject->GetClass()->GetName();
 		SettingDetails->UpdateDetailsView(SelectedItemDataObject, WidgetClassName);
 	}

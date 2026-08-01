@@ -213,9 +213,9 @@ void UOptionsListItemDataObject_Base::HandleDependencyTargetModified(
 	UOptionsListItemDataObject_Base* InModifiedData,
 	const EOptionsListModifiedReason InReason)
 {
-	// Dependency changes intentionally propagate only one level. Resetting is
-	// considered a direct user request and should trigger dependencies.
-	if (!InModifiedData || InReason == EOptionsListModifiedReason::DependencyModified)
+	// Dependencies react only to explicit user edits. Initialization, reset, and
+	// dependency-driven synchronization must not ripple into other settings.
+	if (!InModifiedData || InReason != EOptionsListModifiedReason::DirectlyModified)
 	{
 		return;
 	}

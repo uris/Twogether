@@ -5,6 +5,8 @@
 
 #include "CommonInputSubsystem.h"
 #include "CommonInputTypeEnum.h"
+#include "ListEntryStyle.h"
+#include "Components/VerticalBox.h"
 #include "Widgets/Components/UICommonTextBase.h"
 #include "Widgets/Components/UISliderBase.h"
 #include "Widgets/Options/DataObjects/ListItemDataObject_Scalar.h"
@@ -25,7 +27,12 @@ void UWidget_ListEntry_Scalar::NativePreConstruct()
 {
 	Super::NativePreConstruct();
 
-	ApplyStyleUpdates();
+	ApplyStyles();
+
+	if (Slider && IsValid(ListEntryStyle))
+	{
+		Slider->UpdateTextStyles(ListEntryStyle->ValueTextStyle);
+	}
 }
 
 void UWidget_ListEntry_Scalar::OnOwningListDataObjectSet(UOptionsListItemDataObject_Base* InOwningListDataObject)
@@ -46,6 +53,7 @@ void UWidget_ListEntry_Scalar::OnOwningListDataObjectSet(UOptionsListItemDataObj
 	}
 	if (Slider->Slider)
 	{
+		TGuardValue<bool> UpdatingGuard(bUpdatingFromDataObject, true);
 		// update analog slider
 		Slider->Slider->SetMinValue(CachedOwningScalarObject->GetValueRange().GetLowerBoundValue());
 		Slider->Slider->SetMaxValue(CachedOwningScalarObject->GetValueRange().GetUpperBoundValue());
@@ -70,6 +78,7 @@ void UWidget_ListEntry_Scalar::OnOwningListDataObjectModified(UOptionsListItemDa
 	}
 	if (Slider->Slider)
 	{
+		TGuardValue<bool> UpdatingGuard(bUpdatingFromDataObject, true);
 		Slider->Slider->SetValue(CachedOwningScalarObject->GetCurrentValue());
 	}
 }
@@ -96,7 +105,7 @@ void UWidget_ListEntry_Scalar::NativeListEntryWidgetHovered(const bool bInIsHove
 		return;
 	}
 	bIsHovered = bInIsHovered;
-	ApplyStyleUpdates();
+	ApplyStyles();
 
 	Super::NativeListEntryWidgetHovered(bInIsHovered);
 }
@@ -104,7 +113,7 @@ void UWidget_ListEntry_Scalar::NativeListEntryWidgetHovered(const bool bInIsHove
 void UWidget_ListEntry_Scalar::NativeListEntryWidgetSelected(const bool bInIsSelected)
 {
 	bIsSelected = bInIsSelected;
-	ApplyStyleUpdates();
+	ApplyStyles();
 
 	Super::NativeListEntryWidgetSelected(bInIsSelected);
 }
@@ -118,12 +127,12 @@ void UWidget_ListEntry_Scalar::ApplyEditabilityToControls(const bool bInIsEditab
 		Slider->Slider->SetIsEnabled(bInIsEditable);
 	}
 
-	ApplyStyleUpdates();
+	ApplyStyles();
 }
 
 void UWidget_ListEntry_Scalar::HandleOnValueChanged(const float InVolume) const
 {
-	if (IsValid(CachedOwningScalarObject))
+	if (!bUpdatingFromDataObject && IsValid(CachedOwningScalarObject))
 	{
 		CachedOwningScalarObject->SetCurrentValue(InVolume);
 	}
@@ -133,36 +142,44 @@ void UWidget_ListEntry_Scalar::HandleOnMouseCaptureBegin()
 {
 	bIsSelected = true;
 	bIsHovered = true;
-	ApplyStyleUpdates();
+	ApplyStyles();
 	RequestOwningItemSelection(); // request row item gets selected
 }
 
-void UWidget_ListEntry_Scalar::ApplyStyleUpdates() const
+void UWidget_ListEntry_Scalar::ApplyStyles()
 {
+	Super::ApplyStyles();
+
+	if (!IsValid(ListEntryStyle))
+	{
+		return;
+	}
+
+	const FListTextStyle EntryStyle = ListEntryStyle->ItemTextStyle;
 
 	// if disabled, set the disabled style
 	if (!bIsEditable)
 	{
-		if (SettingDisplayName && DisabledTextStyle)
+		if (SettingDisplayName && EntryStyle.DisabledTextStyle)
 		{
-			SettingDisplayName->SetStyle(DisabledTextStyle);
+			SettingDisplayName->SetStyle(EntryStyle.DisabledTextStyle);
 		}
 		return;
 	}
 
 	// otherwise set normal or hovered
-	if ((bIsSelected || bIsHovered) && HoveredTextStyle)
+	if ((bIsSelected || bIsHovered) && EntryStyle.HoveredTextStyle)
 	{
 		if (SettingDisplayName)
 		{
-			SettingDisplayName->SetStyle(HoveredTextStyle);
+			SettingDisplayName->SetStyle(EntryStyle.HoveredTextStyle);
 		}
 	}
-	else if (DefaultTextStyle)
+	else if (EntryStyle.DefaultTextStyle)
 	{
 		if (SettingDisplayName)
 		{
-			SettingDisplayName->SetStyle(DefaultTextStyle);
+			SettingDisplayName->SetStyle(EntryStyle.DefaultTextStyle);
 		}
 	}
 
@@ -170,5 +187,4 @@ void UWidget_ListEntry_Scalar::ApplyStyleUpdates() const
 	{
 		Slider->UpdateSliderStyle(bIsSelected, bIsHovered);
 	}
-
 }

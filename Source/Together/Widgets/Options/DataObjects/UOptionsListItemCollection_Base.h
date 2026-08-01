@@ -18,6 +18,7 @@ public:
 	void AddChildListData(UOptionsListItemDataObject_Base* InChildData);
 	virtual TArray<UOptionsListItemDataObject_Base*> GetAllChildListData() const override;
 	virtual bool HasAnyChildListData() const;
+	int32 EntryIndex;
 
 private:
 	UPROPERTY(Transient)

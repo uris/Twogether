@@ -6,9 +6,9 @@
 #include "CommonTextBlock.h"
 #include "Components/RichTextBlock.h"
 #include "CommonLazyImage.h"
-#include "Components/NamedSlot.h"
 #include "DataObjects/OptionsListItemDataObject_Base.h"
 #include "Settings/TogetherSettings.h"
+#include "Settings/UserSettingTypes.h"
 #include "Subsystems/UI/UISubsystem.h"
 
 void UWidget_OptionsDetails::NativeConstruct()
@@ -155,12 +155,13 @@ void UWidget_OptionsDetails::SetWidget(const UOptionsListItemDataObject_Base* In
 {
 	ClearWidget();
 
-	if (!InListItemData || InListItemData->GetDescriptionWidget().IsNull() || !SizeBoxSlot)
+	if (!InListItemData || InListItemData->GetDescriptionWidget().WidgetClass.IsNull() || !SizeBoxSlot)
 	{
 		return;
 	}
 
-	UClass* LoadedClass = InListItemData->GetDescriptionWidget().LoadSynchronous();
+	const TSoftClassPtr<UUserWidget> WidgetClass = InListItemData->GetDescriptionWidget().WidgetClass;
+	UClass* LoadedClass = WidgetClass.LoadSynchronous();
 	if (!LoadedClass)
 	{
 		return;
@@ -170,8 +171,9 @@ void UWidget_OptionsDetails::SetWidget(const UOptionsListItemDataObject_Base* In
 	if (LoadedOptionalWidget)
 	{
 		SizeBoxSlot->AddChild(LoadedOptionalWidget);
+		// SizeBoxSlot->SetMinDesiredHeight(InListItemData->GetDescriptionWidget().MinDesiredHeight);
+		// SizeBoxSlot->SetMinDesiredWidth(InListItemData->GetDescriptionWidget().MinDesiredWidth);
 		SizeBoxSlot->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
-		SizeBoxSlot->SetMinDesiredHeight(400.f);
 	}
 }
 
@@ -181,6 +183,8 @@ void UWidget_OptionsDetails::ClearWidget()
 	{
 		SizeBoxSlot->ClearChildren();
 		SizeBoxSlot->SetVisibility(ESlateVisibility::Collapsed);
+		// SizeBoxSlot->SetMinDesiredHeight(0.f);
+		// SizeBoxSlot->SetMinDesiredWidth(0.f);
 	}
 
 	LoadedOptionalWidget = nullptr;

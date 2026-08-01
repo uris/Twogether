@@ -88,7 +88,6 @@ void UWidget_TabList::GenerateEditorTabs()
 	TabHolder->ClearChildren();
 	for (int i = 0; i < GetEditorTabCount(); ++i)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Tab Add"));
 		AddTabInEditor();
 	}
 

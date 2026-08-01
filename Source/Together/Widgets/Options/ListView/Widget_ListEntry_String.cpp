@@ -4,6 +4,9 @@
 #include "Widgets/Options/ListView/Widget_ListEntry_String.h"
 
 #include "CommonInputSubsystem.h"
+#include "ListEntryStyle.h"
+#include "Components/OverlaySlot.h"
+#include "Components/VerticalBox.h"
 #include "Utility/Debug.h"
 #include "Widgets/Components/UICommonButtonBase.h"
 #include "Widgets/Components/UICommonRotator.h"
@@ -31,14 +34,14 @@ void UWidget_ListEntry_String::NativeOnInitialized()
 		SettingRotator->OnRotatedEvent.AddUObject(this, &ThisClass::HandleRotatedEvent);
 	}
 
-	ApplyStyleUpdates();
+	ApplyStyles();
 }
 
 void UWidget_ListEntry_String::NativePreConstruct()
 {
 	Super::NativePreConstruct();
 
-	ApplyStyleUpdates();
+	ApplyStyles();
 }
 
 void UWidget_ListEntry_String::NativeDestruct()
@@ -60,7 +63,7 @@ void UWidget_ListEntry_String::OnOwningListDataObjectSet(UOptionsListItemDataObj
 	SettingRotator->SetSelectedOptionByText(CachedOwningListDataObject->GetCurrentDisplayText());
 
 	// update styles
-	ApplyStyleUpdates();
+	ApplyStyles();
 }
 
 void UWidget_ListEntry_String::OnOwningListDataObjectModified(UOptionsListItemDataObject_Base* InOwningListDataObject,
@@ -92,7 +95,7 @@ void UWidget_ListEntry_String::ApplyEditabilityToControls(const bool bInIsEditab
 	}
 
 	// update styles
-	ApplyStyleUpdates();
+	ApplyStyles();
 }
 
 FReply UWidget_ListEntry_String::NativeOnFocusReceived(const FGeometry& InGeometry, const FFocusEvent& InFocusEvent)
@@ -117,7 +120,7 @@ void UWidget_ListEntry_String::NativeListEntryWidgetHovered(const bool bInIsHove
 		return;
 	}
 	bIsHovered = bInIsHovered;
-	ApplyStyleUpdates();
+	ApplyStyles();
 
 	Super::NativeListEntryWidgetHovered(bInIsHovered);
 }
@@ -125,7 +128,7 @@ void UWidget_ListEntry_String::NativeListEntryWidgetHovered(const bool bInIsHove
 void UWidget_ListEntry_String::NativeListEntryWidgetSelected(const bool bInIsSelected)
 {
 	bIsSelected = bInIsSelected;
-	ApplyStyleUpdates();
+	ApplyStyles();
 
 	Super::NativeListEntryWidgetSelected(bInIsSelected);
 }
@@ -181,38 +184,47 @@ void UWidget_ListEntry_String::CycleSelection(const EStringSettingDirection InDi
 	}
 }
 
-void UWidget_ListEntry_String::ApplyStyleUpdates() const
+void UWidget_ListEntry_String::ApplyStyles()
 {
+	Super::ApplyStyles();
+
+	if (!IsValid(ListEntryStyle))
+	{
+		return;
+	}
+
+	const FListTextStyle ItemEntryStyle = ListEntryStyle->ItemTextStyle;
+	const FListTextStyle ValueEntryStyle = ListEntryStyle->ValueTextStyle;
 
 	if (!bIsEditable)
 	{
-		if (SettingDisplayName && DisabledTextStyle)
+		if (SettingDisplayName && ItemEntryStyle.DisabledTextStyle)
 		{
-			SettingDisplayName->SetStyle(DisabledTextStyle);
+			SettingDisplayName->SetStyle(ItemEntryStyle.DisabledTextStyle);
 		}
 		return;
 	}
 
-	if ((bIsSelected || bIsHovered) && HoveredTextStyle)
+	if ((bIsSelected || bIsHovered))
 	{
-		if (SettingDisplayName)
+		if (SettingDisplayName && ItemEntryStyle.HoveredTextStyle)
 		{
-			SettingDisplayName->SetStyle(HoveredTextStyle);
+			SettingDisplayName->SetStyle(ItemEntryStyle.HoveredTextStyle);
 		}
-		if (SettingRotator)
+		if (SettingRotator && ValueEntryStyle.HoveredTextStyle)
 		{
-			SettingRotator->SetTextStyle(HoveredTextStyle);
+			SettingRotator->SetTextStyle(ValueEntryStyle.HoveredTextStyle);
 		}
 	}
-	else if (DefaultTextStyle)
+	else
 	{
-		if (SettingDisplayName)
+		if (SettingDisplayName && ItemEntryStyle.DefaultTextStyle)
 		{
-			SettingDisplayName->SetStyle(DefaultTextStyle);
+			SettingDisplayName->SetStyle(ItemEntryStyle.DefaultTextStyle);
 		}
-		if (SettingRotator)
+		if (SettingRotator && ValueEntryStyle.DefaultTextStyle)
 		{
-			SettingRotator->SetTextStyle(DefaultTextStyle);
+			SettingRotator->SetTextStyle(ValueEntryStyle.DefaultTextStyle);
 		}
 	}
 }

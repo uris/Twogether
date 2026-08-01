@@ -5,6 +5,7 @@
 #include "Components/CanvasPanelSlot.h"
 #include "Components/Image.h"
 #include "Components/SizeBox.h"
+#include "Widgets/Options/ListView/ListEntryStyle.h"
 
 void UUISliderBase::NativePreConstruct()
 {
@@ -144,7 +145,12 @@ void UUISliderBase::UpdateSliderStyle(const bool bIsSelected, const bool bIsHove
 	FLinearColor CurrentHandleColor = HandleColor;
 	TSubclassOf<UCommonTextStyle> CurrentValueTextStyle = ValueDefaultTextStyle;
 
-	if (bIsSelected)
+	if (!GetIsEnabled() && SliderValue && ValueDisabledTextStyle)
+	{
+		CurrentValueTextStyle = ValueDisabledTextStyle;
+	}
+
+	else if (bIsSelected)
 	{
 		CurrentBarColor = BarColorSelected;
 		CurrentHandleColor = HandleColorSelected;
@@ -175,5 +181,22 @@ void UUISliderBase::UpdateSliderStyle(const bool bIsSelected, const bool bIsHove
 	if (SliderValue && CurrentValueTextStyle)
 	{
 		SliderValue->SetStyle(CurrentValueTextStyle);
+	}
+}
+
+void UUISliderBase::UpdateTextStyles(const FListTextStyle& InTextStyles)
+{
+	if (InTextStyles.DefaultTextStyle)
+	{
+		ValueDefaultTextStyle = InTextStyles.DefaultTextStyle;
+	}
+	if (InTextStyles.HoveredTextStyle)
+	{
+		ValueHoveredTextStyle = InTextStyles.HoveredTextStyle;
+		ValueSelectedTextStyle = InTextStyles.HoveredTextStyle;
+	}
+	if (InTextStyles.DisabledTextStyle)
+	{
+		ValueDisabledTextStyle = InTextStyles.DisabledTextStyle;
 	}
 }

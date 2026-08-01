@@ -5,6 +5,10 @@
 
 #include "CommonInputSubsystem.h"
 #include "CommonTextBlock.h"
+#include "ListEntryStyle.h"
+#include "Together.h"
+#include "Components/OverlaySlot.h"
+#include "Components/VerticalBox.h"
 #include "Utility/Debug.h"
 #include "Widgets/Components/UICommonTextBase.h"
 #include "Widgets/Options/DataObjects/OptionsListItemDataObject_Base.h"
@@ -70,6 +74,11 @@ void UUIOptionsListEntry::OnOwningListDataObjectSet(UOptionsListItemDataObject_B
 			&ThisClass::HandleEditabilityChanged);
 	}
 
+	if (InOwningListDataObject)
+	{
+		SetIndent(InOwningListDataObject->GetbIsChildEntry());
+	}
+
 	// call handle editable to immediately update the visual state of the entry
 	HandleEditabilityChanged(InOwningListDataObject->IsEditable());
 }
@@ -113,6 +122,7 @@ void UUIOptionsListEntry::RequestOwningItemSelection() const
 	}
 }
 
+
 void UUIOptionsListEntry::NativeOnMouseEnter(
 	const FGeometry& InGeometry,
 	const FPointerEvent& InMouseEvent)
@@ -136,4 +146,24 @@ void UUIOptionsListEntry::NativeListEntryWidgetHovered(const bool bInIsHovered)
 void UUIOptionsListEntry::NativeListEntryWidgetSelected(bool bInIsSelected)
 {
 	BP_NativeOnSelected(bInIsSelected);
+}
+
+void UUIOptionsListEntry::ApplyStyles()
+{
+	// empty
+}
+
+void UUIOptionsListEntry::SetIndent(const bool bHasParent) const
+{
+	if (EntryWrapper && ListEntryStyle)
+	{
+		if (UOverlaySlot* WrapperSlot = Cast<UOverlaySlot>(EntryWrapper->Slot))
+		{
+			WrapperSlot->SetPadding(FMargin(
+				bHasParent ? ListEntryStyle->IndentPadding : ListEntryStyle->DefaultPadding,
+				0.0f,
+				ListEntryStyle->DefaultPadding,
+				0.0f));
+		}
+	}
 }

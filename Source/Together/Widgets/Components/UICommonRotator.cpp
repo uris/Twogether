@@ -17,7 +17,7 @@ void UUICommonRotator::SetSelectedOptionByText(const FText& InTextOption)
 	}
 }
 
-void UUICommonRotator::SetTextStyle(const TSubclassOf<UCommonTextStyle> InTextStyle)
+void UUICommonRotator::SetTextStyle(const TSubclassOf<UCommonTextStyle>& InTextStyle) const
 {
 	MyText->SetStyle(InTextStyle);
 }
