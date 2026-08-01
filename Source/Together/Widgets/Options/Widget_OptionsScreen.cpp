@@ -64,7 +64,6 @@ void UWidget_OptionsScreen::NativeConstruct()
 		OptionsListView->OnItemIsHoveredChanged().AddUObject(this, &ThisClass::HandleEntryHoveredChange);
 		OptionsListView->OnItemSelectionChanged().AddUObject(this, &ThisClass::HandleEntrySelectionChange);
 	}
-
 }
 
 void UWidget_OptionsScreen::NativeDestruct()
@@ -108,7 +107,10 @@ UWidget* UWidget_OptionsScreen::NativeGetDesiredFocusTarget() const
 void UWidget_OptionsScreen::NativeOnActivated()
 {
 	Super::NativeOnActivated();
+
 	StartBackgroundOpacityTransition();
+
+	SetBottomBorderVisibility();
 
 	// set up the option registry
 	OptionsRegistry = GetOrCreateOptionsRegistry();
@@ -141,6 +143,17 @@ void UWidget_OptionsScreen::NativeOnDeactivated()
 void UWidget_OptionsScreen::NativeTick(const FGeometry& MyGeometry, const float InDeltaTime)
 {
 	Super::NativeTick(MyGeometry, InDeltaTime);
+
+	const FVector2D NewSize = MyGeometry.GetLocalSize();
+	if (CachedSize.IsZero())
+	{
+		CachedSize = NewSize;
+	}
+	else if (!NewSize.Equals(CachedSize))
+	{
+		CachedSize = NewSize;
+		HandleScreenResize(NewSize, CachedSize);
+	}
 
 	if (!bBackgroundOpacityTransitionActive || !TabOptionsBackground)
 	{
@@ -526,4 +539,23 @@ int32 UWidget_OptionsScreen::GetFirstSelectableItemIndexInList() const
 	}
 
 	return INDEX_NONE;
+}
+
+void UWidget_OptionsScreen::HandleScreenResize(const FVector2D& NewScreenSize, const FVector2D& PreviousScreenSize)
+{
+	SetBottomBorderVisibility();
+}
+
+void UWidget_OptionsScreen::SetBottomBorderVisibility() const
+{
+	if (OptionsListView && BottomBorder)
+	{
+		BottomBorder->SetVisibility(OptionsListView->IsScrollBarVisible()
+			                            ? ESlateVisibility::SelfHitTestInvisible
+			                            : ESlateVisibility::Collapsed);
+	}
+	else
+	{
+		BottomBorder->SetVisibility(ESlateVisibility::Collapsed);
+	}
 }

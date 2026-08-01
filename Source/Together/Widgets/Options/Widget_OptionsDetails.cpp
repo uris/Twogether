@@ -6,6 +6,7 @@
 #include "CommonTextBlock.h"
 #include "Components/RichTextBlock.h"
 #include "CommonLazyImage.h"
+#include "UIFunctionLibrary.h"
 #include "DataObjects/OptionsListItemDataObject_Base.h"
 #include "Settings/TogetherSettings.h"
 #include "Settings/UserSettingTypes.h"
@@ -92,7 +93,7 @@ void UWidget_OptionsDetails::SetDescription(const UOptionsListItemDataObject_Bas
 	}
 	if (InListItemData)
 	{
-		const FText Value = InListItemData->GetDescription();
+		const FText Value = UUIFunctionLibrary::FormatRichText(InListItemData->GetDescription());
 		Description->SetText(Value.IsEmpty() ? FText::GetEmpty() : Value);
 		Description->SetVisibility(Value.IsEmpty() ? ESlateVisibility::Collapsed : ESlateVisibility::Visible);
 	}
@@ -111,7 +112,8 @@ void UWidget_OptionsDetails::SetMessage(const UOptionsListItemDataObject_Base* I
 	}
 	if (InListItemData)
 	{
-		const FText Value = InListItemData->GetDisabledText();
+		const FString MessageText = TEXT("<Message>") + InListItemData->GetDisabledText().ToString() + TEXT("</>");
+		const FText Value = UUIFunctionLibrary::FormatRichText(MessageText);
 		Message->SetText(Value.IsEmpty() ? FText::GetEmpty() : Value);
 		Message->SetVisibility(Value.IsEmpty() ? ESlateVisibility::Collapsed : ESlateVisibility::Visible);
 	}
@@ -171,8 +173,6 @@ void UWidget_OptionsDetails::SetWidget(const UOptionsListItemDataObject_Base* In
 	if (LoadedOptionalWidget)
 	{
 		SizeBoxSlot->AddChild(LoadedOptionalWidget);
-		// SizeBoxSlot->SetMinDesiredHeight(InListItemData->GetDescriptionWidget().MinDesiredHeight);
-		// SizeBoxSlot->SetMinDesiredWidth(InListItemData->GetDescriptionWidget().MinDesiredWidth);
 		SizeBoxSlot->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
 	}
 }
@@ -183,8 +183,6 @@ void UWidget_OptionsDetails::ClearWidget()
 	{
 		SizeBoxSlot->ClearChildren();
 		SizeBoxSlot->SetVisibility(ESlateVisibility::Collapsed);
-		// SizeBoxSlot->SetMinDesiredHeight(0.f);
-		// SizeBoxSlot->SetMinDesiredWidth(0.f);
 	}
 
 	LoadedOptionalWidget = nullptr;

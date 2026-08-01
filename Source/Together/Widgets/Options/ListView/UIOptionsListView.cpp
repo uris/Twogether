@@ -25,6 +25,11 @@ void UUIOptionsListView::ValidateCompiledDefaults(class IWidgetCompilerLog& Comp
 }
 #endif
 
+bool UUIOptionsListView::IsScrollBarVisible() const
+{
+	return MyListView.IsValid() && MyListView->IsScrollbarNeeded();
+}
+
 bool UUIOptionsListView::OnIsSelectableOrNavigableInternal(UObject* FirstSelectedItem)
 {
 	// collection types should not be selectable - return false if item is subclassed as collection

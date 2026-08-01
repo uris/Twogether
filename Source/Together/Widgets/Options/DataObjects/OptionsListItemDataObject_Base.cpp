@@ -74,7 +74,8 @@ bool UOptionsListItemDataObject_Base::AreEditConditionsMet()
 	if (bDisableInEditorPreview && UUIFunctionLibrary::IsPreviewingInEditor())
 	{
 		InsertDisabledText(
-			FText::FromString(TEXT("Cannot edit or modify this setting while in editor or and editor preview window")));
+			FText::FromString(
+				TEXT("Note: You cannot edit or modify this setting while in editor or and editor preview window")));
 		return false;
 	}
 

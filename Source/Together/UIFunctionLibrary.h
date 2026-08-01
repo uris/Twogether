@@ -64,6 +64,10 @@ public :
 	UFUNCTION(BlueprintPure, Category = "Editor Preview")
 	static bool IsPreviewingInEditor();
 
+	UFUNCTION(BlueprintPure, Category = "Editor Preview")
+	static FText FormatRichText(const FString& Input);
+	static FText FormatRichText(const FText& Input);
+
 	// transform an enum entry into float values along a provided range, mapping the
 	// total number of entries to the range and deriving the intervals for each index asc.
 	template <typename EnumType>

@@ -390,10 +390,6 @@ FString UNativeSettingsHelper::GetActiveScalabilityLevel()
 {
 	if (const UGameUserSettings* Settings = UGameUserSettings::GetGameUserSettings())
 	{
-		UE_LOG(LogTemp,
-		       Warning,
-		       TEXT("GetActiveScalabilityLevel: %s"),
-		       *LexToString(Settings->GetOverallScalabilityLevel()));
 		return LexToString(Settings->GetOverallScalabilityLevel());
 	}
 	return TEXT("1");
@@ -414,12 +410,6 @@ bool UNativeSettingsHelper::SetActiveScalabilityLevel(const FString& InValue)
 		// in Unreal's native scalability state.
 		return false;
 	}
-
-	UE_LOG(LogTemp,
-	       Warning,
-	       TEXT("SetOverallScalabilityLevel: InValue: %s, EnumValue: %i"),
-	       *InValue,
-	       static_cast<int32>(Quality));
 	Settings->SetOverallScalabilityLevel(static_cast<int32>(Quality));
 	return true;
 }

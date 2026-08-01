@@ -168,3 +168,14 @@ bool UUIFunctionLibrary::IsPreviewingInEditor()
 	return GIsEditor || GIsPlayInEditorWorld;
 }
 
+FText UUIFunctionLibrary::FormatRichText(const FText& Input)
+{
+	return FormatRichText(Input.ToString());
+}
+
+FText UUIFunctionLibrary::FormatRichText(const FString& Input)
+{
+	FString Result = Input;
+	Result.ReplaceInline(TEXT("<br/>"), TEXT("\n"));
+	return FText::FromString(Result);
+}

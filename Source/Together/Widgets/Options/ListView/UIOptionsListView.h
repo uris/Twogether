@@ -15,6 +15,10 @@ class TOGETHER_API UUIOptionsListView : public UCommonListView
 {
 	GENERATED_BODY()
 
+public:
+	UFUNCTION(BlueprintPure)
+	bool IsScrollBarVisible() const;
+
 protected:
 	virtual bool OnIsSelectableOrNavigableInternal(UObject* FirstSelectedItem) override;
 

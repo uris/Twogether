@@ -160,9 +160,9 @@ void UWidget_ListEntry_Scalar::ApplyStyles()
 	// if disabled, set the disabled style
 	if (!bIsEditable)
 	{
-		if (SettingDisplayName && EntryStyle.DisabledTextStyle)
+		if (SettingDisplayName && EntryStyle.DisabledTextStyle && EntryStyle.HoveredTextStyle)
 		{
-			SettingDisplayName->SetStyle(EntryStyle.DisabledTextStyle);
+			SettingDisplayName->SetStyle(bIsHovered ? EntryStyle.HoveredTextStyle : EntryStyle.DisabledTextStyle);
 		}
 		return;
 	}

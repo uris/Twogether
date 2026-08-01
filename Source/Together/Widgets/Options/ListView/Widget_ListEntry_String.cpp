@@ -198,9 +198,10 @@ void UWidget_ListEntry_String::ApplyStyles()
 
 	if (!bIsEditable)
 	{
-		if (SettingDisplayName && ItemEntryStyle.DisabledTextStyle)
+		if (SettingDisplayName && ItemEntryStyle.DisabledTextStyle && ItemEntryStyle.HoveredTextStyle)
 		{
-			SettingDisplayName->SetStyle(ItemEntryStyle.DisabledTextStyle);
+			SettingDisplayName->SetStyle(
+				bIsHovered ? ItemEntryStyle.HoveredTextStyle : ItemEntryStyle.DisabledTextStyle);
 		}
 		return;
 	}

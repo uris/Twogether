@@ -9,6 +9,7 @@
 #include "Widgets/Base/Widget_ActivatableBase.h"
 #include "Widget_OptionsScreen.generated.h"
 
+class USizeBox;
 enum class EOptionsListModifiedReason : uint8;
 class UOptionsListItemDataObject_Base;
 class UWidget_OptionsDetails;
@@ -52,6 +53,10 @@ protected:
 	// generate registry
 	UOptionsDataRegistry* GetOrCreateOptionsRegistry();
 
+	// layout helpers
+	virtual void HandleScreenResize(const FVector2D& NewScreenSize, const FVector2D& PreviousScreenSize);
+	void SetBottomBorderVisibility() const;
+
 private:
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UUIOptionsListView> OptionsListView;
@@ -64,6 +69,9 @@ private:
 
 	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<UWidget_OptionsDetails> SettingDetails;
+
+	UPROPERTY(meta = (BindWidgetOptional))
+	TObjectPtr<USizeBox> BottomBorder;
 
 	UPROPERTY(EditAnywhere,
 		BlueprintReadWrite,
@@ -126,4 +134,7 @@ private:
 	float EvaluateBackgroundTransitionAlpha(float Alpha) const;
 	bool bBackgroundOpacityTransitionActive = false;
 	float BackgroundOpacityTransitionElapsed = 0.0f;
+
+	// screen resize helper
+	FVector2D CachedSize = FVector2D::ZeroVector;
 };
