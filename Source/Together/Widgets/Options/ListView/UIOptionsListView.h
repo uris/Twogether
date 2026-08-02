@@ -27,6 +27,10 @@ public:
 	UFUNCTION(BlueprintPure)
 	bool IsScrollBarVisible() const;
 
+#if WITH_EDITOR
+	virtual void ValidateCompiledDefaults(class IWidgetCompilerLog& CompileLog) const override;
+#endif
+
 protected:
 	virtual void NativeOnEntriesGenerated() override;
 
@@ -37,10 +41,6 @@ protected:
 	                                                   const TSharedRef<STableViewBase>& OwnerTable) override;
 
 private:
-#if WITH_EDITOR
-	virtual void ValidateCompiledDefaults(class IWidgetCompilerLog& CompileLog) const override;
-#endif
-
 	UPROPERTY(EditAnywhere, Category="List View Settings")
 	TObjectPtr<UData_OptionsListEntryMapping> DataLisEntryMapping;
 

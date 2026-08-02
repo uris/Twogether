@@ -19,6 +19,8 @@ inline const FName ResolutionScaleNormalized(TEXT("ResolutionScaleNormalized"));
 inline const FName GlobalIlluminationQuality(TEXT("GlobalIlluminationQuality"));
 inline const FName ShadowQuality(TEXT("ShadowQuality"));
 inline const FName AntiAliasingQuality(TEXT("AntiAliasingQuality"));
+inline const FName ViewDistanceQuality(TEXT("ViewDistanceQuality"));
+inline const FName TextureQuality(TEXT("TextureQuality"));
 }
 
 inline FName GetNativeSettingId(const ENativeUnrealSettings NativeSetting)
@@ -41,6 +43,10 @@ inline FName GetNativeSettingId(const ENativeUnrealSettings NativeSetting)
 			return NativeSettingIds::ShadowQuality;
 		case ENativeUnrealSettings::AntiAliasingQuality:
 			return NativeSettingIds::AntiAliasingQuality;
+		case ENativeUnrealSettings::TextureQuality:
+			return NativeSettingIds::TextureQuality;
+		case ENativeUnrealSettings::ViewDistanceQuality:
+			return NativeSettingIds::ViewDistanceQuality;
 		default:
 			return NativeSettingIds::Invalid;
 	}
@@ -53,5 +59,15 @@ enum class ENormalizedGraphicsQuality : uint8
 	Medium = 1 UMETA(DisplayName = "Medium"),
 	High = 2 UMETA(DisplayName = "High"),
 	Epic = 3 UMETA(DisplayName = "Epic"),
+	Cinematic = 4 UMETA(DisplayName = "Cinematic"),
+};
+
+UENUM(BlueprintType)
+enum class EViewDistanceQuality : uint8
+{
+	Low = 0 UMETA(DisplayName = "Near"),
+	Medium = 1 UMETA(DisplayName = "Medium"),
+	High = 2 UMETA(DisplayName = "Far"),
+	Epic = 3 UMETA(DisplayName = "Very Far"),
 	Cinematic = 4 UMETA(DisplayName = "Cinematic"),
 };

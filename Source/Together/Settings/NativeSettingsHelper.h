@@ -115,4 +115,20 @@ public:
 	UFUNCTION(BlueprintCallable, Category="Game Settings|Video")
 	static bool SetAntiAliasingQuality(const FString& InValue);
 
+	// *** VIEW DISTANCE QUALITY *** //
+
+	UFUNCTION(BlueprintCallable, Category="Game Settings|Video")
+	static FString GetViewDistanceQuality();
+
+	UFUNCTION(BlueprintCallable, Category="Game Settings|Video")
+	static bool SetViewDistanceQuality(const FString& InValue);
+
+	// *** TEXTURE QUALITY *** //
+
+	UFUNCTION(BlueprintCallable, Category="Game Settings|Video")
+	static FString GetTextureQuality();
+
+	UFUNCTION(BlueprintCallable, Category="Game Settings|Video")
+	static bool SetTextureQuality(const FString& InValue);
+
 };

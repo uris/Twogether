@@ -318,6 +318,16 @@ FString UUserSettings::GetNativeSettingValue(const FName InSettingId)
 		return UNativeSettingsHelper::GetShadowQuality();
 	}
 
+	if (InSettingId == NativeSettingIds::ViewDistanceQuality)
+	{
+		return UNativeSettingsHelper::GetViewDistanceQuality();
+	}
+
+	if (InSettingId == NativeSettingIds::TextureQuality)
+	{
+		return UNativeSettingsHelper::GetTextureQuality();
+	}
+
 	return FString();
 }
 
@@ -356,6 +366,16 @@ bool UUserSettings::SetNativeSettingValue(const FName InSettingId, const FString
 	if (InSettingId == NativeSettingIds::ShadowQuality)
 	{
 		return UNativeSettingsHelper::SetShadowQuality(InValue);
+	}
+
+	if (InSettingId == NativeSettingIds::TextureQuality)
+	{
+		return UNativeSettingsHelper::SetTextureQuality(InValue);
+	}
+
+	if (InSettingId == NativeSettingIds::ViewDistanceQuality)
+	{
+		return UNativeSettingsHelper::SetViewDistanceQuality(InValue);
 	}
 
 	// *** Fallback *** //

@@ -61,10 +61,12 @@ void UWidget_OptionsScreen::NativeConstruct()
 		OptionsListView->OnEntryWidgetGenerated().RemoveAll(this);
 		OptionsListView->OnItemIsHoveredChanged().RemoveAll(this);
 		OptionsListView->OnItemSelectionChanged().RemoveAll(this);
+		OptionsListView->OnEntriesGenerated().RemoveAll(this);
 
 		OptionsListView->OnEntryWidgetGenerated().AddUObject(this, &ThisClass::HandleEntryGenerated);
 		OptionsListView->OnItemIsHoveredChanged().AddUObject(this, &ThisClass::HandleEntryHoveredChange);
 		OptionsListView->OnItemSelectionChanged().AddUObject(this, &ThisClass::HandleEntrySelectionChange);
+		OptionsListView->OnEntriesGenerated().AddUObject(this, &ThisClass::HandleEntriesGenerated);
 
 	}
 }
@@ -557,4 +559,13 @@ int32 UWidget_OptionsScreen::GetFirstSelectableItemIndexInList() const
 void UWidget_OptionsScreen::HandleScreenResize(const FVector2D& NewScreenSize, const FVector2D& PreviousScreenSize)
 {
 	// overridable by children
+}
+
+void UWidget_OptionsScreen::HandleEntriesGenerated(const int32 NumEntries) const
+{
+	if (OptionsListView && ListViewBottomBorder)
+	{
+		const bool bShowBorder = OptionsListView->IsScrollBarVisible();
+		ListViewBottomBorder->SetVisibility(bShowBorder ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
+	}
 }

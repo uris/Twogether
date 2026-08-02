@@ -30,6 +30,9 @@ public:
 	UFUNCTION()
 	void HandleTabSelected(FName TagId);
 
+	UFUNCTION()
+	void HandleEntriesGenerated(int32 NumEntries) const;
+
 protected:
 	// setup interfaces
 	virtual void NativeOnInitialized() override;
@@ -58,16 +61,19 @@ protected:
 	virtual void HandleScreenResize(const FVector2D& NewScreenSize, const FVector2D& PreviousScreenSize);
 
 private:
-	UPROPERTY(meta = (BindWidget))
+	UPROPERTY(meta = (BindWidget, AllowPrivateAccess = "true"))
 	TObjectPtr<UUIOptionsListView> OptionsListView;
 
-	UPROPERTY(meta = (BindWidget))
+	UPROPERTY(meta = (BindWidgetOptional, AllowPrivateAccess = "true"))
+	TObjectPtr<USizeBox> ListViewBottomBorder;
+
+	UPROPERTY(meta = (BindWidget, AllowPrivateAccess = "true"))
 	TObjectPtr<UUICommonTabListWidgetBase> TabOptionsWidget;
 
-	UPROPERTY(meta = (BindWidgetOptional))
+	UPROPERTY(meta = (BindWidgetOptional, AllowPrivateAccess = "true"))
 	TObjectPtr<UBorder> TabOptionsBackground;
 
-	UPROPERTY(meta = (BindWidgetOptional))
+	UPROPERTY(meta = (BindWidgetOptional, AllowPrivateAccess = "true"))
 	TObjectPtr<UWidget_OptionsDetails> SettingDetails;
 
 	UPROPERTY(EditAnywhere,

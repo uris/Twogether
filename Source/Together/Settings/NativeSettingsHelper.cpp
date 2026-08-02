@@ -482,7 +482,7 @@ FString UNativeSettingsHelper::GetGlobalIlluminationQuality()
 {
 	if (const UGameUserSettings* Settings = UGameUserSettings::GetGameUserSettings())
 	{
-		return LexToString(static_cast<int32>(Settings->GetGlobalIlluminationQuality()));
+		return LexToString(Settings->GetGlobalIlluminationQuality());
 	}
 	return TEXT("0");
 }
@@ -509,7 +509,7 @@ FString UNativeSettingsHelper::GetShadowQuality()
 {
 	if (const UGameUserSettings* Settings = UGameUserSettings::GetGameUserSettings())
 	{
-		return LexToString(static_cast<int32>(Settings->GetShadowQuality()));
+		return LexToString(Settings->GetShadowQuality());
 	}
 	return TEXT("0");
 }
@@ -536,7 +536,7 @@ FString UNativeSettingsHelper::GetAntiAliasingQuality()
 {
 	if (const UGameUserSettings* Settings = UGameUserSettings::GetGameUserSettings())
 	{
-		return LexToString(static_cast<int32>(Settings->GetAntiAliasingQuality()));
+		return LexToString(Settings->GetAntiAliasingQuality());
 	}
 	return TEXT("0");
 }
@@ -556,5 +556,59 @@ bool UNativeSettingsHelper::SetAntiAliasingQuality(const FString& InValue)
 	}
 
 	Settings->SetAntiAliasingQuality(static_cast<int32>(Quality));
+	return true;
+}
+
+FString UNativeSettingsHelper::GetViewDistanceQuality()
+{
+	if (const UGameUserSettings* Settings = UGameUserSettings::GetGameUserSettings())
+	{
+		return LexToString(Settings->GetViewDistanceQuality());
+	}
+	return TEXT("0");
+}
+
+bool UNativeSettingsHelper::SetViewDistanceQuality(const FString& InValue)
+{
+	UGameUserSettings* Settings = UGameUserSettings::GetGameUserSettings();
+	if (!Settings)
+	{
+		return false;
+	}
+
+	ENormalizedGraphicsQuality Quality;
+	if (!TryParseSupportedEnumValue(InValue, Quality))
+	{
+		return false;
+	}
+
+	Settings->SetViewDistanceQuality(static_cast<int32>(Quality));
+	return true;
+}
+
+FString UNativeSettingsHelper::GetTextureQuality()
+{
+	if (const UGameUserSettings* Settings = UGameUserSettings::GetGameUserSettings())
+	{
+		return LexToString(Settings->GetTextureQuality());
+	}
+	return TEXT("0");
+}
+
+bool UNativeSettingsHelper::SetTextureQuality(const FString& InValue)
+{
+	UGameUserSettings* Settings = UGameUserSettings::GetGameUserSettings();
+	if (!Settings)
+	{
+		return false;
+	}
+
+	ENormalizedGraphicsQuality Quality;
+	if (!TryParseSupportedEnumValue(InValue, Quality))
+	{
+		return false;
+	}
+
+	Settings->SetTextureQuality(static_cast<int32>(Quality));
 	return true;
 }

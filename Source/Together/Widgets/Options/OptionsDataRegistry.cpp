@@ -708,6 +708,8 @@ EUserSettingValueType UOptionsDataRegistry::NormalizedSettingType(const FUserSet
 			case ENativeUnrealSettings::GlobalIlluminationQuality:
 			case ENativeUnrealSettings::ShadowQuality:
 			case ENativeUnrealSettings::AntiAliasingQuality:
+			case ENativeUnrealSettings::ViewDistanceQuality:
+			case ENativeUnrealSettings::TextureQuality:
 				return EUserSettingValueType::Enum;
 			case ENativeUnrealSettings::ScreenResolution:
 				return EUserSettingValueType::String;
@@ -735,7 +737,10 @@ TArray<FStringSetting> UOptionsDataRegistry::GetNativeEnumSettingValues(const FU
 		case ENativeUnrealSettings::GlobalIlluminationQuality:
 		case ENativeUnrealSettings::ShadowQuality:
 		case ENativeUnrealSettings::AntiAliasingQuality:
+		case ENativeUnrealSettings::TextureQuality:
 			return EnumTypeToStringSettings<ENormalizedGraphicsQuality>(DataId, true);
+		case ENativeUnrealSettings::ViewDistanceQuality:
+			return EnumTypeToStringSettings<EViewDistanceQuality>(DataId, true);
 		default:
 		{
 			TArray<FStringSetting> SettingsArray;

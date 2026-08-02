@@ -75,7 +75,7 @@ struct FDynamicWidget
 
 	FDynamicWidget() = default;
 
-	explicit FDynamicWidget(const TSubclassOf<UUserWidget>& InWidgetClass): WidgetClass(InWidgetClass) {}
+	explicit FDynamicWidget(const TSubclassOf<UUserWidget>& InWidgetClass) : WidgetClass(InWidgetClass) {}
 };
 
 UENUM(BlueprintType)
@@ -89,6 +89,8 @@ enum class ENativeUnrealSettings : uint8
 	GlobalIlluminationQuality = 5 UMETA(DisplayName = "Global Illumination Quality"),
 	ShadowQuality = 6 UMETA(DisplayName = "Shadow Quality"),
 	AntiAliasingQuality = 7 UMETA(DisplayName = "AntiAliasing Quality"),
+	ViewDistanceQuality = 8 UMETA(DisplayName = "View Distance Quality"),
+	TextureQuality = 9 UMETA(DisplayName = "Texture Quality"),
 };
 
 UENUM(BlueprintType)
