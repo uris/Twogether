@@ -7,10 +7,19 @@
 #include "Components/RichTextBlock.h"
 #include "CommonLazyImage.h"
 #include "UIFunctionLibrary.h"
+#include "Components/NamedSlot.h"
 #include "DataObjects/OptionsListItemDataObject_Base.h"
 #include "Settings/TogetherSettings.h"
 #include "Settings/UserSettingTypes.h"
+#include "Components/ScaleBox.h"
+#include "Components/Spacer.h"
 #include "Subsystems/UI/UISubsystem.h"
+
+void UWidget_OptionsDetails::NativePreConstruct()
+{
+	Super::NativePreConstruct();
+	ApplyLayout();
+}
 
 void UWidget_OptionsDetails::NativeConstruct()
 {
@@ -61,10 +70,12 @@ void UWidget_OptionsDetails::SetTitle(const UOptionsListItemDataObject_Base* InL
 
 void UWidget_OptionsDetails::SetImage(const UOptionsListItemDataObject_Base* InListItemData) const
 {
-	if (!IsValid(Image))
+	if (!IsValid(Image) || !ImageSpacer || !ImageWrapper)
 	{
 		return;
 	}
+
+	bool bHasImageAsset = false;
 
 	if (InListItemData)
 	{
@@ -72,6 +83,7 @@ void UWidget_OptionsDetails::SetImage(const UOptionsListItemDataObject_Base* InL
 		{
 			Image->SetBrushFromLazyTexture(ImageAsset);
 			Image->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
+			bHasImageAsset = true;
 		}
 		else
 		{
@@ -83,6 +95,20 @@ void UWidget_OptionsDetails::SetImage(const UOptionsListItemDataObject_Base* InL
 		Image->SetVisibility(ESlateVisibility::Collapsed);
 	}
 
+	if (ImageSizeBox)
+	{
+		ImageSizeBox->SetVisibility(bHasImageAsset ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
+	}
+
+	if (ImageSpacer)
+	{
+		ImageSpacer->SetVisibility(bHasImageAsset ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
+	}
+
+	if (ImageWrapper)
+	{
+		ImageWrapper->SetVisibility(bHasImageAsset ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
+	}
 }
 
 void UWidget_OptionsDetails::SetDescription(const UOptionsListItemDataObject_Base* InListItemData) const
@@ -110,6 +136,7 @@ void UWidget_OptionsDetails::SetMessage(const UOptionsListItemDataObject_Base* I
 	{
 		return;
 	}
+
 	if (InListItemData)
 	{
 		const FString MessageText = TEXT("<Message>") + InListItemData->GetDisabledText().ToString() + TEXT("</>");
@@ -126,22 +153,22 @@ void UWidget_OptionsDetails::SetMessage(const UOptionsListItemDataObject_Base* I
 
 void UWidget_OptionsDetails::SetDebugInfo(const UOptionsListItemDataObject_Base* InListItemData) const
 {
-	if (!DebugInfo)
+	const bool bHideDebug = GetDefault<UTogetherSettings>()->bGlobalHideDebugMessages;
+
+	UE_LOG(LogTemp, Warning, TEXT("SetDebugInfo: bShowDebug=%d"), bHideDebug);
+	if (!DebugInfo || !InListItemData || bHideDebug)
 	{
+		DebugInfo->SetText(FText::GetEmpty());
+		DebugInfo->SetVisibility(ESlateVisibility::Collapsed);
 		return;
 	}
 
-	if (const bool bShowDebug = !GetDefault<UTogetherSettings>()->bGlobalHideDebugMessages)
-	{
-		const FName ClassName = InListItemData ? InListItemData->GetClass()->GetFName() : FName();
-		const FText DebugText = FText::Format(FText::FromString("<Debug>Class: {0}</>"), FText::FromName(ClassName));
-		DebugInfo->SetText(InListItemData ? DebugText : FText::GetEmpty());
-		DebugInfo->SetVisibility(DebugText.IsEmpty() ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
-	}
-	else
-	{
-		DebugInfo->SetVisibility(ESlateVisibility::Collapsed);
-	}
+	const FName ClassName = InListItemData
+		                        ? InListItemData->GetClass()->GetFName()
+		                        : FName(TEXT("Unable to get class name"));
+	const FText DebugText = FText::Format(FText::FromString("<Debug>Class: {0}</>"), FText::FromName(ClassName));
+	DebugInfo->SetText(DebugText);
+
 }
 
 void UWidget_OptionsDetails::SetUnderline(const bool bShowUnderline) const
@@ -157,7 +184,13 @@ void UWidget_OptionsDetails::SetWidget(const UOptionsListItemDataObject_Base* In
 {
 	ClearWidget();
 
-	if (!InListItemData || InListItemData->GetDescriptionWidget().WidgetClass.IsNull() || !SizeBoxSlot)
+	if (!InListItemData || InListItemData->GetDescriptionWidget().WidgetClass.IsNull())
+	{
+		ContentScrollBox->SetVisibility(ESlateVisibility::Visible);
+		return;
+	}
+
+	if (!WidgetSlot)
 	{
 		return;
 	}
@@ -172,17 +205,49 @@ void UWidget_OptionsDetails::SetWidget(const UOptionsListItemDataObject_Base* In
 	LoadedOptionalWidget = CreateWidget<UUserWidget>(GetOwningPlayer(), LoadedClass);
 	if (LoadedOptionalWidget)
 	{
-		SizeBoxSlot->AddChild(LoadedOptionalWidget);
-		SizeBoxSlot->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
+		ContentScrollBox->SetVisibility(ESlateVisibility::Collapsed);
+		WidgetSlot->AddChild(LoadedOptionalWidget);
+		WidgetSlot->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
+	}
+}
+
+void UWidget_OptionsDetails::ApplyLayout()
+{
+	if (DetailsSizeBox)
+	{
+		DetailsSizeBox->SetMaxDesiredHeight(MaxDesiredHeight);
+	}
+	if (ImageWrapper)
+	{
+		ImageWrapper->SetStretch(ImageFill);
+	}
+	if (ImageSpacer)
+	{
+		ImageSpacer->SetSize({0.f, VerticalGap});
+	}
+
+	if (MessageSpacer)
+	{
+		MessageSpacer->SetSize({0.f, VerticalGap});
+	}
+
+	if (DescriptionSpacer)
+	{
+		DescriptionSpacer->SetSize({0.f, VerticalGap});
+	}
+
+	if (BottomSpacer)
+	{
+		BottomSpacer->SetSize({0.f, BottomPadding});
 	}
 }
 
 void UWidget_OptionsDetails::ClearWidget()
 {
-	if (SizeBoxSlot)
+	if (WidgetSlot)
 	{
-		SizeBoxSlot->ClearChildren();
-		SizeBoxSlot->SetVisibility(ESlateVisibility::Collapsed);
+		WidgetSlot->ClearChildren();
+		WidgetSlot->SetVisibility(ESlateVisibility::Collapsed);
 	}
 
 	LoadedOptionalWidget = nullptr;

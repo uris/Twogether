@@ -412,7 +412,7 @@ UOptionsListItemDataObject_Base* UOptionsDataRegistry::CreateSettingDataObject(
 	ValueData->SetUserDefinedDataId(Definition.SettingId); // retain reference to user setting id
 	ValueData->SetDisplayName(Definition.DisplayName);
 	ValueData->SetDescription(Definition.Description);
-	ValueData->SetDisabledText(FText::FromString(TEXT(""))); // populated if the edit condition is not met
+	ValueData->SetDisabledText(FText::GetEmpty()); // populated if the edit condition is not met
 	ValueData->SetDescriptionImage(Definition.DescriptionImage);
 	ValueData->SetDefaultValueFromString(Definition.DefaultValue);
 	ValueData->SetShouldApplyChangesImmediately(Definition.bShouldApplyChangesImmediately);
@@ -717,10 +717,7 @@ EUserSettingValueType UOptionsDataRegistry::NormalizedSettingType(const FUserSet
 				return EUserSettingValueType::String;
 		}
 	}
-	else
-	{
-		return Definition.Type;
-	}
+	return Definition.Type;
 }
 
 TArray<FStringSetting> UOptionsDataRegistry::GetNativeEnumSettingValues(const FUserSettingDefinition& Definition)
