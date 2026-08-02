@@ -7,6 +7,7 @@
 #include "Blueprint/IUserObjectListEntry.h"
 #include "UIOptionsListEntry.generated.h"
 
+class USizeBox;
 class UListEntryStyle;
 class UVerticalBox;
 class UCommonTextStyle;
@@ -38,6 +39,12 @@ public:
 	UPROPERTY(BlueprintReadOnly, meta=(BindWidgetOptional))
 	TObjectPtr<UVerticalBox> EntryWrapper;
 
+	UPROPERTY(BlueprintReadOnly, meta=(BindWidgetOptional))
+	TObjectPtr<USizeBox> EntryBorderBottom;
+
+	UPROPERTY(BlueprintReadOnly, meta=(BindWidgetOptional))
+	TObjectPtr<USizeBox> EntryBorderTop;
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Style")
 	TObjectPtr<UListEntryStyle> ListEntryStyle;
 
@@ -55,6 +62,9 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	bool bIsEditable = true;
+
+	// called to remove a bottom border
+	void SetBorderVisibility(const bool bBottomVisible, const bool bTopVisible) const;
 
 	// virtual interface for hover state
 	virtual void NativeListEntryWidgetHovered(bool bInIsHovered);

@@ -15,6 +15,7 @@
 #include "Settings/UserSettings.h"
 #include "Subsystems/UI/UISubsystem.h"
 #include "Utility/Debug.h"
+#include "Widgets/Components/UICommonListViewSessionsBase.h"
 #include "Widgets/Components/UICommonTabListWidgetBase.h"
 #include "Widgets/Screens/Widget_Confirmation.h"
 
@@ -60,9 +61,11 @@ void UWidget_OptionsScreen::NativeConstruct()
 		OptionsListView->OnEntryWidgetGenerated().RemoveAll(this);
 		OptionsListView->OnItemIsHoveredChanged().RemoveAll(this);
 		OptionsListView->OnItemSelectionChanged().RemoveAll(this);
+
 		OptionsListView->OnEntryWidgetGenerated().AddUObject(this, &ThisClass::HandleEntryGenerated);
 		OptionsListView->OnItemIsHoveredChanged().AddUObject(this, &ThisClass::HandleEntryHoveredChange);
 		OptionsListView->OnItemSelectionChanged().AddUObject(this, &ThisClass::HandleEntrySelectionChange);
+
 	}
 }
 
@@ -78,6 +81,7 @@ void UWidget_OptionsScreen::NativeDestruct()
 		OptionsListView->OnEntryWidgetGenerated().RemoveAll(this);
 		OptionsListView->OnItemIsHoveredChanged().RemoveAll(this);
 		OptionsListView->OnItemSelectionChanged().RemoveAll(this);
+		OptionsListView->OnEntriesGenerated().RemoveAll(this);
 
 		for (UUserWidget* EntryWidget : OptionsListView->GetDisplayedEntryWidgets())
 		{
@@ -104,13 +108,22 @@ UWidget* UWidget_OptionsScreen::NativeGetDesiredFocusTarget() const
 	return Super::NativeGetDesiredFocusTarget();
 }
 
+void UWidget_OptionsScreen::GetLastListEntry() const
+{
+	const int32 ListSize = OptionsListView->GetListItems().Num() - 1;
+	UE_LOG(LogTemp, Warning, TEXT("Last Entry: %i"), ListSize)
+	UUIOptionsListEntry* LastEntry = Cast<UUIOptionsListEntry>(OptionsListView->GetItemAt(ListSize));
+	if (LastEntry)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Last Entry: %s"), *LastEntry->GetClass()->ClassConfigName.ToString())
+	}
+}
+
 void UWidget_OptionsScreen::NativeOnActivated()
 {
 	Super::NativeOnActivated();
 
 	StartBackgroundOpacityTransition();
-
-	SetBottomBorderVisibility();
 
 	// set up the option registry
 	OptionsRegistry = GetOrCreateOptionsRegistry();
@@ -543,19 +556,5 @@ int32 UWidget_OptionsScreen::GetFirstSelectableItemIndexInList() const
 
 void UWidget_OptionsScreen::HandleScreenResize(const FVector2D& NewScreenSize, const FVector2D& PreviousScreenSize)
 {
-	SetBottomBorderVisibility();
-}
-
-void UWidget_OptionsScreen::SetBottomBorderVisibility() const
-{
-	if (OptionsListView && BottomBorder)
-	{
-		BottomBorder->SetVisibility(OptionsListView->IsScrollBarVisible()
-			                            ? ESlateVisibility::SelfHitTestInvisible
-			                            : ESlateVisibility::Collapsed);
-	}
-	else
-	{
-		BottomBorder->SetVisibility(ESlateVisibility::Collapsed);
-	}
+	// overridable by children
 }

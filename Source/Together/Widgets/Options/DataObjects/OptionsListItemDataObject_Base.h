@@ -51,6 +51,7 @@ public:
 	LIST_DATA_ACCESSOR(bool, bDisableInEditorPreview)
 	LIST_DATA_ACCESSOR(bool, bSkipZeroIndex)
 	LIST_DATA_ACCESSOR(bool, bIsFirstEntry)
+	LIST_DATA_ACCESSOR(bool, bIsLastEntry)
 	LIST_DATA_ACCESSOR(bool, bIsChildEntry)
 	LIST_DATA_ACCESSOR(TSoftObjectPtr<UTexture2D>, DescriptionImage)
 	LIST_DATA_ACCESSOR(FDynamicWidget, DescriptionWidget)
@@ -171,6 +172,7 @@ private:
 	// special conditions
 	bool bSkipZeroIndex = false;
 	bool bIsFirstEntry = false;
+	bool bIsLastEntry = false;
 	bool bIsChildEntry = false;
 
 	// dependencies

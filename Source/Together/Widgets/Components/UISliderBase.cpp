@@ -19,16 +19,18 @@ void UUISliderBase::NativePreConstruct()
 	FSliderStyle SliderStyle = Slider->GetWidgetStyle();
 	SliderStyle.SetBarThickness(FMath::Max(0.0f, TrackHeight));
 
-	auto ConfigureBarBrush = [this](FSlateBrush Brush)
+	// config for slider track
+	auto ConfigureTrackBrush = [this](FSlateBrush Brush)
 	{
 		Brush.TintColor = FSlateColor(TrackColor);
 		return Brush;
 	};
 
-	SliderStyle.SetNormalBarImage(ConfigureBarBrush(SliderStyle.NormalBarImage));
-	SliderStyle.SetHoveredBarImage(ConfigureBarBrush(SliderStyle.HoveredBarImage));
-	SliderStyle.SetDisabledBarImage(ConfigureBarBrush(SliderStyle.DisabledBarImage));
+	SliderStyle.SetNormalBarImage(ConfigureTrackBrush(SliderStyle.NormalBarImage));
+	SliderStyle.SetHoveredBarImage(ConfigureTrackBrush(SliderStyle.HoveredBarImage));
+	SliderStyle.SetDisabledBarImage(ConfigureTrackBrush(SliderStyle.DisabledBarImage));
 
+	// config for the slider handle
 	auto ConfigureThumbBrush = [this](FSlateBrush Brush)
 	{
 		Brush.ImageSize = FVector2D(HandleSize);
@@ -48,6 +50,10 @@ void UUISliderBase::NativePreConstruct()
 
 	if (Progress)
 	{
+		if (UCanvasPanelSlot* ProgressCanvasSlot = Cast<UCanvasPanelSlot>(Progress->Slot))
+		{
+			ProgressCanvasSlot->SetSize(FVector2D(ProgressCanvasSlot->GetSize().X, TrackHeight));
+		}
 		Progress->SetVisibility(ESlateVisibility::HitTestInvisible);
 	}
 
@@ -56,6 +62,11 @@ void UUISliderBase::NativePreConstruct()
 		SliderValueSizeBox->SetMinDesiredWidth(ValueBoxSize);
 		SliderValueSizeBox->SetMaxDesiredWidth(ValueBoxSize);
 		SliderValueSizeBox->SetWidthOverride(ValueBoxSize);
+	}
+
+	if (SliderSizeBox)
+	{
+		SliderSizeBox->SetMinDesiredHeight(FMath::Max(SliderHitAreaHeight, HandleSize));
 	}
 
 	UpdateSliderStyle(false, false);

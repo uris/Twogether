@@ -8,6 +8,7 @@
 #include "ListEntryStyle.h"
 #include "Together.h"
 #include "Components/OverlaySlot.h"
+#include "Components/SizeBox.h"
 #include "Components/VerticalBox.h"
 #include "Utility/Debug.h"
 #include "Widgets/Components/UICommonTextBase.h"
@@ -77,6 +78,10 @@ void UUIOptionsListEntry::OnOwningListDataObjectSet(UOptionsListItemDataObject_B
 	if (InOwningListDataObject)
 	{
 		SetIndent(InOwningListDataObject->GetbIsChildEntry());
+		if (InOwningListDataObject->GetbIsLastEntry())
+		{
+			SetBorderVisibility(false, true);
+		}
 	}
 
 	// call handle editable to immediately update the visual state of the entry
@@ -165,5 +170,19 @@ void UUIOptionsListEntry::SetIndent(const bool bHasParent) const
 				ListEntryStyle->DefaultPadding,
 				0.0f));
 		}
+	}
+}
+
+void UUIOptionsListEntry::SetBorderVisibility(const bool bBottomVisible, const bool bTopVisible) const
+{
+	if (EntryBorderBottom)
+	{
+		EntryBorderBottom->SetVisibility(
+			bBottomVisible ? ESlateVisibility::SelfHitTestInvisible : ESlateVisibility::Collapsed);
+	}
+	if (EntryBorderTop)
+	{
+		EntryBorderTop->SetVisibility(
+			bTopVisible ? ESlateVisibility::SelfHitTestInvisible : ESlateVisibility::Collapsed);
 	}
 }

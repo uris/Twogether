@@ -36,6 +36,7 @@ protected:
 	virtual void NativeConstruct() override;
 	virtual void NativeDestruct() override;
 	virtual UWidget* NativeGetDesiredFocusTarget() const override;
+	void GetLastListEntry() const;
 
 	// setup on activation
 	virtual void NativeOnActivated() override;
@@ -55,7 +56,6 @@ protected:
 
 	// layout helpers
 	virtual void HandleScreenResize(const FVector2D& NewScreenSize, const FVector2D& PreviousScreenSize);
-	void SetBottomBorderVisibility() const;
 
 private:
 	UPROPERTY(meta = (BindWidget))
@@ -69,9 +69,6 @@ private:
 
 	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<UWidget_OptionsDetails> SettingDetails;
-
-	UPROPERTY(meta = (BindWidgetOptional))
-	TObjectPtr<USizeBox> BottomBorder;
 
 	UPROPERTY(EditAnywhere,
 		BlueprintReadWrite,

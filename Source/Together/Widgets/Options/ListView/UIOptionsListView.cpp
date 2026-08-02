@@ -30,6 +30,17 @@ bool UUIOptionsListView::IsScrollBarVisible() const
 	return MyListView.IsValid() && MyListView->IsScrollbarNeeded();
 }
 
+void UUIOptionsListView::NativeOnEntriesGenerated()
+{
+	Super::NativeOnEntriesGenerated();
+
+	if (const int32 Entries = GetNumItems(); Entries > 0)
+	{
+		NumEntries = GetNumItems();
+	}
+	OnEntriesGeneratedEvent.Broadcast(NumEntries);
+}
+
 bool UUIOptionsListView::OnIsSelectableOrNavigableInternal(UObject* FirstSelectedItem)
 {
 	// collection types should not be selectable - return false if item is subclassed as collection

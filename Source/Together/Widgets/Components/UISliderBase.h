@@ -67,6 +67,13 @@ public:
 
 	UPROPERTY(EditAnywhere,
 		BlueprintReadWrite,
+		Category = "Custom Properties|Slider Interaction",
+		meta=(ClampMin=15.0f, ToolTip=
+			"Hit area for mouse interaction. Campled to a minimum of 15 to ensure mouse interactions are captured."))
+	float SliderHitAreaHeight = 32.0f;
+
+	UPROPERTY(EditAnywhere,
+		BlueprintReadWrite,
 		Category = "Custom Properties|Text Styles")
 	TSubclassOf<UCommonTextStyle> ValueDefaultTextStyle;
 
@@ -90,6 +97,9 @@ public:
 
 	UPROPERTY(BlueprintReadOnly, meta=(BindWidget))
 	TObjectPtr<UCommonNumericTextBlock> SliderValue;
+
+	UPROPERTY(BlueprintReadOnly, meta=(BindWidget))
+	TObjectPtr<USizeBox> SliderSizeBox;
 
 	UPROPERTY(BlueprintReadOnly, meta=(BindWidgetOptional))
 	TObjectPtr<UImage> Progress;

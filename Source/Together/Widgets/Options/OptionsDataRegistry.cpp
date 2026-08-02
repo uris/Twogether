@@ -171,6 +171,7 @@ void UOptionsDataRegistry::InitRegistry(ULocalPlayer* InOwningLocalPlayer)
 
 		// iterate all settings definitions to create the uber list of settings for the tab
 		int32 EntryIndex = -1;
+		int32 LastIndex = TabDefinitions.Num() - 1;
 		for (const FUserSettingDefinition* Definition : TabDefinitions)
 		{
 			EntryIndex++;
