@@ -612,3 +612,84 @@ bool UNativeSettingsHelper::SetTextureQuality(const FString& InValue)
 	Settings->SetTextureQuality(static_cast<int32>(Quality));
 	return true;
 }
+
+FString UNativeSettingsHelper::GetPostProcessingQuality()
+{
+	if (const UGameUserSettings* Settings = UGameUserSettings::GetGameUserSettings())
+	{
+		return LexToString(Settings->GetPostProcessingQuality());
+	}
+	return TEXT("0");
+}
+
+bool UNativeSettingsHelper::SetPostProcessingQuality(const FString& InValue)
+{
+	UGameUserSettings* Settings = UGameUserSettings::GetGameUserSettings();
+	if (!Settings)
+	{
+		return false;
+	}
+
+	ENormalizedGraphicsQuality Quality;
+	if (!TryParseSupportedEnumValue(InValue, Quality))
+	{
+		return false;
+	}
+
+	Settings->SetPostProcessingQuality(static_cast<int32>(Quality));
+	return true;
+}
+
+FString UNativeSettingsHelper::GetReflectionQuality()
+{
+	if (const UGameUserSettings* Settings = UGameUserSettings::GetGameUserSettings())
+	{
+		return LexToString(Settings->GetReflectionQuality());
+	}
+	return TEXT("0");
+}
+
+bool UNativeSettingsHelper::SetReflectionQuality(const FString& InValue)
+{
+	UGameUserSettings* Settings = UGameUserSettings::GetGameUserSettings();
+	if (!Settings)
+	{
+		return false;
+	}
+
+	ENormalizedGraphicsQuality Quality;
+	if (!TryParseSupportedEnumValue(InValue, Quality))
+	{
+		return false;
+	}
+
+	Settings->SetReflectionQuality(static_cast<int32>(Quality));
+	return true;
+}
+
+FString UNativeSettingsHelper::GetVisualEffectsQuality()
+{
+	if (const UGameUserSettings* Settings = UGameUserSettings::GetGameUserSettings())
+	{
+		return LexToString(Settings->GetVisualEffectQuality());
+	}
+	return TEXT("0");
+}
+
+bool UNativeSettingsHelper::SetVisualEffectsQuality(const FString& InValue)
+{
+	UGameUserSettings* Settings = UGameUserSettings::GetGameUserSettings();
+	if (!Settings)
+	{
+		return false;
+	}
+
+	ENormalizedGraphicsQuality Quality;
+	if (!TryParseSupportedEnumValue(InValue, Quality))
+	{
+		return false;
+	}
+
+	Settings->SetVisualEffectQuality(static_cast<int32>(Quality));
+	return true;
+}

@@ -131,4 +131,28 @@ public:
 	UFUNCTION(BlueprintCallable, Category="Game Settings|Video")
 	static bool SetTextureQuality(const FString& InValue);
 
+	// *** POST PROCESSING QUALITY *** //
+
+	UFUNCTION(BlueprintCallable, Category="Game Settings|Video")
+	static FString GetPostProcessingQuality();
+
+	UFUNCTION(BlueprintCallable, Category="Game Settings|Video")
+	static bool SetPostProcessingQuality(const FString& InValue);
+
+	// *** REFLECTION QUALITY *** //
+
+	UFUNCTION(BlueprintCallable, Category="Game Settings|Video")
+	static FString GetReflectionQuality();
+
+	UFUNCTION(BlueprintCallable, Category="Game Settings|Video")
+	static bool SetReflectionQuality(const FString& InValue);
+
+	// *** VISUAL EFFECTS QUALITY *** //
+
+	UFUNCTION(BlueprintCallable, Category="Game Settings|Video")
+	static FString GetVisualEffectsQuality();
+
+	UFUNCTION(BlueprintCallable, Category="Game Settings|Video")
+	static bool SetVisualEffectsQuality(const FString& InValue);
+
 };

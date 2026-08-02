@@ -558,7 +558,10 @@ int32 UWidget_OptionsScreen::GetFirstSelectableItemIndexInList() const
 
 void UWidget_OptionsScreen::HandleScreenResize(const FVector2D& NewScreenSize, const FVector2D& PreviousScreenSize)
 {
-	// overridable by children
+	if (OptionsListView)
+	{
+		OptionsListView->RegenerateAllEntries();
+	}
 }
 
 void UWidget_OptionsScreen::HandleEntriesGenerated(const int32 NumEntries) const

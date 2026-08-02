@@ -155,7 +155,6 @@ void UWidget_OptionsDetails::SetDebugInfo(const UOptionsListItemDataObject_Base*
 {
 	const bool bHideDebug = GetDefault<UTogetherSettings>()->bGlobalHideDebugMessages;
 
-	UE_LOG(LogTemp, Warning, TEXT("SetDebugInfo: bShowDebug=%d"), bHideDebug);
 	if (!DebugInfo || !InListItemData || bHideDebug)
 	{
 		DebugInfo->SetText(FText::GetEmpty());

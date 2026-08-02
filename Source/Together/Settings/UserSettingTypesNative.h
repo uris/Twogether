@@ -21,6 +21,9 @@ inline const FName ShadowQuality(TEXT("ShadowQuality"));
 inline const FName AntiAliasingQuality(TEXT("AntiAliasingQuality"));
 inline const FName ViewDistanceQuality(TEXT("ViewDistanceQuality"));
 inline const FName TextureQuality(TEXT("TextureQuality"));
+inline const FName VisualEffectsQuality(TEXT("VisualEffectsQuality"));
+inline const FName PostProcessingQuality(TEXT("PostProcessingQuality"));
+inline const FName ReflectionQuality(TEXT("ReflectionQuality"));
 }
 
 inline FName GetNativeSettingId(const ENativeUnrealSettings NativeSetting)
@@ -45,8 +48,12 @@ inline FName GetNativeSettingId(const ENativeUnrealSettings NativeSetting)
 			return NativeSettingIds::AntiAliasingQuality;
 		case ENativeUnrealSettings::TextureQuality:
 			return NativeSettingIds::TextureQuality;
-		case ENativeUnrealSettings::ViewDistanceQuality:
-			return NativeSettingIds::ViewDistanceQuality;
+		case ENativeUnrealSettings::VisualEffectsQuality:
+			return NativeSettingIds::VisualEffectsQuality;
+		case ENativeUnrealSettings::PostProcessingQuality:
+			return NativeSettingIds::PostProcessingQuality;
+		case ENativeUnrealSettings::ReflectionQuality:
+			return NativeSettingIds::ReflectionQuality;
 		default:
 			return NativeSettingIds::Invalid;
 	}

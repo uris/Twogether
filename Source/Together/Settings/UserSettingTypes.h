@@ -91,6 +91,9 @@ enum class ENativeUnrealSettings : uint8
 	AntiAliasingQuality = 7 UMETA(DisplayName = "AntiAliasing Quality"),
 	ViewDistanceQuality = 8 UMETA(DisplayName = "View Distance Quality"),
 	TextureQuality = 9 UMETA(DisplayName = "Texture Quality"),
+	VisualEffectsQuality = 10 UMETA(DisplayName = "Visual Effects Quality"),
+	PostProcessingQuality = 11 UMETA(DisplayName = "Post Processing Quality"),
+	ReflectionQuality = 12 UMETA(DisplayName = "Reflection Quality"),
 };
 
 UENUM(BlueprintType)

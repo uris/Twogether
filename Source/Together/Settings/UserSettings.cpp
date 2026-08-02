@@ -328,6 +328,21 @@ FString UUserSettings::GetNativeSettingValue(const FName InSettingId)
 		return UNativeSettingsHelper::GetTextureQuality();
 	}
 
+	if (InSettingId == NativeSettingIds::VisualEffectsQuality)
+	{
+		return UNativeSettingsHelper::GetVisualEffectsQuality();
+	}
+
+	if (InSettingId == NativeSettingIds::PostProcessingQuality)
+	{
+		return UNativeSettingsHelper::GetPostProcessingQuality();
+	}
+
+	if (InSettingId == NativeSettingIds::ReflectionQuality)
+	{
+		return UNativeSettingsHelper::GetReflectionQuality();
+	}
+
 	return FString();
 }
 
@@ -376,6 +391,21 @@ bool UUserSettings::SetNativeSettingValue(const FName InSettingId, const FString
 	if (InSettingId == NativeSettingIds::ViewDistanceQuality)
 	{
 		return UNativeSettingsHelper::SetViewDistanceQuality(InValue);
+	}
+
+	if (InSettingId == NativeSettingIds::ReflectionQuality)
+	{
+		return UNativeSettingsHelper::SetReflectionQuality(InValue);
+	}
+
+	if (InSettingId == NativeSettingIds::VisualEffectsQuality)
+	{
+		return UNativeSettingsHelper::SetVisualEffectsQuality(InValue);
+	}
+
+	if (InSettingId == NativeSettingIds::PostProcessingQuality)
+	{
+		return UNativeSettingsHelper::SetPostProcessingQuality(InValue);
 	}
 
 	// *** Fallback *** //
