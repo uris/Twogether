@@ -4,6 +4,7 @@
 #include "OptionsDataRegistry.h"
 
 #include "OptionsDataInteractionHelper.h"
+#include "OptionsDataSortingHelper.h"
 #include "DataObjects/ListItemDataObject_Boolean.h"
 #include "DataObjects/ListItemDataObject_IntEnum.h"
 #include "DataObjects/ListItemDataObject_String.h"
@@ -155,26 +156,14 @@ void UOptionsDataRegistry::InitRegistry(ULocalPlayer* InOwningLocalPlayer)
 			}
 		}
 
-		TabDefinitions.Sort(
-			[](const FUserSettingDefinition& Left, const FUserSettingDefinition& Right)
-			{
-				if (Left.ParentSettingId == Right.ParentSettingId &&
-				    Left.SortOrder != Right.SortOrder)
-				{
-					return Left.SortOrder < Right.SortOrder;
-				}
-				return GetSettingIdString(Left).LexicalLess(GetSettingIdString(Right));
-			});
+		FOptionsDataSortingHelper::SortDefinitionsByHierarchy(TabDefinitions);
 
 		// create key/value map with each setting and it's base data object
 		TMap<FName, UOptionsListItemDataObject_Base*> ItemsById;
 
 		// iterate all settings definitions to create the uber list of settings for the tab
-		int32 EntryIndex = -1;
-		int32 LastIndex = TabDefinitions.Num() - 1;
 		for (const FUserSettingDefinition* Definition : TabDefinitions)
 		{
-			EntryIndex++;
 			const FName EffectiveSettingId = GetSettingIdString(*Definition);
 
 			// ignore all settings that don't have a settings id
@@ -200,7 +189,6 @@ void UOptionsDataRegistry::InitRegistry(ULocalPlayer* InOwningLocalPlayer)
 				Item->SetDescription(FText());
 				Item->SetDisabledText(FText());
 				Item->SetDescriptionImage(nullptr);
-				Item->SetbIsFirstEntry(EntryIndex == 0);
 			}
 
 			// if the items are root settings, with actual values
@@ -275,6 +263,31 @@ void UOptionsDataRegistry::InitRegistry(ULocalPlayer* InOwningLocalPlayer)
 
 			// add the item as child
 			ParentCollection->AddChildListData(*ItemPtr);
+		}
+
+		// Entry position flags must use the final flattened display order. Data-table
+		// indices are not reliable after invalid/duplicate rows are skipped or grouped.
+		TArray<UOptionsListItemDataObject_Base*> FlattenedTabItems;
+		FindChildListDataRecursive(TabCollection, FlattenedTabItems);
+		for (UOptionsListItemDataObject_Base* Item : FlattenedTabItems)
+		{
+			Item->SetbIsFirstEntry(false);
+			Item->SetbIsLastEntry(false);
+		}
+
+		if (!FlattenedTabItems.IsEmpty())
+		{
+			FlattenedTabItems[0]->SetbIsFirstEntry(true);
+
+			for (int32 Index = FlattenedTabItems.Num() - 1; Index >= 0; --Index)
+			{
+				UOptionsListItemDataObject_Base* Item = FlattenedTabItems[Index];
+				if (!Item->IsA<UUOptionsListItemCollection_Base>())
+				{
+					Item->SetbIsLastEntry(true);
+					break;
+				}
+			}
 		}
 
 		// once all items are created, do another pass to define edit dependencies

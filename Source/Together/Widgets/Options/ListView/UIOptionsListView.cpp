@@ -25,6 +25,16 @@ void UUIOptionsListView::ValidateCompiledDefaults(class IWidgetCompilerLog& Comp
 }
 #endif
 
+void UUIOptionsListView::OnItemsChanged(const TArray<UObject*>& AddedItems, const TArray<UObject*>& RemovedItems)
+{
+	Super::OnItemsChanged(AddedItems, RemovedItems);
+
+	if (!AddedItems.IsEmpty())
+	{
+		OnEntriesChanged().Broadcast(GetNumItems());
+	}
+}
+
 bool UUIOptionsListView::IsScrollBarVisible() const
 {
 	return MyListView.IsValid() && MyListView->IsScrollbarNeeded();

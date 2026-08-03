@@ -86,10 +86,7 @@ void UUIOptionsListEntry::OnOwningListDataObjectSet(UOptionsListItemDataObject_B
 	if (InOwningListDataObject)
 	{
 		SetIndent(InOwningListDataObject->GetbIsChildEntry());
-		if (InOwningListDataObject->GetbIsLastEntry())
-		{
-			SetBorderVisibility(false, true);
-		}
+		SetBorderVisibility(!(InOwningListDataObject->GetbIsLastEntry()), true);
 	}
 
 	// call handle editable to immediately update the visual state of the entry

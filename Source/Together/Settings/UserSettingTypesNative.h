@@ -60,6 +60,8 @@ inline FName GetNativeSettingId(const ENativeUnrealSettings NativeSetting)
 			return NativeSettingIds::FrameRateLimit;
 		case ENativeUnrealSettings::VerticalSync:
 			return NativeSettingIds::VerticalSync;
+		case ENativeUnrealSettings::ViewDistanceQuality:
+			return NativeSettingIds::ViewDistanceQuality;
 		default:
 			return NativeSettingIds::Invalid;
 	}

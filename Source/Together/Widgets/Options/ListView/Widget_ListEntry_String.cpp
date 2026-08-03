@@ -59,8 +59,6 @@ void UWidget_ListEntry_String::NativeDestruct()
 void UWidget_ListEntry_String::NativeOnStateChange(const EStateChangeType StateChangeType, const bool bStateValue)
 {
 	Super::NativeOnStateChange(StateChangeType, bStateValue);
-
-	UE_LOG(LogTemp, Warning, TEXT("State Change"))
 	ApplyButtonStyles();
 }
 

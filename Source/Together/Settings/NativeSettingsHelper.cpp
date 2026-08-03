@@ -710,7 +710,7 @@ FString UNativeSettingsHelper::GetFrameRateLimit()
 {
 	if (const UGameUserSettings* Settings = UGameUserSettings::GetGameUserSettings())
 	{
-		return LexToString(Settings->GetFrameRateLimit());
+		return FString::FromInt(FMath::RoundToInt(Settings->GetFrameRateLimit()));
 	}
 	return TEXT("0");
 }
@@ -729,7 +729,7 @@ bool UNativeSettingsHelper::SetFrameRateLimit(const FString& InValue)
 TArray<FStringSetting> UNativeSettingsHelper::GetVerticalSyncSettings()
 {
 	TArray<FStringSetting> Settings;
-	const FName SettingId = NativeSettingIds::FrameRateLimit;
+	const FName SettingId = NativeSettingIds::VerticalSync;
 	Settings.Add(FStringSetting(SettingId, FText::FromString("Yes"), "true"));
 	Settings.Add(FStringSetting(SettingId, FText::FromString("No"), "false"));
 	return Settings;

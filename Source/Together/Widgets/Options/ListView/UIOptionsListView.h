@@ -18,10 +18,18 @@ class TOGETHER_API UUIOptionsListView : public UCommonListView
 public:
 	DECLARE_MULTICAST_DELEGATE_OneParam(FOnEntriesGenerated, int32 /* NumEntries */);
 
-	// expose delegate as reference - enable AddUObject binding
+	DECLARE_MULTICAST_DELEGATE_OneParam(FOnEntriesChanged, int32 /* NumEntries */);
+
+	// list regenerated items
 	FOnEntriesGenerated& OnEntriesGenerated()
 	{
 		return OnEntriesGeneratedEvent;
+	};
+
+	// list received new entries
+	FOnEntriesChanged& OnEntriesChanged()
+	{
+		return OnEntriesChangedEvent;
 	};
 
 	UFUNCTION(BlueprintPure)
@@ -32,6 +40,8 @@ public:
 #endif
 
 protected:
+	virtual void OnItemsChanged(const TArray<UObject*>& AddedItems, const TArray<UObject*>& RemovedItems) override;
+
 	virtual void NativeOnEntriesGenerated() override;
 
 	virtual bool OnIsSelectableOrNavigableInternal(UObject* FirstSelectedItem) override;
@@ -46,6 +56,9 @@ private:
 
 	// Entries Generated Event Delegate
 	FOnEntriesGenerated OnEntriesGeneratedEvent;
+
+	// Entries Changed Event Delegate
+	FOnEntriesChanged OnEntriesChangedEvent;
 
 	// Entries Generated State
 	int32 NumEntries = 0;

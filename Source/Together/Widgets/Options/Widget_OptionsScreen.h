@@ -9,6 +9,7 @@
 #include "Widgets/Base/Widget_ActivatableBase.h"
 #include "Widget_OptionsScreen.generated.h"
 
+class UBackgroundBlur;
 class USizeBox;
 enum class EOptionsListModifiedReason : uint8;
 class UOptionsListItemDataObject_Base;
@@ -33,13 +34,15 @@ public:
 	UFUNCTION()
 	void HandleEntriesGenerated(int32 NumEntries) const;
 
+	UFUNCTION()
+	void HandleEntriesChanged(int32 NumEntries) const;
+
 protected:
 	// setup interfaces
 	virtual void NativeOnInitialized() override;
 	virtual void NativeConstruct() override;
 	virtual void NativeDestruct() override;
 	virtual UWidget* NativeGetDesiredFocusTarget() const override;
-	void GetLastListEntry() const;
 
 	// setup on activation
 	virtual void NativeOnActivated() override;
@@ -75,6 +78,9 @@ private:
 
 	UPROPERTY(meta = (BindWidgetOptional, AllowPrivateAccess = "true"))
 	TObjectPtr<UWidget_OptionsDetails> SettingDetails;
+
+	UPROPERTY(meta = (BindWidgetOptional, AllowPrivateAccess = "true"))
+	TObjectPtr<UBackgroundBlur> ListViewBlur;
 
 	UPROPERTY(EditAnywhere,
 		BlueprintReadWrite,
@@ -138,6 +144,7 @@ private:
 	bool bBackgroundOpacityTransitionActive = false;
 	float BackgroundOpacityTransitionElapsed = 0.0f;
 
-	// screen resize helper
+	// screen resize helpers
 	FVector2D CachedSize = FVector2D::ZeroVector;
+	void SetListSlotSize(ESlateSizeRule::Type InSizeRule) const;
 };

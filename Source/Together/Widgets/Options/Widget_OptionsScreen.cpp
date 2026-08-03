@@ -8,6 +8,7 @@
 #include "OnlineSubsystemUtils.h"
 #include "OptionsDataRegistry.h"
 #include "Widget_OptionsDetails.h"
+#include "Components/VerticalBoxSlot.h"
 #include "DataObjects/UOptionsListItemCollection_Base.h"
 #include "Input/CommonUIInputTypes.h"
 #include "ListView/UIOptionsListEntry.h"
@@ -62,11 +63,13 @@ void UWidget_OptionsScreen::NativeConstruct()
 		OptionsListView->OnItemIsHoveredChanged().RemoveAll(this);
 		OptionsListView->OnItemSelectionChanged().RemoveAll(this);
 		OptionsListView->OnEntriesGenerated().RemoveAll(this);
+		OptionsListView->OnEntriesChanged().RemoveAll(this);
 
 		OptionsListView->OnEntryWidgetGenerated().AddUObject(this, &ThisClass::HandleEntryGenerated);
 		OptionsListView->OnItemIsHoveredChanged().AddUObject(this, &ThisClass::HandleEntryHoveredChange);
 		OptionsListView->OnItemSelectionChanged().AddUObject(this, &ThisClass::HandleEntrySelectionChange);
 		OptionsListView->OnEntriesGenerated().AddUObject(this, &ThisClass::HandleEntriesGenerated);
+		OptionsListView->OnEntriesChanged().AddUObject(this, &ThisClass::HandleEntriesChanged);
 
 	}
 }
@@ -84,6 +87,7 @@ void UWidget_OptionsScreen::NativeDestruct()
 		OptionsListView->OnItemIsHoveredChanged().RemoveAll(this);
 		OptionsListView->OnItemSelectionChanged().RemoveAll(this);
 		OptionsListView->OnEntriesGenerated().RemoveAll(this);
+		OptionsListView->OnEntriesChanged().RemoveAll(this);
 
 		for (UUserWidget* EntryWidget : OptionsListView->GetDisplayedEntryWidgets())
 		{
@@ -108,17 +112,6 @@ UWidget* UWidget_OptionsScreen::NativeGetDesiredFocusTarget() const
 	}
 
 	return Super::NativeGetDesiredFocusTarget();
-}
-
-void UWidget_OptionsScreen::GetLastListEntry() const
-{
-	const int32 ListSize = OptionsListView->GetListItems().Num() - 1;
-	UE_LOG(LogTemp, Warning, TEXT("Last Entry: %i"), ListSize)
-	UUIOptionsListEntry* LastEntry = Cast<UUIOptionsListEntry>(OptionsListView->GetItemAt(ListSize));
-	if (LastEntry)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("Last Entry: %s"), *LastEntry->GetClass()->ClassConfigName.ToString())
-	}
 }
 
 void UWidget_OptionsScreen::NativeOnActivated()
@@ -269,6 +262,7 @@ void UWidget_OptionsScreen::HandleListDataModified(UOptionsListItemDataObject_Ba
 			AddActionBinding(ResetActionHandler);
 		}
 	}
+
 	// otherwise if there is a valid handler, remove it
 	else
 	{
@@ -332,6 +326,11 @@ void UWidget_OptionsScreen::HandleTabSelected(const FName TagId)
 	// get the selected tab name
 	TabSelectedDisplayName = FoundListItems.IsEmpty() ? FString() : FoundListItems[0]->GetDisplayName().ToString();
 
+	// set list view to collapsed if there are no items
+	OptionsListView->SetVisibility(FoundListItems.IsEmpty()
+		                               ? ESlateVisibility::Collapsed
+		                               : ESlateVisibility::Visible);
+
 	// clear any existing selections
 	OptionsListView->ClearSelection();
 
@@ -342,12 +341,14 @@ void UWidget_OptionsScreen::HandleTabSelected(const FName TagId)
 	OptionsListView->RequestRefresh();
 
 	// default to the first item on the list as the selected state
+	// navigate to the first item on the list (could be a non selectable header)
 	const int32 SelectedIndex = GetFirstSelectableItemIndexInList();
 	if (FoundListItems.IsValidIndex(SelectedIndex))
 	{
-		UObject* SelectedItem = FoundListItems[SelectedIndex];
+		const UObject* SelectedItem = FoundListItems[SelectedIndex];
+		UObject* FirstItem = FoundListItems[0];
 		OptionsListView->SetSelectedItem(SelectedItem);
-		OptionsListView->RequestNavigateToItem(SelectedItem);
+		OptionsListView->RequestNavigateToItem(FirstItem);
 	}
 
 	// reset defaults
@@ -566,9 +567,41 @@ void UWidget_OptionsScreen::HandleScreenResize(const FVector2D& NewScreenSize, c
 
 void UWidget_OptionsScreen::HandleEntriesGenerated(const int32 NumEntries) const
 {
-	if (OptionsListView && ListViewBottomBorder)
+	if (!OptionsListView)
 	{
-		const bool bShowBorder = OptionsListView->IsScrollBarVisible();
-		ListViewBottomBorder->SetVisibility(bShowBorder ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
+		return;
+	}
+
+	const bool bScrolls = OptionsListView->IsScrollBarVisible();
+	SetListSlotSize(bScrolls ? ESlateSizeRule::Fill : ESlateSizeRule::Automatic);
+}
+
+void UWidget_OptionsScreen::HandleEntriesChanged(const int32 NumEntries) const
+{
+	SetListSlotSize(ESlateSizeRule::Fill);
+}
+
+void UWidget_OptionsScreen::SetListSlotSize(const ESlateSizeRule::Type InSizeRule) const
+{
+	if (!OptionsListView)
+	{
+		return;
+	}
+	if (UVerticalBoxSlot* ListViewSlot = Cast<UVerticalBoxSlot>(OptionsListView->Slot))
+	{
+		if (ListViewSlot->GetSize().SizeRule == InSizeRule)
+		{
+			return;
+		}
+
+		FSlateChildSize ChildSize;
+		ChildSize.SizeRule = InSizeRule;
+		ChildSize.Value = 1.f;
+
+		const EVerticalAlignment VAlign = InSizeRule == ESlateSizeRule::Fill ? VAlign_Fill : VAlign_Top;
+
+		ListViewSlot->SetSize(ChildSize);
+		ListViewSlot->SetHorizontalAlignment(HAlign_Fill);
+		ListViewSlot->SetVerticalAlignment(VAlign);
 	}
 }
