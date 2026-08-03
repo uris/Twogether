@@ -693,3 +693,63 @@ bool UNativeSettingsHelper::SetVisualEffectsQuality(const FString& InValue)
 	Settings->SetVisualEffectQuality(static_cast<int32>(Quality));
 	return true;
 }
+
+TArray<FStringSetting> UNativeSettingsHelper::GetFrameRateLimitSettings()
+{
+	TArray<FStringSetting> Settings;
+	const FName SettingId = NativeSettingIds::FrameRateLimit;
+	Settings.Add(FStringSetting(SettingId, FText::FromString("No Limit"), "0"));
+	Settings.Add(FStringSetting(SettingId, FText::FromString("30 FPS"), "30"));
+	Settings.Add(FStringSetting(SettingId, FText::FromString("60 FPS"), "60"));
+	Settings.Add(FStringSetting(SettingId, FText::FromString("90 FPS"), "90"));
+	Settings.Add(FStringSetting(SettingId, FText::FromString("120 FPS"), "120"));
+	return Settings;
+}
+
+FString UNativeSettingsHelper::GetFrameRateLimit()
+{
+	if (const UGameUserSettings* Settings = UGameUserSettings::GetGameUserSettings())
+	{
+		return LexToString(Settings->GetFrameRateLimit());
+	}
+	return TEXT("0");
+}
+
+bool UNativeSettingsHelper::SetFrameRateLimit(const FString& InValue)
+{
+	if (UGameUserSettings* Settings = UGameUserSettings::GetGameUserSettings())
+	{
+		Settings->SetFrameRateLimit(UUIFunctionLibrary::StringToFloat(InValue));
+		return true;
+	}
+
+	return false;
+}
+
+TArray<FStringSetting> UNativeSettingsHelper::GetVerticalSyncSettings()
+{
+	TArray<FStringSetting> Settings;
+	const FName SettingId = NativeSettingIds::FrameRateLimit;
+	Settings.Add(FStringSetting(SettingId, FText::FromString("Yes"), "true"));
+	Settings.Add(FStringSetting(SettingId, FText::FromString("No"), "false"));
+	return Settings;
+}
+
+FString UNativeSettingsHelper::GetVerticalSync()
+{
+	if (const UGameUserSettings* Settings = UGameUserSettings::GetGameUserSettings())
+	{
+		return Settings->IsVSyncEnabled() ? TEXT("true") : TEXT("false");
+	}
+	return TEXT("true");
+}
+
+bool UNativeSettingsHelper::SetVerticalSync(const FString& InValue)
+{
+	if (UGameUserSettings* Settings = UGameUserSettings::GetGameUserSettings())
+	{
+		Settings->SetVSyncEnabled(InValue.Equals("true"));
+		return true;
+	}
+	return false;
+}

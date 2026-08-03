@@ -155,4 +155,26 @@ public:
 	UFUNCTION(BlueprintCallable, Category="Game Settings|Video")
 	static bool SetVisualEffectsQuality(const FString& InValue);
 
+	// *** FRAMERATE LIMIT *** //
+
+	UFUNCTION(BlueprintCallable, Category="Game Settings|Video")
+	static TArray<FStringSetting> GetFrameRateLimitSettings();
+
+	UFUNCTION(BlueprintCallable, Category="Game Settings|Video")
+	static FString GetFrameRateLimit();
+
+	UFUNCTION(BlueprintCallable, Category="Game Settings|Video")
+	static bool SetFrameRateLimit(const FString& InValue);
+
+	// *** VERTICAL SYNC *** //
+
+	UFUNCTION(BlueprintCallable, Category="Game Settings|Video")
+	static TArray<FStringSetting> GetVerticalSyncSettings();
+
+	UFUNCTION(BlueprintCallable, Category="Game Settings|Video")
+	static FString GetVerticalSync();
+
+	UFUNCTION(BlueprintCallable, Category="Game Settings|Video")
+	static bool SetVerticalSync(const FString& InValue);
+
 };

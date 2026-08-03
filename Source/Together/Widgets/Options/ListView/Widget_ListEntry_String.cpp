@@ -44,9 +44,24 @@ void UWidget_ListEntry_String::NativePreConstruct()
 	ApplyStyles();
 }
 
+void UWidget_ListEntry_String::NativeConstruct()
+{
+	Super::NativeConstruct();
+
+	ApplyButtonStyles();
+}
+
 void UWidget_ListEntry_String::NativeDestruct()
 {
 	Super::NativeDestruct();
+}
+
+void UWidget_ListEntry_String::NativeOnStateChange(const EStateChangeType StateChangeType, const bool bStateValue)
+{
+	Super::NativeOnStateChange(StateChangeType, bStateValue);
+
+	UE_LOG(LogTemp, Warning, TEXT("State Change"))
+	ApplyButtonStyles();
 }
 
 void UWidget_ListEntry_String::OnOwningListDataObjectSet(UOptionsListItemDataObject_Base* InOwningListDataObject)
@@ -226,6 +241,33 @@ void UWidget_ListEntry_String::ApplyStyles()
 		if (SettingRotator && ValueEntryStyle.DefaultTextStyle)
 		{
 			SettingRotator->SetTextStyle(ValueEntryStyle.DefaultTextStyle);
+		}
+	}
+}
+
+void UWidget_ListEntry_String::ApplyButtonStyles() const
+{
+	const bool bShowButtons = bIsSelected || bIsHovered;
+	if (bShowButtons)
+	{
+		if (CycleRight)
+		{
+			CycleRight->SetRenderOpacity(bIsEditable ? ButtonOpacityOn : ButtonOpacityOff);
+		}
+		if (CycleLeft)
+		{
+			CycleLeft->SetRenderOpacity(bIsEditable ? ButtonOpacityOn : ButtonOpacityOff);
+		}
+	}
+	else
+	{
+		if (CycleRight)
+		{
+			CycleRight->SetRenderOpacity(ButtonOpacityOff);
+		}
+		if (CycleLeft)
+		{
+			CycleLeft->SetRenderOpacity(ButtonOpacityOff);
 		}
 	}
 }

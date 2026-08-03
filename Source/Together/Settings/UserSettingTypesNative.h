@@ -24,6 +24,8 @@ inline const FName TextureQuality(TEXT("TextureQuality"));
 inline const FName VisualEffectsQuality(TEXT("VisualEffectsQuality"));
 inline const FName PostProcessingQuality(TEXT("PostProcessingQuality"));
 inline const FName ReflectionQuality(TEXT("ReflectionQuality"));
+inline const FName FrameRateLimit(TEXT("FrameRateLimit"));
+inline const FName VerticalSync(TEXT("VerticalSync"));
 }
 
 inline FName GetNativeSettingId(const ENativeUnrealSettings NativeSetting)
@@ -54,6 +56,10 @@ inline FName GetNativeSettingId(const ENativeUnrealSettings NativeSetting)
 			return NativeSettingIds::PostProcessingQuality;
 		case ENativeUnrealSettings::ReflectionQuality:
 			return NativeSettingIds::ReflectionQuality;
+		case ENativeUnrealSettings::FrameRateLimit:
+			return NativeSettingIds::FrameRateLimit;
+		case ENativeUnrealSettings::VerticalSync:
+			return NativeSettingIds::VerticalSync;
 		default:
 			return NativeSettingIds::Invalid;
 	}
@@ -77,4 +83,12 @@ enum class EViewDistanceQuality : uint8
 	High = 2 UMETA(DisplayName = "Far"),
 	Epic = 3 UMETA(DisplayName = "Very Far"),
 	Cinematic = 4 UMETA(DisplayName = "Cinematic"),
+};
+
+UENUM(BlueprintType)
+enum class ENormalizedWindowMode : uint8
+{
+	Fullscreen = 0 UMETA(DisplayName = "Fullscreen"),
+	WindowedFullscreen = 1 UMETA(DisplayName = "Fullscreen Window"),
+	Windowed = 2 UMETA(DisplayName = "Window"),
 };

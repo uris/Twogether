@@ -15,6 +15,17 @@ enum class EDependencyResult : uint8
 	SetToMatchOther = 3 UMETA(DisplayName = "Match value of other setting"),
 };
 
+UENUM()
+enum class EDependencyOperator : uint8
+{
+	None = 0 UMETA(DisplayName = "None"), // any change should drive the result
+	Equals = 1 UMETA(DisplayName = "Equals"),
+	NotEquals = 2 UMETA(DisplayName = "Not Equals"),
+	GreaterThan = 3 UMETA(DisplayName = "Greater Than"),
+	LessThan = 4 UMETA(DisplayName = "Less Than"),
+	Contains = 5 UMETA(DisplayName = "Contains"),
+};
+
 // each condition
 USTRUCT(BlueprintType)
 struct FSettingDependency
@@ -23,6 +34,25 @@ struct FSettingDependency
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Dependency")
 	FName DependantSettingId = FName(NAME_None);
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Edit Condition")
+	EDependencyOperator LogicalOperator = EDependencyOperator::None;
+
+	// clang-format off
+	// @formatter:off
+	UPROPERTY(EditAnywhere,
+		meta = (EditCondition = "LogicalOperator != EDependencyOperator::None && LogicalOperator != EDependencyOperator::Contains",
+			EditConditionHides,
+			TitleProperty = "DisplayName"))
+	FString ComparisonStringValue = TEXT("");
+	// @formatter:on
+	// clang-format on
+
+	UPROPERTY(EditAnywhere,
+		meta = (EditCondition = "LogicalOperator == EDependencyOperator::Contains",
+			EditConditionHides,
+			TitleProperty = "DisplayName"))
+	FString CommaSeparatedComparisonValues = TEXT("");
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Dependency")
 	EDependencyResult DependencyResult = EDependencyResult::SetToValue;

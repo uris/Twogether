@@ -22,12 +22,22 @@ class TOGETHER_API UWidget_ListEntry_String : public UUIOptionsListEntry
 	GENERATED_BODY()
 
 public:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Custom Properties | Appearance")
+	float ButtonOpacityOn = 1.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Custom Properties | Appearance")
+	float ButtonOpacityOff = 0.f;
+
 	TObjectPtr<UListItemDataObject_String> GetOwningListDataObject() const
 	{
 		return CachedOwningListDataObject;
 	};
 
 	virtual void ApplyEditabilityToControls(const bool bInIsEditable) override;
+
+	virtual void NativeListEntryWidgetHovered(bool bInIsHovered) override;
+
+	virtual void NativeListEntryWidgetSelected(bool bInIsSelected) override;
 
 protected:
 	virtual FReply NativeOnFocusReceived(const FGeometry& InGeometry, const FFocusEvent& InFocusEvent) override;
@@ -36,18 +46,21 @@ protected:
 
 	virtual void NativePreConstruct() override;
 
+	virtual void NativeConstruct() override;
+
 	virtual void NativeDestruct() override;
+
+	virtual void NativeOnStateChange(EStateChangeType StateChangeType, bool bStateValue) override;
 
 	virtual void OnOwningListDataObjectSet(UOptionsListItemDataObject_Base* InOwningListDataObject) override;
 
 	virtual void OnOwningListDataObjectModified(UOptionsListItemDataObject_Base* InOwningListDataObject,
 	                                            EOptionsListModifiedReason InReason) override;
 
-	virtual void NativeListEntryWidgetHovered(bool bInIsHovered) override;
-
-	virtual void NativeListEntryWidgetSelected(bool bInIsSelected) override;
 
 	virtual void ApplyStyles() override;
+
+	void ApplyButtonStyles() const;
 
 private:
 	UPROPERTY(BlueprintReadOnly,

@@ -94,6 +94,8 @@ enum class ENativeUnrealSettings : uint8
 	VisualEffectsQuality = 10 UMETA(DisplayName = "Visual Effects Quality"),
 	PostProcessingQuality = 11 UMETA(DisplayName = "Post Processing Quality"),
 	ReflectionQuality = 12 UMETA(DisplayName = "Reflection Quality"),
+	FrameRateLimit = 13 UMETA(DisplayName = "Frame Rate Limit"),
+	VerticalSync = 14 UMETA(DisplayName = "Vertical Sync"),
 };
 
 UENUM(BlueprintType)

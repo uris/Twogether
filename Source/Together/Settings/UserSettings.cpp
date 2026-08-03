@@ -343,6 +343,16 @@ FString UUserSettings::GetNativeSettingValue(const FName InSettingId)
 		return UNativeSettingsHelper::GetReflectionQuality();
 	}
 
+	if (InSettingId == NativeSettingIds::FrameRateLimit)
+	{
+		return UNativeSettingsHelper::GetFrameRateLimit();
+	}
+
+	if (InSettingId == NativeSettingIds::VerticalSync)
+	{
+		return UNativeSettingsHelper::GetVerticalSync();
+	}
+
 	return FString();
 }
 
@@ -406,6 +416,16 @@ bool UUserSettings::SetNativeSettingValue(const FName InSettingId, const FString
 	if (InSettingId == NativeSettingIds::PostProcessingQuality)
 	{
 		return UNativeSettingsHelper::SetPostProcessingQuality(InValue);
+	}
+
+	if (InSettingId == NativeSettingIds::FrameRateLimit)
+	{
+		return UNativeSettingsHelper::SetFrameRateLimit(InValue);
+	}
+
+	if (InSettingId == NativeSettingIds::VerticalSync)
+	{
+		return UNativeSettingsHelper::SetVerticalSync(InValue);
 	}
 
 	// *** Fallback *** //

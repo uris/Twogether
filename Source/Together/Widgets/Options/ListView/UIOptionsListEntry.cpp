@@ -7,6 +7,7 @@
 #include "CommonTextBlock.h"
 #include "ListEntryStyle.h"
 #include "Together.h"
+#include "Components/Border.h"
 #include "Components/OverlaySlot.h"
 #include "Components/SizeBox.h"
 #include "Components/VerticalBox.h"
@@ -14,6 +15,13 @@
 #include "Widgets/Components/UICommonTextBase.h"
 #include "Widgets/Options/DataObjects/OptionsListItemDataObject_Base.h"
 #include "Widgets/Options/DataObjects/UOptionsListItemCollection_Base.h"
+
+void UUIOptionsListEntry::NativePreConstruct()
+{
+	Super::NativePreConstruct();
+
+	HoverBackground();
+}
 
 void UUIOptionsListEntry::NativeOnListItemObjectSet(UObject* ListItemObject)
 {
@@ -105,6 +113,7 @@ void UUIOptionsListEntry::HandleEditabilityChanged(const bool bInIsEditable)
 	bIsEditable = bInIsEditable;
 
 	// broadcast to children overriding
+	NativeOnStateChange(EStateChangeType::Editable, bIsEditable);
 	ApplyEditabilityToControls(bIsEditable);
 }
 
@@ -116,7 +125,9 @@ void UUIOptionsListEntry::ApplyEditabilityToControls(bool bInIsEditable)
 void UUIOptionsListEntry::NativeOnItemSelectionChanged(const bool bInIsSelected)
 {
 	IUserObjectListEntry::NativeOnItemSelectionChanged(bInIsSelected);
+
 	NativeListEntryWidgetSelected(bInIsSelected);
+	NativeOnStateChange(EStateChangeType::Selected, bInIsSelected);
 }
 
 void UUIOptionsListEntry::RequestOwningItemSelection() const
@@ -127,20 +138,28 @@ void UUIOptionsListEntry::RequestOwningItemSelection() const
 	}
 }
 
-
 void UUIOptionsListEntry::NativeOnMouseEnter(
 	const FGeometry& InGeometry,
 	const FPointerEvent& InMouseEvent)
 {
 	Super::NativeOnMouseEnter(InGeometry, InMouseEvent);
+
 	NativeListEntryWidgetHovered(true);
+	NativeOnStateChange(EStateChangeType::Hovered, true);
 }
 
 void UUIOptionsListEntry::NativeOnMouseLeave(
 	const FPointerEvent& InMouseEvent)
 {
 	Super::NativeOnMouseLeave(InMouseEvent);
+
 	NativeListEntryWidgetHovered(false);
+	NativeOnStateChange(EStateChangeType::Hovered, false);
+}
+
+void UUIOptionsListEntry::NativeOnStateChange(EStateChangeType StateChangeType, bool bStateValue)
+{
+	HoverBackground();
 }
 
 void UUIOptionsListEntry::NativeListEntryWidgetHovered(const bool bInIsHovered)
@@ -184,5 +203,20 @@ void UUIOptionsListEntry::SetBorderVisibility(const bool bBottomVisible, const b
 	{
 		EntryBorderTop->SetVisibility(
 			bTopVisible ? ESlateVisibility::SelfHitTestInvisible : ESlateVisibility::Collapsed);
+	}
+}
+
+void UUIOptionsListEntry::HoverBackground() const
+{
+	if (bHoverHighlights)
+	{
+		if (const bool bIsActive = (bIsHovered || bIsSelected) && bIsEditable; bIsActive && Background)
+		{
+			Background->SetBrushColor(BackgroundOn);
+		}
+		else if (Background)
+		{
+			Background->SetBrushColor(BackgroundOff);
+		}
 	}
 }

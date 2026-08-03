@@ -165,17 +165,19 @@ void UUISliderBase::UpdateSliderStyle(const bool bIsSelected, const bool bIsHove
 	{
 		CurrentBarColor = BarColorSelected;
 		CurrentHandleColor = HandleColorSelected;
-		CurrentValueTextStyle = ValueSelectedTextStyle
-			                        ? ValueSelectedTextStyle
-			                        : ValueDefaultTextStyle;
+		CurrentValueTextStyle = ValueSelectedTextStyle ? ValueSelectedTextStyle : ValueDefaultTextStyle;
 	}
 	else if (bIsHovered)
 	{
 		CurrentBarColor = BarColorHovered;
 		CurrentHandleColor = HandleColorHovered;
-		CurrentValueTextStyle = ValueHoveredTextStyle
-			                        ? ValueHoveredTextStyle
-			                        : ValueDefaultTextStyle;
+		CurrentValueTextStyle = ValueHoveredTextStyle ? ValueHoveredTextStyle : ValueDefaultTextStyle;
+	}
+	else
+	{
+		CurrentBarColor = BarColor;
+		CurrentHandleColor = HandleColor;
+		CurrentValueTextStyle = ValueDefaultTextStyle;
 	}
 
 	if (Slider)

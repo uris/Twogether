@@ -7,6 +7,7 @@
 #include "Blueprint/IUserObjectListEntry.h"
 #include "UIOptionsListEntry.generated.h"
 
+class UBorder;
 class USizeBox;
 class UListEntryStyle;
 class UVerticalBox;
@@ -15,6 +16,14 @@ enum class EOptionsListModifiedReason : uint8;
 class UUICommonTextBase;
 class UOptionsListItemDataObject_Base;
 class UCommonTextBlock;
+
+UENUM(BlueprintType)
+enum class EStateChangeType : uint8
+{
+	Editable UMETA(DisplayName="Editable"),
+	Hovered UMETA(DisplayName="Hovered"),
+	Selected UMETA(DisplayName="Selected"),
+};
 
 /**
  *
@@ -45,6 +54,9 @@ public:
 	UPROPERTY(BlueprintReadOnly, meta=(BindWidgetOptional))
 	TObjectPtr<USizeBox> EntryBorderTop;
 
+	UPROPERTY(BlueprintReadOnly, meta=(BindWidgetOptional))
+	TObjectPtr<UBorder> Background;
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Style")
 	TObjectPtr<UListEntryStyle> ListEntryStyle;
 
@@ -54,14 +66,29 @@ public:
 	UFUNCTION(BlueprintImplementableEvent, Category = "UI Options List Entry")
 	void BP_NativeOnSelected(bool bSelected);
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
+	bool bIsEditable = true;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
 	bool bIsHovered = false;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
 	bool bIsSelected = false;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
-	bool bIsEditable = true;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Custom Properties | Appearance")
+	bool bHoverHighlights = true;
+
+	UPROPERTY(EditAnywhere,
+		BlueprintReadWrite,
+		Category = "Custom Properties | Appearance",
+		meta = (EditCondition = "bHoverHighlights"))
+	FLinearColor BackgroundOn = FLinearColor(1.f, 1.f, 1.f, 0.025f);
+
+	UPROPERTY(EditAnywhere,
+		BlueprintReadWrite,
+		Category = "Custom Properties | Appearance",
+		meta = (EditCondition = "bHoverHighlights"))
+	FLinearColor BackgroundOff = FLinearColor(1.f, 1.f, 1.f, 0.f);
 
 	// called to remove a bottom border
 	void SetBorderVisibility(const bool bBottomVisible, const bool bTopVisible) const;
@@ -78,6 +105,8 @@ public:
 protected:
 	// empty override to apply global styles and for children to handle specific style updates
 	virtual void ApplyStyles();
+
+	virtual void NativePreConstruct() override;
 
 	// handle focus for gamepad input
 	virtual FReply NativeOnFocusReceived(const FGeometry& InGeometry, const FFocusEvent& InFocusEvent) override;
@@ -107,6 +136,8 @@ protected:
 	// state override forwarded to virtual interface - child must call ::super:: to expose event to BP
 	virtual void NativeOnMouseLeave(const FPointerEvent& InMouseEvent) override;
 
+	virtual void NativeOnStateChange(EStateChangeType StateChangeType, bool bStateValue);
+
 	// expose a method for entry to request selection of this item to the owning list view
 	void RequestOwningItemSelection() const;
 
@@ -115,4 +146,6 @@ protected:
 
 private:
 	void SetIndent(bool bHasParent) const;
+
+	void HoverBackground() const;
 };

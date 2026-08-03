@@ -6,6 +6,10 @@ BasedOnStyle: Microsoft
 Standard: Latest
 ColumnLimit: 120
 
+# Keep quoted strings intact. Splitting Unreal metadata strings (for example,
+# UPROPERTY EditCondition expressions) can make them invalid for UnrealHeaderTool.
+BreakStringLiterals: false
+
 # Unreal uses tabs for indentation and spaces for alignment.
 IndentWidth: 4
 TabWidth: 4

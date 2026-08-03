@@ -4,6 +4,7 @@
 
 #include "UIFunctionLibrary.h"
 #include "Settings/NativeSettingsHelper.h"
+#include "Settings/SettingsDataUtility.h"
 #include "Settings/UserSettingTypes.h"
 #include "Settings/UserSettings.h"
 
@@ -126,55 +127,11 @@ bool UOptionsListItemDataObject_Base::AreEditConditionsMet()
 
 		const FSettingEditCondition& Condition = ResolvedCondition.Condition;
 		const FString CurrentValue = TargetData->GetCurrentValueAsString();
-		bool bConditionMet = false;
-
-		switch (Condition.LogicalOperator)
-		{
-			case EEditConditionOperator::Equals:
-				bConditionMet = CurrentValue.Equals(
-					Condition.ComparisonStringValue,
-					ESearchCase::CaseSensitive);
-				break;
-
-			case EEditConditionOperator::NotEquals:
-				bConditionMet = !CurrentValue.Equals(
-					Condition.ComparisonStringValue,
-					ESearchCase::CaseSensitive);
-				break;
-
-			case EEditConditionOperator::GreaterThan:
-			case EEditConditionOperator::LessThan:
-			{
-				double CurrentNumber = 0.0;
-				double ComparisonNumber = 0.0;
-				if (LexTryParseString(CurrentNumber, *CurrentValue) &&
-				    LexTryParseString(ComparisonNumber, *Condition.ComparisonStringValue))
-				{
-					bConditionMet =
-						Condition.LogicalOperator == EEditConditionOperator::GreaterThan
-							? CurrentNumber > ComparisonNumber
-							: CurrentNumber < ComparisonNumber;
-				}
-				break;
-			}
-
-			case EEditConditionOperator::Contains:
-			{
-				TArray<FString> ComparisonValues;
-				Condition.CommaSeparatedComparisonValues.ParseIntoArray(
-					ComparisonValues,
-					TEXT(","),
-					true);
-
-				for (FString& ComparisonValue : ComparisonValues)
-				{
-					ComparisonValue.TrimStartAndEndInline();
-				}
-
-				bConditionMet = ComparisonValues.Contains(CurrentValue);
-				break;
-			}
-		}
+		const bool bConditionMet = FSettingsDataUtility::DoesValueMatch(
+			Condition.LogicalOperator,
+			CurrentValue,
+			Condition.ComparisonStringValue,
+			Condition.CommaSeparatedComparisonValues);
 
 		if (bMatchAll && !bConditionMet)
 		{
@@ -230,6 +187,16 @@ void UOptionsListItemDataObject_Base::HandleDependencyTargetModified(
 		}
 
 		const FSettingDependency& Dependency = ResolvedDependency.Dependency;
+		const FString CurrentValue = InModifiedData->GetCurrentValueAsString();
+		if (!FSettingsDataUtility::DoesValueMatch(
+			    Dependency.LogicalOperator,
+			    CurrentValue,
+			    Dependency.ComparisonStringValue,
+			    Dependency.CommaSeparatedComparisonValues))
+		{
+			continue;
+		}
+
 		FString ResultValue;
 
 		switch (Dependency.DependencyResult)
@@ -239,7 +206,7 @@ void UOptionsListItemDataObject_Base::HandleDependencyTargetModified(
 				break;
 
 			case EDependencyResult::SetToMatchThis:
-				ResultValue = InModifiedData->GetCurrentValueAsString();
+				ResultValue = CurrentValue;
 				break;
 
 			case EDependencyResult::SetToMatchOther:

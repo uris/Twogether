@@ -530,9 +530,10 @@ TArray<FStringSetting> UOptionsDataRegistry::GetNativeStringSettings(const FUser
 	{
 		case ENativeUnrealSettings::ScreenResolution:
 			return UNativeSettingsHelper::GetSupportedResolutionsSettings(NativeId);
-		case ENativeUnrealSettings::WindowMode:
-			// TODO: replace with native getter
-			return UNativeSettingsHelper::GetSupportedResolutionsSettings(NativeId);
+		case ENativeUnrealSettings::FrameRateLimit:
+			return UNativeSettingsHelper::GetFrameRateLimitSettings();
+		case ENativeUnrealSettings::VerticalSync:
+			return UNativeSettingsHelper::GetVerticalSyncSettings();
 		default:
 			return {};
 	}
@@ -715,6 +716,8 @@ EUserSettingValueType UOptionsDataRegistry::NormalizedSettingType(const FUserSet
 			case ENativeUnrealSettings::VisualEffectsQuality:
 				return EUserSettingValueType::Enum;
 			case ENativeUnrealSettings::ScreenResolution:
+			case ENativeUnrealSettings::FrameRateLimit:
+			case ENativeUnrealSettings::VerticalSync:
 				return EUserSettingValueType::String;
 			case ENativeUnrealSettings::DisplayGamma:
 				return EUserSettingValueType::Scalar;
@@ -734,7 +737,7 @@ TArray<FStringSetting> UOptionsDataRegistry::GetNativeEnumSettingValues(const FU
 	switch (Definition.NativeSetting)
 	{
 		case ENativeUnrealSettings::WindowMode:
-			return EnumTypeToStringSettings<EWindowMode::Type>(DataId);
+			return EnumTypeToStringSettings<ENormalizedWindowMode>(DataId);
 		case ENativeUnrealSettings::OverallScalabilityLevel:
 		case ENativeUnrealSettings::ResolutionScaleNormalized:
 		case ENativeUnrealSettings::GlobalIlluminationQuality:
