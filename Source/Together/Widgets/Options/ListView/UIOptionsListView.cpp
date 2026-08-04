@@ -40,6 +40,26 @@ bool UUIOptionsListView::IsScrollBarVisible() const
 	return MyListView.IsValid() && MyListView->IsScrollbarNeeded();
 }
 
+bool UUIOptionsListView::IsListItemHovered() const
+{
+	return HoveredDataObject.Get() != nullptr;
+}
+
+bool UUIOptionsListView::IsListItemSelected() const
+{
+	return SelectedDataObject.Get() != nullptr;
+}
+
+UOptionsListItemDataObject_Base* UUIOptionsListView::GetListItemSelected() const
+{
+	return SelectedDataObject.Get();
+}
+
+UOptionsListItemDataObject_Base* UUIOptionsListView::GetListItemHovered() const
+{
+	return HoveredDataObject.Get();
+}
+
 void UUIOptionsListView::NativeOnEntriesGenerated()
 {
 	Super::NativeOnEntriesGenerated();
@@ -75,4 +95,40 @@ UUserWidget& UUIOptionsListView::OnGenerateEntryWidgetInternal(UObject* Item,
 	}
 
 	return Super::OnGenerateEntryWidgetInternal(Item, DesiredEntryClass, OwnerTable);
+}
+
+void UUIOptionsListView::OnSelectionChangedInternal(UObject* FirstSelectedItem)
+{
+	Super::OnSelectionChangedInternal(FirstSelectedItem);
+
+	SelectedDataObject = Cast<UOptionsListItemDataObject_Base>(FirstSelectedItem);
+}
+
+void UUIOptionsListView::HandleListEntryHovered(UUserWidget& EntryWidget)
+{
+	Super::HandleListEntryHovered(EntryWidget);
+
+	if (UUIOptionsListEntry* Entry = Cast<UUIOptionsListEntry>(&EntryWidget))
+	{
+		HoveredDataObject = Entry->GetOwningDataObject();
+	}
+}
+
+void UUIOptionsListView::HandleListEntryUnhovered(UUserWidget& EntryWidget)
+{
+	Super::HandleListEntryUnhovered(EntryWidget);
+
+	const UUIOptionsListEntry* Entry = Cast<UUIOptionsListEntry>(&EntryWidget);
+
+	if (!Entry)
+	{
+		return;
+	}
+
+	UOptionsListItemDataObject_Base* DataObject = Entry->GetOwningDataObject();
+
+	if (HoveredDataObject.Get() == DataObject)
+	{
+		HoveredDataObject = nullptr;
+	}
 }

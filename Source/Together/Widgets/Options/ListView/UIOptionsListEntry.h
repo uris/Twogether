@@ -115,6 +115,9 @@ public:
 		meta = (EditCondition = "bHoverHighlights"))
 	FLinearColor BackgroundOff = FLinearColor(1.f, 1.f, 1.f, 0.f);
 
+	UFUNCTION(BlueprintCallable, Category = "UI Options List Entry")
+	UOptionsListItemDataObject_Base* GetOwningDataObject() const;
+
 	// called to remove a bottom border
 	void SetBorderVisibility(const bool bBottomVisible, const bool bTopVisible) const;
 

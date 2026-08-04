@@ -41,9 +41,6 @@ void UUIOptionsListEntry::NativeOnListItemObjectSet(UObject* ListItemObject)
 
 void UUIOptionsListEntry::NativeOnEntryReleased()
 {
-
-	UE_LOG(LogTemp, Warning, TEXT("UUIOptionsListEntry Released"));
-
 	if (UOptionsListItemDataObject_Base* PreviousItem =
 		Cast<UOptionsListItemDataObject_Base>(CachedListItemObject))
 	{
@@ -192,6 +189,11 @@ void UUIOptionsListEntry::SetIndent(const bool bHasParent) const
 				0.0f));
 		}
 	}
+}
+
+UOptionsListItemDataObject_Base* UUIOptionsListEntry::GetOwningDataObject() const
+{
+	return Cast<UOptionsListItemDataObject_Base>(CachedListItemObject.Get());
 }
 
 void UUIOptionsListEntry::SetBorderVisibility(const bool bBottomVisible, const bool bTopVisible) const

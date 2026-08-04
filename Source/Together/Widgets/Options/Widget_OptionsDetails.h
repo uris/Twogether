@@ -41,7 +41,7 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Custom Properties | Apperance")
 	TEnumAsByte<EStretch::Type> ImageFill = EStretch::ScaleToFit;
 
-	void UpdateDetailsView(const UOptionsListItemDataObject_Base* InListItemData,
+	void UpdateDetailsView(UOptionsListItemDataObject_Base* InListItemData,
 	                       const FString& InWidgetClassName);
 
 	void ClearDetailsView();
@@ -114,4 +114,9 @@ private:
 	// cached loaded widget
 	UPROPERTY(Transient)
 	TObjectPtr<UUserWidget> LoadedOptionalWidget;
+
+	// current details data object
+	UPROPERTY(Transient)
+	TObjectPtr<UOptionsListItemDataObject_Base> CurrentDetailsDataObject;
+	bool IsSameDetailsDataObject(const UOptionsListItemDataObject_Base* InDetailsObject) const;
 };

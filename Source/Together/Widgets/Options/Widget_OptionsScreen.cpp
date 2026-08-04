@@ -223,25 +223,12 @@ void UWidget_OptionsScreen::HandleEntrySelectionRequested(const UObject* ListIte
 
 void UWidget_OptionsScreen::HandleEntryHoveredChange(UObject* InItem, const bool bIsHovered) const
 {
-	const UOptionsListItemDataObject_Base* ListItemDataObject = Cast<UOptionsListItemDataObject_Base>(InItem);
-	if (!ListItemDataObject || !SettingDetails || !OptionsListView)
-	{
-		return;
-	}
-
-	if (bIsHovered)
-	{
-		const FString WidgetClassName = InItem->GetClass()->GetName();
-		SettingDetails->UpdateDetailsView(ListItemDataObject, WidgetClassName);
-		return;
-	}
-
-	SetSelectedItemDetails(InItem);
+	SetSelectedItemDetails(bIsHovered ? InItem : nullptr);
 }
 
 void UWidget_OptionsScreen::HandleEntrySelectionChange(UObject* InItem) const
 {
-	SetSelectedItemDetails(InItem);
+	SetSelectedItemDetails();
 }
 
 void UWidget_OptionsScreen::HandleListDataModified(UOptionsListItemDataObject_Base* ModifiedData,
@@ -287,27 +274,33 @@ void UWidget_OptionsScreen::SetSelectedItemDetails(UObject* InItem) const
 		return;
 	}
 
-	// grab object selected
-	UOptionsListItemDataObject_Base* SelectedItemDataObject;
+	UOptionsListItemDataObject_Base* DetailsDataObject = nullptr;
+
+	// grab selected/hivered data object from in item
 	if (InItem)
 	{
-		SelectedItemDataObject = Cast<UOptionsListItemDataObject_Base>(InItem);
+		DetailsDataObject = Cast<UOptionsListItemDataObject_Base>(InItem);
 	}
-	else
+	else if (OptionsListView->IsListItemHovered())
 	{
-		SelectedItemDataObject = OptionsListView->GetSelectedItem<UOptionsListItemDataObject_Base>();
+		DetailsDataObject = OptionsListView->GetListItemSelected();
+	}
+	else if (OptionsListView->IsListItemSelected())
+	{
+		DetailsDataObject = OptionsListView->GetListItemSelected();
 	}
 
 	// if object exists set display of details, otherwise clear
-	if (SelectedItemDataObject)
+	if (DetailsDataObject)
 	{
-		const FString WidgetClassName = SelectedItemDataObject->GetClass()->GetName();
-		SettingDetails->UpdateDetailsView(SelectedItemDataObject, WidgetClassName);
+		const FString WidgetClassName = DetailsDataObject->GetClass()->GetName();
+		SettingDetails->UpdateDetailsView(DetailsDataObject, WidgetClassName);
 	}
 	else
 	{
 		SettingDetails->ClearDetailsView();
 	}
+
 }
 
 void UWidget_OptionsScreen::HandleTabSelected(const FName TagId)

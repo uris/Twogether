@@ -27,9 +27,17 @@ void UWidget_OptionsDetails::NativeConstruct()
 	ClearDetailsView();
 }
 
-void UWidget_OptionsDetails::UpdateDetailsView(const UOptionsListItemDataObject_Base* InListItemData,
+void UWidget_OptionsDetails::UpdateDetailsView(UOptionsListItemDataObject_Base* InListItemData,
                                                const FString& InWidgetClassName)
 {
+
+	if (!InListItemData || IsSameDetailsDataObject(InListItemData))
+	{
+		return;
+	}
+
+	CurrentDetailsDataObject = InListItemData;
+
 	SetTitle(InListItemData);
 	SetImage(InListItemData);
 	SetDescription(InListItemData);
@@ -250,4 +258,13 @@ void UWidget_OptionsDetails::ClearWidget()
 	}
 
 	LoadedOptionalWidget = nullptr;
+}
+
+bool UWidget_OptionsDetails::IsSameDetailsDataObject(const UOptionsListItemDataObject_Base* InDetailsObject) const
+{
+	if (!CurrentDetailsDataObject || !InDetailsObject)
+	{
+		return false;
+	}
+	return CurrentDetailsDataObject->GetDataId().ToString().Equals(InDetailsObject->GetDataId().ToString());
 }
