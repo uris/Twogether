@@ -172,22 +172,22 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="UI Button|Styles")
 	TSubclassOf<UCommonButtonStyle> SmallButtonStyle;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="UI Button|Text")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="UI Button|Text")
 	bool bUseUpperCase = false;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="UI Button|Text")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="UI Button|Text")
 	FText ButtonLabel;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="UI Button|Text")
 	FText ButtonLabelWorking;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="UI Button|Text")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="UI Button|Text")
 	FText ButtonDescription;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="UI Button|Text")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="UI Button|Text")
 	FText ButtonDescriptionWorking;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="UI Button|State")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="UI Button|State")
 	EAsyncButtonState ButtonState = EAsyncButtonState::Idle;
 
 	UPROPERTY(EditAnywhere,

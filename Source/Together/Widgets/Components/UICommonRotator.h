@@ -18,6 +18,12 @@ class TOGETHER_API UUICommonRotator : public UCommonRotator
 	GENERATED_BODY()
 
 public:
+	virtual bool Initialize() override;
+
+	DECLARE_EVENT_OneParam(UUICommonRotator, FDirectionalRotateEvent, ERotatorDirection);
+
+	FDirectionalRotateEvent OnDirectionalRotateEvent;
+
 	UPROPERTY(EditAnywhere,
 		BlueprintReadWrite,
 		Category = "Custom Properties|Text Styles")
@@ -47,6 +53,8 @@ public:
 	void SetSelectedOptionByText(const FText& InTextOption);
 
 private:
+	TSharedPtr<SWidget> HandleDirectionalNavigation(EUINavigation InNavigation) const;
+
 	int32 GetIndexByTextValue(const FText& InText) const;
 
 };

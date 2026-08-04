@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "CommonUserWidget.h"
+#include "GameplayTagContainer.h"
 #include "Blueprint/IUserObjectListEntry.h"
 #include "UIOptionsListEntry.generated.h"
 
@@ -117,6 +118,15 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "UI Options List Entry")
 	UOptionsListItemDataObject_Base* GetOwningDataObject() const;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Custom Properties|SoundSFX")
+	FGameplayTag SelectSFXTagName = FGameplayTag::RequestGameplayTag(FName("UI.SoundFX.List.Select"));
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Custom Properties|SoundSFX")
+	FGameplayTag HoverSFXTagName = FGameplayTag::RequestGameplayTag(FName("UI.SoundFX.List.Hover"));
+
+	UFUNCTION(BlueprintCallable)
+	void EmitSFX(FGameplayTag SFXTagName) const;
 
 	// called to remove a bottom border
 	void SetBorderVisibility(const bool bBottomVisible, const bool bTopVisible) const;

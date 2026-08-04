@@ -6,10 +6,12 @@
 #include "CommonInputSubsystem.h"
 #include "CommonTextBlock.h"
 #include "ListEntryStyle.h"
+#include "UIFunctionLibrary.h"
 #include "Components/Border.h"
 #include "Components/OverlaySlot.h"
 #include "Components/SizeBox.h"
 #include "Components/VerticalBox.h"
+#include "Kismet/GameplayStatics.h"
 #include "Widgets/Components/UICommonTextBase.h"
 #include "Widgets/Options/DataObjects/OptionsListItemDataObject_Base.h"
 #include "Widgets/Options/DataObjects/UOptionsListItemCollection_Base.h"
@@ -144,6 +146,7 @@ void UUIOptionsListEntry::NativeOnMouseEnter(
 	Super::NativeOnMouseEnter(InGeometry, InMouseEvent);
 
 	NativeListEntryWidgetHovered(true);
+
 	NativeOnStateChange(EStateChangeType::Hovered, true);
 }
 
@@ -223,4 +226,13 @@ void UUIOptionsListEntry::HoverBackground() const
 			Background->SetBrushColor(BackgroundOff);
 		}
 	}
+}
+
+void UUIOptionsListEntry::EmitSFX(const FGameplayTag SFXTagName) const
+{
+	if (SFXTagName.ToString().IsEmpty())
+	{
+		return;
+	}
+	UUIFunctionLibrary::PlaySoundFX(this, SFXTagName);
 }

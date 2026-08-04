@@ -27,7 +27,7 @@ void UWidget_ListEntry_String::NativeOnInitialized()
 	if (SettingRotator)
 	{
 		SettingRotator->OnClicked().AddUObject(this, &ThisClass::HandleRotatorClicked);
-		SettingRotator->OnRotatedEvent.AddUObject(this, &ThisClass::HandleRotatedEvent);
+		SettingRotator->OnDirectionalRotateEvent.AddUObject(this, &ThisClass::HandleDirectionalRotate);
 	}
 
 	ApplyStyles();
@@ -163,31 +163,18 @@ void UWidget_ListEntry_String::HandleRotatorClicked() const
 	CycleSelection(EStringSettingDirection::Next);
 }
 
-void UWidget_ListEntry_String::HandleRotatedEvent(int32 Value, bool bUserInitiated) const
+void UWidget_ListEntry_String::HandleDirectionalRotate(const ERotatorDirection InDirection) const
 {
-	UE_LOG(LogTemp, Warning, TEXT("Rotated: %d"), bUserInitiated);
-
-	if (!IsValid(CachedOwningListDataObject))
-	{
-		return;
-	}
-
-	UCommonInputSubsystem* IS = GetInputSubsystem();
-	if (!IS || !bUserInitiated)
-	{
-		return;
-	}
-
-	// use the selected text to commit updates from user selection
-	if (IS->GetCurrentInputType() == ECommonInputType::Gamepad)
-	{
-		const FText SelectedOption = SettingRotator->GetSelectedText();
-		CachedOwningListDataObject->OnRotatorInitiatedValueChange(SelectedOption);
-	}
+	CycleSelection(InDirection == ERotatorDirection::Left
+		? EStringSettingDirection::Previous
+		: EStringSettingDirection::Next);
 }
 
 void UWidget_ListEntry_String::CycleSelection(const EStringSettingDirection InDirection) const
 {
+	// emit sound fx
+	EmitSFX(SelectSFXTagName);
+
 	// the button click consumes a pointer event: explicitly request item selection
 	// important: call this before cycling to trigger selection-dependent events before updating value changes
 	RequestOwningItemSelection(); // <- calls SetSelectedItem when the request trickles to the owning screen

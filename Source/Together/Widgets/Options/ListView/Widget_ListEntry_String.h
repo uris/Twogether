@@ -85,7 +85,7 @@ private:
 	void HandleCycleLeft() const;
 	void HandleCycleRight() const;
 	void HandleRotatorClicked() const;
-	void HandleRotatedEvent(int32 Value, bool bUserInitiated) const;
+	void HandleDirectionalRotate(ERotatorDirection InDirection) const;
 	void CycleSelection(EStringSettingDirection InDirection) const;
 
 	// utility to check is owner: unused for now

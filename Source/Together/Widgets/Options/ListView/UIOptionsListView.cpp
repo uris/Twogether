@@ -3,8 +3,11 @@
 
 #include "Widgets/Options/ListView/UIOptionsListView.h"
 
+#include "CommonUISubsystemBase.h"
+#include "UIFunctionLibrary.h"
 #include "UIOptionsListEntry.h"
 #include "Editor/WidgetCompilerLog.h"
+#include "UI/UISoundFXs.h"
 #include "Widgets/Options/DataObjects/Data_OptionsListEntryMapping.h"
 #include "Widgets/Options/DataObjects/OptionsListItemDataObject_Base.h"
 #include "Widgets/Options/DataObjects/UOptionsListItemCollection_Base.h"
@@ -99,19 +102,22 @@ UUserWidget& UUIOptionsListView::OnGenerateEntryWidgetInternal(UObject* Item,
 
 void UUIOptionsListView::OnSelectionChangedInternal(UObject* FirstSelectedItem)
 {
-	Super::OnSelectionChangedInternal(FirstSelectedItem);
-
 	SelectedDataObject = Cast<UOptionsListItemDataObject_Base>(FirstSelectedItem);
+
+	Super::OnSelectionChangedInternal(FirstSelectedItem);
 }
 
 void UUIOptionsListView::HandleListEntryHovered(UUserWidget& EntryWidget)
 {
+
+	HoveredDataObject = Cast<UUIOptionsListEntry>(&EntryWidget)->GetOwningDataObject();
+	if (HoveredDataObject.Get())
+	{
+		EmitSFX(HoverSFXTagName);
+	}
+
 	Super::HandleListEntryHovered(EntryWidget);
 
-	if (UUIOptionsListEntry* Entry = Cast<UUIOptionsListEntry>(&EntryWidget))
-	{
-		HoveredDataObject = Entry->GetOwningDataObject();
-	}
 }
 
 void UUIOptionsListView::HandleListEntryUnhovered(UUserWidget& EntryWidget)
@@ -131,4 +137,13 @@ void UUIOptionsListView::HandleListEntryUnhovered(UUserWidget& EntryWidget)
 	{
 		HoveredDataObject = nullptr;
 	}
+}
+
+void UUIOptionsListView::EmitSFX(const FGameplayTag SFXTagName) const
+{
+	if (SFXTagName.ToString().IsEmpty())
+	{
+		return;
+	}
+	UUIFunctionLibrary::PlaySoundFX(this, SFXTagName);
 }

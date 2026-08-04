@@ -19,7 +19,7 @@ class TOGETHER_API UWidget_ListEntry_Scalar : public UUIOptionsListEntry
 
 public:
 	UFUNCTION()
-	void HandleOnValueChanged(float InVolume) const;
+	void HandleOnValueChanged(float InValue) const;
 
 	UFUNCTION()
 	void HandleOnMouseCaptureBegin();

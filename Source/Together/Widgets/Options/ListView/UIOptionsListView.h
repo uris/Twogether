@@ -56,6 +56,12 @@ public:
 	UFUNCTION(BlueprintPure)
 	UOptionsListItemDataObject_Base* GetListItemHovered() const;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Custom Properties|SoundSFX")
+	FGameplayTag HoverSFXTagName = FGameplayTag::RequestGameplayTag(FName("UI.SoundFX.List.Hover"));
+
+	UFUNCTION(BlueprintCallable)
+	void EmitSFX(FGameplayTag SFXTagName) const;
+
 #if WITH_EDITOR
 	virtual void ValidateCompiledDefaults(class IWidgetCompilerLog& CompileLog) const override;
 #endif

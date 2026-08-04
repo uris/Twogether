@@ -44,7 +44,7 @@ void UWidget_TabList::NativePreConstruct()
 // *****
 // ** RUN-TIME CREATE TAB
 // *****
-void UWidget_TabList::HandleTabCreation_Implementation(FName TabNameID, UCommonButtonBase* TabButton)
+void UWidget_TabList::HandleTabCreation_Implementation(const FName TabNameID, UCommonButtonBase* TabButton)
 {
 	Super::HandleTabCreation_Implementation(TabNameID, TabButton);
 
@@ -55,6 +55,12 @@ void UWidget_TabList::HandleTabCreation_Implementation(FName TabNameID, UCommonB
 
 	if (UUICommonButtonBase* ButtonToCreate = Cast<UUICommonButtonBase>(TabButton))
 	{
+		// configure button
+		if (ButtonToCreate)
+		{
+			ButtonToCreate->ButtonDescription = FText::FromString("");
+			ButtonToCreate->ButtonDescriptionWorking = FText::FromString("");
+		}
 		// add the tabs buttons to the horizontal slot and configure padding
 		UHorizontalBoxSlot* TabButtonSlot = TabHolder->AddChildToHorizontalBox(ButtonToCreate);
 		if (TabHolder)

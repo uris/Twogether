@@ -130,11 +130,12 @@ void UWidget_ListEntry_Scalar::ApplyEditabilityToControls(const bool bInIsEditab
 	ApplyStyles();
 }
 
-void UWidget_ListEntry_Scalar::HandleOnValueChanged(const float InVolume) const
+void UWidget_ListEntry_Scalar::HandleOnValueChanged(const float InValue) const
 {
 	if (!bUpdatingFromDataObject && IsValid(CachedOwningScalarObject))
 	{
-		CachedOwningScalarObject->SetCurrentValue(InVolume);
+		CachedOwningScalarObject->SetCurrentValue(InValue);
+		EmitSFX(HoverSFXTagName);
 	}
 }
 
