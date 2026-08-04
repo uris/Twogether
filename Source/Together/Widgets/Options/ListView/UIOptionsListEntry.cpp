@@ -6,12 +6,10 @@
 #include "CommonInputSubsystem.h"
 #include "CommonTextBlock.h"
 #include "ListEntryStyle.h"
-#include "Together.h"
 #include "Components/Border.h"
 #include "Components/OverlaySlot.h"
 #include "Components/SizeBox.h"
 #include "Components/VerticalBox.h"
-#include "Utility/Debug.h"
 #include "Widgets/Components/UICommonTextBase.h"
 #include "Widgets/Options/DataObjects/OptionsListItemDataObject_Base.h"
 #include "Widgets/Options/DataObjects/UOptionsListItemCollection_Base.h"
@@ -29,6 +27,7 @@ void UUIOptionsListEntry::NativeOnListItemObjectSet(UObject* ListItemObject)
 
 	bIsHovered = false;
 	bIsSelected = false;
+	HoverBackground();
 
 	CachedListItemObject = ListItemObject;
 
@@ -43,6 +42,8 @@ void UUIOptionsListEntry::NativeOnListItemObjectSet(UObject* ListItemObject)
 void UUIOptionsListEntry::NativeOnEntryReleased()
 {
 
+	UE_LOG(LogTemp, Warning, TEXT("UUIOptionsListEntry Released"));
+
 	if (UOptionsListItemDataObject_Base* PreviousItem =
 		Cast<UOptionsListItemDataObject_Base>(CachedListItemObject))
 	{
@@ -52,6 +53,10 @@ void UUIOptionsListEntry::NativeOnEntryReleased()
 
 	OnEntrySelectionRequested.Clear();
 	CachedListItemObject = nullptr;
+
+	bIsHovered = false;
+	bIsSelected = false;
+	HoverBackground();
 
 	NativeListEntryWidgetHovered(false);
 	NativeListEntryWidgetSelected(false);
@@ -207,7 +212,7 @@ void UUIOptionsListEntry::HoverBackground() const
 {
 	if (bHoverHighlights)
 	{
-		if (const bool bIsActive = (bIsHovered || bIsSelected) && bIsEditable; bIsActive && Background)
+		if (const bool bIsActive = bIsHovered || bIsSelected; bIsActive && Background)
 		{
 			Background->SetBrushColor(BackgroundOn);
 		}

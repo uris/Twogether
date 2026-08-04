@@ -27,12 +27,12 @@ void UWidget_ListEntry_Scalar::NativePreConstruct()
 {
 	Super::NativePreConstruct();
 
-	ApplyStyles();
-
 	if (Slider && IsValid(ListEntryStyle))
 	{
 		Slider->UpdateTextStyles(ListEntryStyle->ValueTextStyle);
 	}
+
+	ApplyStyles();
 }
 
 void UWidget_ListEntry_Scalar::OnOwningListDataObjectSet(UOptionsListItemDataObject_Base* InOwningListDataObject)
@@ -157,27 +157,17 @@ void UWidget_ListEntry_Scalar::ApplyStyles()
 
 	const FListTextStyle EntryStyle = ListEntryStyle->ItemTextStyle;
 
-	// if disabled, set the disabled style
-	if (!bIsEditable)
+	if (SettingDisplayName)
 	{
-		if (SettingDisplayName && EntryStyle.DisabledTextStyle && EntryStyle.HoveredTextStyle)
-		{
-			SettingDisplayName->SetStyle(bIsHovered ? EntryStyle.HoveredTextStyle : EntryStyle.DisabledTextStyle);
-		}
-		return;
-	}
-
-	// otherwise set normal or hovered
-	if ((bIsSelected || bIsHovered) && EntryStyle.HoveredTextStyle)
-	{
-		if (SettingDisplayName)
+		if (bIsSelected || bIsHovered)
 		{
 			SettingDisplayName->SetStyle(EntryStyle.HoveredTextStyle);
 		}
-	}
-	else if (EntryStyle.DefaultTextStyle)
-	{
-		if (SettingDisplayName)
+		else if (!bIsEditable)
+		{
+			SettingDisplayName->SetStyle(EntryStyle.DisabledTextStyle);
+		}
+		else
 		{
 			SettingDisplayName->SetStyle(EntryStyle.DefaultTextStyle);
 		}
@@ -185,6 +175,7 @@ void UWidget_ListEntry_Scalar::ApplyStyles()
 
 	if (Slider)
 	{
-		Slider->UpdateSliderStyle(bIsSelected, bIsHovered);
+		const FListEntryState EntryState = FListEntryState(bIsSelected, bIsHovered, bIsEditable);
+		Slider->UpdateSliderStyle(EntryState);
 	}
 }

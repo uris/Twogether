@@ -4,6 +4,8 @@
 #include "Widgets/Components/UICommonRotator.h"
 
 #include "CommonTextBlock.h"
+#include "Widgets/Options/ListView/ListEntryStyle.h"
+#include "Widgets/Options/ListView/UIOptionsListEntry.h"
 
 void UUICommonRotator::SetSelectedOptionByText(const FText& InTextOption)
 {
@@ -17,11 +19,6 @@ void UUICommonRotator::SetSelectedOptionByText(const FText& InTextOption)
 	}
 }
 
-void UUICommonRotator::SetTextStyle(const TSubclassOf<UCommonTextStyle>& InTextStyle) const
-{
-	MyText->SetStyle(InTextStyle);
-}
-
 int32 UUICommonRotator::GetIndexByTextValue(const FText& InText) const
 {
 	return TextLabels.IndexOfByPredicate(
@@ -29,4 +26,37 @@ int32 UUICommonRotator::GetIndexByTextValue(const FText& InText) const
 		{
 			return Label.EqualTo(InText);
 		});
+}
+
+void UUICommonRotator::UpdateTextStyles(const FListTextStyle& InTextStyles)
+{
+	if (InTextStyles.DefaultTextStyle)
+	{
+		DefaultTextStyle = InTextStyles.DefaultTextStyle;
+	}
+	if (InTextStyles.HoveredTextStyle)
+	{
+		HoveredTextStyle = InTextStyles.HoveredTextStyle;
+		SelectedTextStyle = InTextStyles.HoveredTextStyle;
+	}
+	if (InTextStyles.DisabledTextStyle)
+	{
+		DisabledTextStyle = InTextStyles.DisabledTextStyle;
+	}
+}
+
+void UUICommonRotator::SetTextStyle(const FListEntryState EntryState) const
+{
+	if (!EntryState.bEditable)
+	{
+		MyText->SetStyle(DisabledTextStyle);
+	}
+	else if (EntryState.IsActive())
+	{
+		MyText->SetStyle(HoveredTextStyle);
+	}
+	else
+	{
+		MyText->SetStyle(DefaultTextStyle);
+	}
 }

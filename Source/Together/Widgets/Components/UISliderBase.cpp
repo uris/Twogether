@@ -6,6 +6,7 @@
 #include "Components/Image.h"
 #include "Components/SizeBox.h"
 #include "Widgets/Options/ListView/ListEntryStyle.h"
+#include "Widgets/Options/ListView/UIOptionsListEntry.h"
 
 void UUISliderBase::NativePreConstruct()
 {
@@ -69,7 +70,7 @@ void UUISliderBase::NativePreConstruct()
 		SliderSizeBox->SetMinDesiredHeight(FMath::Max(SliderHitAreaHeight, HandleSize));
 	}
 
-	UpdateSliderStyle(false, false);
+	UpdateSliderStyle(FListEntryState(false, false, GetIsEnabled()));
 }
 
 void UUISliderBase::NativeConstruct()
@@ -81,7 +82,7 @@ void UUISliderBase::NativeConstruct()
 		Slider->OnValueChanged.AddUniqueDynamic(this, &ThisClass::HandleSliderValueChanged);
 	}
 
-	UpdateSliderStyle(false, false);
+	UpdateSliderStyle(FListEntryState(false, false, GetIsEnabled()));
 	ApplyProgress();
 }
 
@@ -150,24 +151,24 @@ void UUISliderBase::HandleSliderValueChanged(const float) const
 	ApplyProgress();
 }
 
-void UUISliderBase::UpdateSliderStyle(const bool bIsSelected, const bool bIsHovered) const
+void UUISliderBase::UpdateSliderStyle(const FListEntryState EntryState) const
 {
 	FLinearColor CurrentBarColor = BarColor;
 	FLinearColor CurrentHandleColor = HandleColor;
-	TSubclassOf<UCommonTextStyle> CurrentValueTextStyle = ValueDefaultTextStyle;
+	TSubclassOf<UCommonTextStyle> CurrentValueTextStyle;
 
 	if (!GetIsEnabled() && SliderValue && ValueDisabledTextStyle)
 	{
 		CurrentValueTextStyle = ValueDisabledTextStyle;
 	}
 
-	else if (bIsSelected)
+	else if (EntryState.bSelected)
 	{
 		CurrentBarColor = BarColorSelected;
 		CurrentHandleColor = HandleColorSelected;
 		CurrentValueTextStyle = ValueSelectedTextStyle ? ValueSelectedTextStyle : ValueDefaultTextStyle;
 	}
-	else if (bIsHovered)
+	else if (EntryState.bHovered)
 	{
 		CurrentBarColor = BarColorHovered;
 		CurrentHandleColor = HandleColorHovered;

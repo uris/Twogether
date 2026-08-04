@@ -1,13 +1,9 @@
 // Uris - All Rights Reserved
 
-
 #include "Widgets/Options/ListView/Widget_ListEntry_String.h"
 
 #include "CommonInputSubsystem.h"
 #include "ListEntryStyle.h"
-#include "Components/OverlaySlot.h"
-#include "Components/VerticalBox.h"
-#include "Utility/Debug.h"
 #include "Widgets/Components/UICommonButtonBase.h"
 #include "Widgets/Components/UICommonRotator.h"
 #include "Widgets/Options/DataObjects/ListItemDataObject_String.h"
@@ -41,6 +37,11 @@ void UWidget_ListEntry_String::NativePreConstruct()
 {
 	Super::NativePreConstruct();
 
+	if (SettingRotator && IsValid(ListEntryStyle))
+	{
+		SettingRotator->UpdateTextStyles(ListEntryStyle->ValueTextStyle);
+	}
+
 	ApplyStyles();
 }
 
@@ -59,6 +60,7 @@ void UWidget_ListEntry_String::NativeDestruct()
 void UWidget_ListEntry_String::NativeOnStateChange(const EStateChangeType StateChangeType, const bool bStateValue)
 {
 	Super::NativeOnStateChange(StateChangeType, bStateValue);
+
 	ApplyButtonStyles();
 }
 
@@ -207,39 +209,27 @@ void UWidget_ListEntry_String::ApplyStyles()
 	}
 
 	const FListTextStyle ItemEntryStyle = ListEntryStyle->ItemTextStyle;
-	const FListTextStyle ValueEntryStyle = ListEntryStyle->ValueTextStyle;
 
-	if (!bIsEditable)
+	if (SettingDisplayName)
 	{
-		if (SettingDisplayName && ItemEntryStyle.DisabledTextStyle && ItemEntryStyle.HoveredTextStyle)
-		{
-			SettingDisplayName->SetStyle(
-				bIsHovered ? ItemEntryStyle.HoveredTextStyle : ItemEntryStyle.DisabledTextStyle);
-		}
-		return;
-	}
-
-	if ((bIsSelected || bIsHovered))
-	{
-		if (SettingDisplayName && ItemEntryStyle.HoveredTextStyle)
+		if (bIsSelected || bIsHovered)
 		{
 			SettingDisplayName->SetStyle(ItemEntryStyle.HoveredTextStyle);
 		}
-		if (SettingRotator && ValueEntryStyle.HoveredTextStyle)
+		else if (!bIsEditable)
 		{
-			SettingRotator->SetTextStyle(ValueEntryStyle.HoveredTextStyle);
+			SettingDisplayName->SetStyle(ItemEntryStyle.DisabledTextStyle);
 		}
-	}
-	else
-	{
-		if (SettingDisplayName && ItemEntryStyle.DefaultTextStyle)
+		else
 		{
 			SettingDisplayName->SetStyle(ItemEntryStyle.DefaultTextStyle);
 		}
-		if (SettingRotator && ValueEntryStyle.DefaultTextStyle)
-		{
-			SettingRotator->SetTextStyle(ValueEntryStyle.DefaultTextStyle);
-		}
+	}
+
+	if (SettingRotator)
+	{
+		const FListEntryState EntryState = FListEntryState(bIsSelected, bIsHovered, bIsEditable);
+		SettingRotator->SetTextStyle(EntryState);
 	}
 }
 

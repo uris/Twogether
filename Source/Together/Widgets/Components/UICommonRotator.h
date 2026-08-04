@@ -6,6 +6,8 @@
 #include "CommonRotator.h"
 #include "UICommonRotator.generated.h"
 
+struct FListEntryState;
+struct FListTextStyle;
 class UUICommonButtonBase;
 /**
  *
@@ -16,9 +18,33 @@ class TOGETHER_API UUICommonRotator : public UCommonRotator
 	GENERATED_BODY()
 
 public:
-	void SetSelectedOptionByText(const FText& InTextOption);
+	UPROPERTY(EditAnywhere,
+		BlueprintReadWrite,
+		Category = "Custom Properties|Text Styles")
+	TSubclassOf<UCommonTextStyle> DefaultTextStyle;
 
-	void SetTextStyle(const TSubclassOf<UCommonTextStyle>& InTextStyle) const;
+	UPROPERTY(EditAnywhere,
+		BlueprintReadWrite,
+		Category = "Custom Properties|Text Styles")
+	TSubclassOf<UCommonTextStyle> HoveredTextStyle;
+
+	UPROPERTY(EditAnywhere,
+		BlueprintReadWrite,
+		Category = "Custom Properties|Text Styles")
+	TSubclassOf<UCommonTextStyle> SelectedTextStyle;
+
+	UPROPERTY(EditAnywhere,
+		BlueprintReadWrite,
+		Category = "Custom Properties|Text Styles")
+	TSubclassOf<UCommonTextStyle> DisabledTextStyle;
+
+	UFUNCTION(BlueprintCallable)
+	void UpdateTextStyles(const FListTextStyle& InTextStyles);
+
+	UFUNCTION(BlueprintCallable)
+	void SetTextStyle(FListEntryState EntryState) const;
+
+	void SetSelectedOptionByText(const FText& InTextOption);
 
 private:
 	int32 GetIndexByTextValue(const FText& InText) const;

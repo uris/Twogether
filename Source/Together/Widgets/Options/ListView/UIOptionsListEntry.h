@@ -25,6 +25,31 @@ enum class EStateChangeType : uint8
 	Selected UMETA(DisplayName="Selected"),
 };
 
+USTRUCT(BlueprintType)
+struct FListEntryState
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	bool bSelected = false;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	bool bHovered = false;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	bool bEditable = true;
+
+	bool IsActive() const
+	{
+		return bHovered || bSelected;
+	}
+
+	FListEntryState() = default;
+
+	FListEntryState(const bool bInSelected, const bool bInHovered, const bool bInEditable) :
+		bSelected(bInSelected), bHovered(bInHovered), bEditable(bInEditable) {};
+};
+
 /**
  *
  */

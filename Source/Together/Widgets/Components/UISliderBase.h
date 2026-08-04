@@ -8,6 +8,7 @@
 #include "Blueprint/UserWidget.h"
 #include "UISliderBase.generated.h"
 
+struct FListEntryState;
 struct FListTextStyle;
 class USizeBox;
 class UImage;
@@ -108,7 +109,7 @@ public:
 	TObjectPtr<USizeBox> SliderValueSizeBox;
 
 	UFUNCTION(BlueprintCallable)
-	void UpdateSliderStyle(bool bIsSelected, bool bIsHovered) const;
+	void UpdateSliderStyle(FListEntryState EntryState) const;
 
 	UFUNCTION(BlueprintCallable)
 	void UpdateTextStyles(const FListTextStyle& InTextStyles);
