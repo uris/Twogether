@@ -9,7 +9,7 @@
 #include "Engine/Engine.h"
 #include "Engine/GameInstance.h"
 #include "Kismet/KismetSystemLibrary.h"
-#include "Settings/TogetherSettings.h"
+#include "Settings/DeveloperSettings/TogetherSettings.h"
 #include "Utility/Debug.h"
 #include "Widgets/Base/Widget_ActivatableBase.h"
 #include "Widgets/CommonActivatableWidgetContainer.h"

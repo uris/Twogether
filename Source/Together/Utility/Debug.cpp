@@ -1,7 +1,7 @@
 #include "Debug.h"
 
 #include "Engine/Engine.h"
-#include "Settings/TogetherSettings.h"
+#include "Settings/DeveloperSettings/TogetherSettings.h"
 
 void Debug::Print(
 	const FString& Message,

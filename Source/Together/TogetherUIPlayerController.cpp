@@ -6,7 +6,7 @@
 #include "Camera/CameraActor.h"
 #include "GameFramework/GameUserSettings.h"
 #include "Kismet/GameplayStatics.h"
-#include "Settings/UserSettings.h"
+#include "Settings/UserSettings/UserSettings.h"
 
 void ATogetherUIPlayerController::OnPossess(APawn* InPawn)
 {

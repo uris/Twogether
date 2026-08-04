@@ -13,7 +13,7 @@
 #include "Input/CommonUIInputTypes.h"
 #include "ListView/UIOptionsListEntry.h"
 #include "ListView/UIOptionsListView.h"
-#include "Settings/UserSettings.h"
+#include "Settings/UserSettings/UserSettings.h"
 #include "Subsystems/UI/UISubsystem.h"
 #include "Utility/Debug.h"
 #include "Widgets/Components/UICommonListViewSessionsBase.h"

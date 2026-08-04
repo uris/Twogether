@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "UserSettingTypes.h"
+#include "../UserSettingTypes/UserSettingTypes.h"
 #include "Kismet/BlueprintFunctionLibrary.h"
 
 #include "NativeSettingsHelper.generated.h"

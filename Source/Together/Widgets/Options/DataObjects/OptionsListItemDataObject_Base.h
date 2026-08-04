@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Settings/UserSettingTypes.h"
+#include "Settings/UserSettings/UserSettingTypes/UserSettingTypes.h"
 #include "UObject/Object.h"
 #include "UObject/SoftObjectPtr.h"
 #include "OptionsListItemDataObject_Base.generated.h"

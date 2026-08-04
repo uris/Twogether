@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Settings/UserSettingTypes.h"
+#include "Settings/UserSettings/UserSettingTypes/UserSettingTypes.h"
 #include "Widgets/Options/DataObjects/ListItemDataObject_Value.h"
 #include "ListItemDataObject_String.generated.h"
 

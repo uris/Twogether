@@ -4,9 +4,9 @@
 
 #include "CommonNumericTextBlock.h"
 #include "CoreMinimal.h"
+#include "SettingsEnums.h"
 #include "SettingsDependancy.h"
 #include "SettingsEditCondition.h"
-#include "UserSettingApplyMode.h"
 #include "Blueprint/UserWidget.h"
 #include "Engine/DataTable.h"
 
@@ -76,51 +76,6 @@ struct FDynamicWidget
 	FDynamicWidget() = default;
 
 	explicit FDynamicWidget(const TSubclassOf<UUserWidget>& InWidgetClass) : WidgetClass(InWidgetClass) {}
-};
-
-UENUM(BlueprintType)
-enum class ENativeUnrealSettings : uint8
-{
-	WindowMode = 0 UMETA(DisplayName = "Window Mode"),
-	ScreenResolution = 1 UMETA(DisplayName = "Screen Resolution"),
-	DisplayGamma = 2 UMETA(DisplayName = "Screen Gamma (Brightness)"),
-	OverallScalabilityLevel = 3 UMETA(DisplayName = "Overall Quality"),
-	ResolutionScaleNormalized = 4 UMETA(DisplayName = "3D Resolution Scale"),
-	GlobalIlluminationQuality = 5 UMETA(DisplayName = "Global Illumination Quality"),
-	ShadowQuality = 6 UMETA(DisplayName = "Shadow Quality"),
-	AntiAliasingQuality = 7 UMETA(DisplayName = "AntiAliasing Quality"),
-	ViewDistanceQuality = 8 UMETA(DisplayName = "View Distance Quality"),
-	TextureQuality = 9 UMETA(DisplayName = "Texture Quality"),
-	VisualEffectsQuality = 10 UMETA(DisplayName = "Visual Effects Quality"),
-	PostProcessingQuality = 11 UMETA(DisplayName = "Post Processing Quality"),
-	ReflectionQuality = 12 UMETA(DisplayName = "Reflection Quality"),
-	FrameRateLimit = 13 UMETA(DisplayName = "Frame Rate Limit"),
-	VerticalSync = 14 UMETA(DisplayName = "Vertical Sync"),
-};
-
-UENUM(BlueprintType)
-enum class EUserSettingValueType : uint8
-{
-	String = 0 UMETA(DisplayName = "String (single word value)"),
-	Bool = 1 UMETA(DisplayName = "Bool (on/off, true/false, etc.)"),
-	Scalar = 2 UMETA(DisplayName = "Scalar (floats, ints, with a range)"),
-	Enum = 3 UMETA(DisplayName = "Enum (structured string lists values)"),
-};
-
-UENUM(BlueprintType)
-enum class EUserSettingTab : uint8
-{
-	Gameplay = 0 UMETA(DisplayName = "Gameplay"),
-	Audio = 1 UMETA(DisplayName = "Audio"),
-	Video = 2 UMETA(DisplayName = "Video"),
-	Input = 3 UMETA(DisplayName = "Input"),
-};
-
-UENUM(BlueprintType)
-enum class EIntEnumType : uint8
-{
-	EnteredValueList = 0 UMETA(DisplayName = "Entered Value List"),
-	WindowMode = 1 UMETA(DisplayName = "WindowMode"),
 };
 
 USTRUCT(BlueprintType)

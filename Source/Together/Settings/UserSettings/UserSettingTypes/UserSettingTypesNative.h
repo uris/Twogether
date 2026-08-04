@@ -3,10 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Settings/UserSettingTypes.h"
-
-// keep as last include
-#include "UserSettingTypesNative.generated.h"
+#include "SettingsEnums.h"
 
 namespace NativeSettingIds
 {
@@ -67,30 +64,3 @@ inline FName GetNativeSettingId(const ENativeUnrealSettings NativeSetting)
 	}
 }
 
-UENUM(BlueprintType)
-enum class ENormalizedGraphicsQuality : uint8
-{
-	Low = 0 UMETA(DisplayName = "Low"),
-	Medium = 1 UMETA(DisplayName = "Medium"),
-	High = 2 UMETA(DisplayName = "High"),
-	Epic = 3 UMETA(DisplayName = "Epic"),
-	Cinematic = 4 UMETA(DisplayName = "Cinematic"),
-};
-
-UENUM(BlueprintType)
-enum class EViewDistanceQuality : uint8
-{
-	Low = 0 UMETA(DisplayName = "Near"),
-	Medium = 1 UMETA(DisplayName = "Medium"),
-	High = 2 UMETA(DisplayName = "Far"),
-	Epic = 3 UMETA(DisplayName = "Very Far"),
-	Cinematic = 4 UMETA(DisplayName = "Cinematic"),
-};
-
-UENUM(BlueprintType)
-enum class ENormalizedWindowMode : uint8
-{
-	Fullscreen = 0 UMETA(DisplayName = "Fullscreen"),
-	WindowedFullscreen = 1 UMETA(DisplayName = "Fullscreen Window"),
-	Windowed = 2 UMETA(DisplayName = "Window"),
-};

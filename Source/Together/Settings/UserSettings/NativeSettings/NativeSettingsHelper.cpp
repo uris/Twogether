@@ -3,11 +3,11 @@
 #include "NativeSettingsHelper.h"
 
 #include "UIFunctionLibrary.h"
-#include "UserSettingTypesNative.h"
+#include "../UserSettingTypes/UserSettingTypesNative.h"
 #include "Engine/Engine.h"
 #include "Kismet/KismetSystemLibrary.h"
-#include "Settings/UserSettingTypes.h"
-#include "Settings/UserSettings.h"
+#include "Settings/UserSettings/UserSettingTypes/UserSettingTypes.h"
+#include "Settings/UserSettings/UserSettings.h"
 #include "GameFramework/GameUserSettings.h"
 #include "Misc/ConfigCacheIni.h"
 

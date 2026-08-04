@@ -6,7 +6,7 @@
 #include "GameplayTagsManager.h"
 #include "VisualizeTexture.h"
 #include "Engine/Engine.h"
-#include "Settings/TogetherSettings.h"
+#include "Settings/DeveloperSettings/TogetherSettings.h"
 #include "Engine/GameInstance.h"
 #include "Kismet/GameplayStatics.h"
 #include "UI/UIIconSet.h"

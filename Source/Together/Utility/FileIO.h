@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Misc/Paths.h"
-#include "Settings/TogetherSettings.h"
+#include "Settings/DeveloperSettings/TogetherSettings.h"
 
 class TOGETHER_API FFileIO
 {

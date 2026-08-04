@@ -3,8 +3,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "SettingsDependancy.h"
-#include "SettingsEditCondition.h"
+#include "../UserSettingTypes/SettingsDependancy.h"
+#include "../UserSettingTypes/SettingsEditCondition.h"
 
 class TOGETHER_API FSettingsDataUtility
 {

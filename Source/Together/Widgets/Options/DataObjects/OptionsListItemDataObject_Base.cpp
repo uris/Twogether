@@ -3,10 +3,10 @@
 #include "OptionsListItemDataObject_Base.h"
 
 #include "UIFunctionLibrary.h"
-#include "Settings/NativeSettingsHelper.h"
-#include "Settings/SettingsDataUtility.h"
-#include "Settings/UserSettingTypes.h"
-#include "Settings/UserSettings.h"
+#include "Settings/UserSettings/NativeSettings/NativeSettingsHelper.h"
+#include "Settings/UserSettings/Utils/SettingsDataUtility.h"
+#include "Settings/UserSettings/UserSettingTypes/UserSettingTypes.h"
+#include "Settings/UserSettings/UserSettings.h"
 
 void UOptionsListItemDataObject_Base::InitDataObject()
 {

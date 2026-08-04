@@ -3,13 +3,13 @@
 
 #include "UserSettings.h"
 
-#include "UserSettingTypesNative.h"
+#include "UserSettingTypes/UserSettingTypesNative.h"
 #include "Engine/DataTable.h"
 #include "Engine/Engine.h"
-#include "Settings/TogetherSettings.h"
-#include "Settings/UserSettingTypes.h"
+#include "Settings/DeveloperSettings/TogetherSettings.h"
+#include "Settings/UserSettings/UserSettingTypes/UserSettingTypes.h"
 
-#include "NativeSettingsHelper.h"
+#include "NativeSettings/NativeSettingsHelper.h"
 #include "UIFunctionLibrary.h"
 
 void UUserSettings::LoadSettings(const bool bForceReload)

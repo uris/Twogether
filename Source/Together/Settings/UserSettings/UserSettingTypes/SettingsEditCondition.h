@@ -3,25 +3,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "SettingsEnums.h"
 #include "SettingsEditCondition.generated.h"
-
-UENUM()
-enum class EEditConditionOperator : uint8
-{
-	Equals = 0 UMETA(DisplayName = "Equals"),
-	NotEquals = 1 UMETA(DisplayName = "Not Equals"),
-	GreaterThan = 2 UMETA(DisplayName = "Greater Than"),
-	LessThan = 3 UMETA(DisplayName = "Less Than"),
-	Contains = 4 UMETA(DisplayName = "Contains"),
-};
-
-// Match All = logical AND
-UENUM()
-enum class EEditConditionGroupOperator : uint8
-{
-	MatchAll = 0 UMETA(DisplayName = "Match All"),
-	MatchAny = 1 UMETA(DisplayName = "Match Any"),
-};
 
 // each condition
 USTRUCT(BlueprintType)

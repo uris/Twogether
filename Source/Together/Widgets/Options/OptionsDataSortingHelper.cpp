@@ -2,7 +2,7 @@
 
 #include "OptionsDataSortingHelper.h"
 
-#include "Settings/UserSettingTypes.h"
+#include "Settings/UserSettings/UserSettingTypes/UserSettingTypes.h"
 
 namespace
 {

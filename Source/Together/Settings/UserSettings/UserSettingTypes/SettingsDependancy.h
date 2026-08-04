@@ -3,28 +3,9 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "UserSettingApplyMode.h"
+#include "SettingsEnums.h"
 
 #include "SettingsDependancy.generated.h"
-
-UENUM()
-enum class EDependencyResult : uint8
-{
-	SetToValue = 0 UMETA(DisplayName = "Set an entered value"),
-	SetToMatchThis = 1 UMETA(DisplayName = "Match value of dependant setting"),
-	SetToMatchOther = 3 UMETA(DisplayName = "Match value of other setting"),
-};
-
-UENUM()
-enum class EDependencyOperator : uint8
-{
-	None = 0 UMETA(DisplayName = "None"), // any change should drive the result
-	Equals = 1 UMETA(DisplayName = "Equals"),
-	NotEquals = 2 UMETA(DisplayName = "Not Equals"),
-	GreaterThan = 3 UMETA(DisplayName = "Greater Than"),
-	LessThan = 4 UMETA(DisplayName = "Less Than"),
-	Contains = 5 UMETA(DisplayName = "Contains"),
-};
 
 // each condition
 USTRUCT(BlueprintType)

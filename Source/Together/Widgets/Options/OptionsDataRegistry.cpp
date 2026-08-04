@@ -9,12 +9,12 @@
 #include "DataObjects/ListItemDataObject_IntEnum.h"
 #include "DataObjects/ListItemDataObject_String.h"
 #include "DataObjects/ListItemDataObject_Scalar.h"
-#include "Settings/NativeSettingsHelper.h"
+#include "Settings/UserSettings/NativeSettings/NativeSettingsHelper.h"
 #include "DataObjects/UOptionsListItemCollection_Base.h"
 #include "Engine/DataTable.h"
-#include "Settings/TogetherSettings.h"
-#include "Settings/UserSettingTypes.h"
-#include "Settings/UserSettingTypesNative.h"
+#include "Settings/DeveloperSettings/TogetherSettings.h"
+#include "Settings/UserSettings/UserSettingTypes/UserSettingTypes.h"
+#include "Settings/UserSettings/UserSettingTypes/UserSettingTypesNative.h"
 
 namespace
 {

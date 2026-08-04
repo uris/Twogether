@@ -11,7 +11,7 @@
 #include "Engine/GameInstance.h"
 #include "Kismet/GameplayStatics.h"
 #include "Misc/App.h"
-#include "Settings/TogetherSettings.h"
+#include "Settings/DeveloperSettings/TogetherSettings.h"
 #include "TimerManager.h"
 #include "Utility/AutoGen.h"
 

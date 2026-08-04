@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "DataObjects/ListItemDataObject_IntEnum.h"
-#include "Settings/UserSettingTypes.h"
+#include "Settings/UserSettings/UserSettingTypes/UserSettingTypes.h"
 #include "UObject/Object.h"
 #include "OptionsDataRegistry.generated.h"
 

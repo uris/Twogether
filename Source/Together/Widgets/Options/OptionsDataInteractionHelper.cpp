@@ -1,6 +1,6 @@
 #include "OptionsDataInteractionHelper.h"
 
-#include "Settings/UserSettings.h"
+#include "Settings/UserSettings/UserSettings.h"
 
 FOptionsDataInteractionHelper::FOptionsDataInteractionHelper(
 	const FName InSettingId,

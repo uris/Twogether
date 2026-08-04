@@ -4,16 +4,9 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/GameUserSettings.h"
-#include "Settings/UserSettingTypes.h"
+#include "Settings/UserSettings/UserSettingTypes/SettingsEnums.h"
+#include "Settings/UserSettings/UserSettingTypes/UserSettingTypes.h"
 #include "UserSettings.generated.h"
-
-UENUM(BlueprintType)
-enum class EUserSettingsApplyScope : uint8
-{
-	All = 0 UMETA(DisplayName = "All"),
-	Resolution = 1 UMETA(DisplayName = "Resolution"),
-	NonResolution = 2 UMETA(DisplayName = "Non-Resolution"),
-};
 
 USTRUCT(BlueprintType)
 struct FUserSettingChange
